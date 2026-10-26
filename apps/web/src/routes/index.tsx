@@ -1,18 +1,13 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute('/')({
   component: Home,
 })
 
 function Home() {
-  const router = useRouter();
-  const state = Route.useLoaderData();
-
   return (
-    <button
-      type="button"
-    >
-      Add 1 to {state}?
-    </button>
+    <h1>
+      StackFolio 2
+    </h1>
   )
 }
