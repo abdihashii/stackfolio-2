@@ -2,6 +2,10 @@
   "name": "web",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build"
+  },
   "private": true,
   "dependencies": {
     "@tanstack/react-router": "^1.170.46",
