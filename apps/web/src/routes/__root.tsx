@@ -1,10 +1,5 @@
+import { Outlet, createRootRoute, HeadContent, Scripts } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
-import {
-  Outlet,
-  createRootRoute,
-  HeadContent,
-  Scripts,
-} from '@tanstack/react-router';
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
@@ -17,7 +12,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <Scripts />
       </body>
     </html>
-  )
+  );
 }
 
 function RootComponent() {
@@ -25,7 +20,7 @@ function RootComponent() {
     <RootDocument>
       <Outlet />
     </RootDocument>
-  )
+  );
 }
 
 export const Route = createRootRoute({
@@ -33,8 +28,8 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'StackFolio 2' }
+      { title: 'StackFolio 2' },
     ],
   }),
   component: RootComponent,
-})
+});

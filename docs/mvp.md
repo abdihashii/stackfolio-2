@@ -2,26 +2,26 @@
 
 ## Core Product
 
-**The question:** *What’s my stack worth today, and am I up or down?*
+**The question:** _What’s my stack worth today, and am I up or down?_
 
-**Guiding principle:** *Open StackFolio. Know your stack. Know your gains.*
+**Guiding principle:** _Open StackFolio. Know your stack. Know your gains._
 
 **Product positioning:** Track your precious metals in one place. See their estimated liquidation value, what you’ve invested, and how much you’re up or down.
 
 ## Core Capabilities
 
-| **Capability** | **Purpose** |
-|---|---|
-| Add | Record what I own and what I paid |
-| Value | See what my stack is worth today and over time |
-| Returns | See how much I’ve gained or lost |
+| **Capability** | **Purpose**                                    |
+| -------------- | ---------------------------------------------- |
+| Add            | Record what I own and what I paid              |
+| Value          | See what my stack is worth today and over time |
+| Returns        | See how much I’ve gained or lost               |
 
 ## MVP Scope
 
 **Included**
 
 - Common gold and silver bullion from a predefined catalog
-- Manually entered gold and silver jewelry 
+- Manually entered gold and silver jewelry
 - Live precious-metal prices
 - Estimated liquidation values
 - Current and historical portfolio values
@@ -41,16 +41,16 @@
 
 Each holding captures:
 
-| **Field** | **Requirement** |
-|---|---|
-| Metal | Required |
-| Holding type | Required |
-| Catalog product | Required for bullion |
-| Weight | Required |
-| Purity | Required |
-| Quantity | Required |
-| Acquisition date | Optional |
-| Total acquisition cost | Optional |
+| **Field**              | **Requirement**      |
+| ---------------------- | -------------------- |
+| Metal                  | Required             |
+| Holding type           | Required             |
+| Catalog product        | Required for bullion |
+| Weight                 | Required             |
+| Purity                 | Required             |
+| Quantity               | Required             |
+| Acquisition date       | Optional             |
+| Total acquisition cost | Optional             |
 
 For bullion, the catalog can automatically supply standard weight and purity.
 
@@ -62,10 +62,10 @@ For jewelry, users enter the precious-metal weight themselves, excluding gemston
 
 **Stack Value = Estimated Liquidation Value**
 
-| **Holding type** | **Valuation method** |
-|---|---|
-| Bullion | Published dealer buyback prices |
-| Jewelry | Estimated scrap-metal payout based on weight and purity |
+| **Holding type** | **Valuation method**                                    |
+| ---------------- | ------------------------------------------------------- |
+| Bullion          | Published dealer buyback prices                         |
+| Jewelry          | Estimated scrap-metal payout based on weight and purity |
 
 Valuations are estimates, not guaranteed selling prices.
 
@@ -73,12 +73,12 @@ Unknown cost doesn’t prevent a holding from contributing to Stack Value.
 
 ## Historical Tracking and Returns
 
-| **Metric** | **Needs acquisition cost?** |
-|---|---|
-| Current Stack Value | No |
-| Historical Stack Value | No |
-| Current Returns | Yes |
-| Historical Returns | Yes |
+| **Metric**             | **Needs acquisition cost?** |
+| ---------------------- | --------------------------- |
+| Current Stack Value    | No                          |
+| Historical Stack Value | No                          |
+| Current Returns        | Yes                         |
+| Historical Returns     | Yes                         |
 
 **Rules:**
 

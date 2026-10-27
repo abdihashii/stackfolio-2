@@ -1,7 +1,10 @@
 {
   "name": "stackfolio-2",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
