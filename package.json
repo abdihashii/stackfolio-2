@@ -4,10 +4,13 @@
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "lint": "oxlint",
-    "lint:fix": "oxlint --fix"
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "oxfmt": "^0.74.0",
     "oxlint": "^1.89.0"
   },
   "peerDependencies": {
