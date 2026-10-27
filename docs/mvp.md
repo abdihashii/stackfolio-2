@@ -1,139 +1,108 @@
-# StackFolio 2 MVP
+# StackFolio 2: Staged Product Scope
 
-## Core Product
+## Long-Term Stages
 
-**The question:** _What’s my stack worth today, and am I up or down?_
+1. **Current Stack Value:** Add holdings and see their current metal value at spot prices.
+2. **Historical Stack Value:** Track stack value over time. History start dates and handling changes to holdings will be defined in this stage.
+3. **Graphs:** Visualize stack value history.
+4. **TBD.**
 
-**Guiding principle:** _Open StackFolio. Know your stack. Know your gains._
+## Stage 1: Current Stack Value
 
-**Product positioning:** Track your precious metals in one place. See their estimated liquidation value, what you’ve invested, and how much you’re up or down.
+**The question:** _What's my precious metal stack worth right now?_
 
-## Core Capabilities
+**Stack Value** is the current metal value at spot prices. It is not Liquidation Value or necessarily what someone could sell the stack for.
 
-| **Capability** | **Purpose**                                    |
-| -------------- | ---------------------------------------------- |
-| Add            | Record what I own and what I paid              |
-| Value          | See what my stack is worth today and over time |
-| Returns        | See how much I’ve gained or lost               |
+### Three Capabilities
 
-## MVP Scope
+| Capability | Purpose                                       |
+| ---------- | --------------------------------------------- |
+| Add        | Record metal, weight, purity, and quantity    |
+| Value      | Calculate current spot-based metal value      |
+| View       | See total Stack Value and individual holdings |
 
-**Included**
+### Holding Entry
 
-- Common gold and silver bullion from a predefined catalog
-- Manually entered gold and silver jewelry
-- Live precious-metal prices
-- Estimated liquidation values
-- Current and historical portfolio values
-- Current and historical unrealized returns
-- Optional acquisition date and cost
+Use one manual add flow for gold and silver holdings. No product catalog is required.
 
-**Excluded**
+| Field           | Requirement                                                                             |
+| --------------- | --------------------------------------------------------------------------------------- |
+| Metal           | Required: gold or silver                                                                |
+| Weight per item | Required: positive metal-bearing weight, excluding stones and other non-metal materials |
+| Weight unit     | Required: grams or troy ounces                                                          |
+| Purity          | Required: select from predefined options for the metal                                  |
+| Quantity        | Required: positive whole number; defaults to 1                                          |
+| Holding type    | Optional: select from predefined options                                                |
 
+Weight is the metal alloy's weight before adjusting for purity. Purity is applied once to calculate fine-metal content. Items with different weights or purities belong in separate entries.
+
+Holding type is descriptive and does not change the valuation formula.
+
+**Add flow:** Select metal → enter per-item weight and unit → select purity → enter quantity → optionally select holding type → save.
+
+Show total weight automatically as weight per item × quantity. Users do not enter it separately.
+
+**Example: eight quarter-ounce gold rounds**
+
+- Weight per item: 0.25 troy oz
+- Quantity: 8
+- Total weight: 2 troy oz, calculated automatically
+- Fine-metal weight: 2 troy oz × selected purity
+
+For a single piece of jewelry, quantity is 1.
+
+### Valuation
+
+```text
+Total Weight = Weight per Item × Quantity
+Fine-Metal Weight = Total Weight × Purity
+Holding Value = Weight per Item × Purity × Quantity × Spot Price
+Stack Value = sum of all Holding Values
+```
+
+Purity is a fraction in the calculation, for example 75% = 0.75.
+
+Weight and spot price must use consistent units. One troy ounce equals 31.1034768 grams. Convert weights or the price unit before calculating value; never treat a troy ounce as an ordinary ounce.
+
+Use the latest available spot price for each metal and show the price timestamp. Explain Stack Value in the interface as **“Metal value calculated from weight, purity, quantity, and current spot prices.”**
+
+If a metal's price is unavailable, show affected holding values as unavailable, not zero. Do not present a partial sum as the total Stack Value.
+
+### View
+
+- Total Stack Value, with the calculation explained
+- Individual holdings with metal, per-item weight and unit, purity, quantity, calculated total weight, and current value
+- Holding type when supplied
+- Timestamps for the spot prices used
+- An invitation to add a holding when the stack is empty
+
+### Outside Stage 1
+
+- Acquisition costs and dates
+- Profit/loss and returns
+- Historical tracking, snapshots, and historical reconstruction
+- Graphs
+- Liquidation estimates, dealer buyback prices, and scrap-payout assumptions
+- Product catalogs and product-specific premiums
 - Selling and partial-sale workflows
-- Rare and collectible coin valuations
-- Jewelry brand, craftsmanship, and gemstone valuations
-- User-defined jewelry premiums
-- Historical reconstruction before holdings were added
-- Platinum and copper support
+- Gemstone, craftsmanship, brand, and collectible valuations
 
-## Data Model
+Historical Stack Value belongs to stage 2 and graphs to stage 3. Other excluded features are not committed to a future stage.
 
-Each holding captures:
+### Acceptance Criteria
 
-| **Field**              | **Requirement**      |
-| ---------------------- | -------------------- |
-| Metal                  | Required             |
-| Holding type           | Required             |
-| Catalog product        | Required for bullion |
-| Weight                 | Required             |
-| Purity                 | Required             |
-| Quantity               | Required             |
-| Acquisition date       | Optional             |
-| Total acquisition cost | Optional             |
+- [ ] Save a holding using metal, per-item weight, unit, predefined purity, and quantity, with or without a holding type.
+- [ ] Enter 0.25 troy oz and quantity 8; see a calculated total weight of 2 troy oz.
+- [ ] Enter one piece of jewelry with quantity 1; value it using the same formula.
+- [ ] Equivalent weights entered in grams and troy ounces produce equivalent values for the same purity and price and are normalized to consistent weights.
+- [ ] Each holding's value matches its fine-metal weight multiplied by the matching spot price.
+- [ ] Total Stack Value equals the sum of individual holding values when all required prices are available.
+- [ ] Missing prices are shown explicitly without displaying a misleading full-stack total.
+- [ ] No cost, date, return, or history inputs are required or displayed.
 
-For bullion, the catalog can automatically supply standard weight and purity.
+### Decisions Still Open for Stage 1
 
-For jewelry, users enter the precious-metal weight themselves, excluding gemstones and other materials.
-
-**Still undecided:** whether identical items are stored individually or grouped behind the scenes.
-
-## Valuation Rules
-
-**Stack Value = Estimated Liquidation Value**
-
-| **Holding type** | **Valuation method**                                    |
-| ---------------- | ------------------------------------------------------- |
-| Bullion          | Published dealer buyback prices                         |
-| Jewelry          | Estimated scrap-metal payout based on weight and purity |
-
-Valuations are estimates, not guaranteed selling prices.
-
-Unknown cost doesn’t prevent a holding from contributing to Stack Value.
-
-## Historical Tracking and Returns
-
-| **Metric**             | **Needs acquisition cost?** |
-| ---------------------- | --------------------------- |
-| Current Stack Value    | No                          |
-| Historical Stack Value | No                          |
-| Current Returns        | Yes                         |
-| Historical Returns     | Yes                         |
-
-**Rules:**
-
-- Unknown acquisition date --> Start history when added to StackFolio
-- Unknown acquisition cost --> Exclude holding from returns, not Stack Value.
-- Known cost, unknown date --> Current returns can still be calculated.
-- Partially known costs --> Clearly label returns as partial.
-- Historical portfolio charts reflect both changes in metal prices and changes in holdings.
-
-## User Experience
-
-**Add Flow:** Select product --> Enter quantity --> Optional acquisition details --> Save.
-
-```mermaid
-
-flowchart TD
-    A([Select Holding]) --> B[Enter Quantity]
-    B --> C{Know acquisition date?}
-    C -->|Yes| D[Enter Date]
-    C -->|No| E[Use Date Added for Tracking]
-    D --> F{Know acquisition cost?}
-    E --> F
-    F -->|Yes| G[Enter Total Cost]
-    F -->|No| H[Mark Cost as Unknown]
-    G --> I([Save Holding])
-    H --> I
-    I --> J[Include in Stack Value]
-    I --> K{Cost known?}
-    K -->|Yes| L[Include in Returns]
-    K -->|No| M[Exclude from Returns]
-```
-
-**View Flow:** Open app --> See Stack Value and returns --> Explore history or individual holdings.
-
-```mermaid
-
-flowchart TD
-    A([Open StackFolio]) --> B[Dashboard]
-    B --> C[Current Stack Value]
-    B --> D[Unrealized P/L and Return %]
-    B --> E[Historical Stack Value Chart]
-    B --> F[Holdings List]
-    E --> G[Select Time Range]
-    F --> H[Select Holding]
-    H --> I[Holding Details]
-    I --> J[View Value and Returns]
-
-    style A fill:#dbeafe,color:#1e40af,stroke:#60a5fa
-    style B fill:#dcfce7,color:#166534,stroke:#4ade80
-```
-
-## Decisions Still Open
-
-**Holding organization:** Whether to store identical items as individual records or grouped quantities.
-
-**Valuation data:** Which buyback data sources to use, and what happens when reliable prices aren’t available.
-
-**Historical storage:** How to store valuation snapshots and preserve accurate history when holdings are edited or removed.
+- Predefined purity options for each metal
+- Predefined optional holding types
+- Display currency and confirmation of the existing spot-price units
+- Price refresh frequency and stale-price behavior
