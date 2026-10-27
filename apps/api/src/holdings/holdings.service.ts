@@ -12,15 +12,15 @@ export class HoldingsService {
     return `This action returns all holdings`;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} holding`;
   }
 
-  update(id: number, updateHoldingDto: UpdateHoldingDto) {
+  update(id: string, updateHoldingDto: UpdateHoldingDto) {
     return `This action updates a #${id} holding`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} holding`;
   }
 }
