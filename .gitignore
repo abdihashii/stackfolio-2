@@ -8,3 +8,7 @@ node_modules
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# Web research
+.pplx
+.firecrawl
