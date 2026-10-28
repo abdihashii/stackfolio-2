@@ -1,26 +1,35 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
 import { CreateHoldingDto } from './dto/create-holding.dto.js';
 import { UpdateHoldingDto } from './dto/update-holding.dto.js';
+import { Holding } from './entities/holding.entity.js';
 
 @Injectable()
 export class HoldingsService {
-  create(createHoldingDto: CreateHoldingDto) {
-    return 'This action adds a new holding';
+  constructor(
+    @InjectRepository(Holding)
+    private holdingsRepository: Repository<Holding>,
+  ) {}
+
+  create(createHoldingDto: CreateHoldingDto): Promise<Holding> {
+    return this.holdingsRepository.save(createHoldingDto);
   }
 
-  findAll() {
-    return `This action returns all holdings`;
+  findAll(): Promise<Holding[]> {
+    return this.holdingsRepository.find();
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} holding`;
+  findOne(id: string): Promise<Holding | null> {
+    return this.holdingsRepository.findOneBy({ id });
   }
 
   update(id: string, updateHoldingDto: UpdateHoldingDto) {
-    return `This action updates a #${id} holding`;
+    return this.holdingsRepository.update(id, updateHoldingDto);
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} holding`;
+  async remove(id: string): Promise<void> {
+    await this.holdingsRepository.delete(id);
   }
 }
