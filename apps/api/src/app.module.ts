@@ -10,7 +10,7 @@ import { HoldingsModule } from './holdings/holdings.module.js';
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DATABASE_HOST ?? 'localhost',
+      host: 'localhost',
       port: 5432,
       username: 'stackfolio_user',
       password: 'stackfolio_password',
