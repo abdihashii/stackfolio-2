@@ -1,15 +1,24 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { Holding } from './holdings/entities/holding.entity.js';
 import { HoldingsModule } from './holdings/holdings.module.js';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: "better-sqlite3"
+      type: 'postgres',
+      host: process.env.DATABASE_HOST ?? 'localhost',
+      port: 5432,
+      username: 'stackfolio_user',
+      password: 'stackfolio_password',
+      database: 'stackfolio_db',
+      entities: [Holding],
+      synchronize: true,
     }),
-    HoldingsModule
+    HoldingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
