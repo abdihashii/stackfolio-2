@@ -23,6 +23,7 @@ export const Route = createFileRoute('/')({
   component: Home,
 });
 
+// TODO: move to a custom hook and API lib files
 const fetchAllHoldings = async (): Promise<Holding[]> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
   const res = await fetch(`${backendUrlPath}/holdings`, { headers: { 'Content-Type': 'application/json' } });
@@ -34,7 +35,7 @@ const fetchAllHoldings = async (): Promise<Holding[]> => {
   return data;
 };
 
-// TODO: replace any with proper type
+// TODO: move to a custom hook and API lib files
 const createHolding = async (payload: CreateHoldingInput): Promise<Holding> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
   const res = await fetch(`${backendUrlPath}/holdings`, {
