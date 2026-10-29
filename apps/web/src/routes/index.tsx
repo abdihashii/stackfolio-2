@@ -4,6 +4,24 @@ import { useEffect, useState } from 'react';
 
 const backendUrlPath = 'http://localhost:8787'; // TODO: move to lib file
 
+const fixedGoldSpotPrice = 3_000; // $3,000 per ozt
+const fixedSilverSpotPrice = 30; // $30 per ozt
+
+const calculateHoldingValue = (
+  metal: 'gold' | 'silver',
+  weightOzt: number,
+  purity: number,
+  quantity: number,
+): string => {
+  const spot = metal === 'gold' ? fixedGoldSpotPrice : fixedSilverSpotPrice;
+  const holdingValue = weightOzt * purity * quantity * spot;
+
+  return Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD"
+  }).format(holdingValue);
+};
+
 // TODO: move to types file
 interface CreateHoldingInput {
   metal: 'gold' | 'silver';
@@ -93,7 +111,7 @@ function Home() {
 
     const parsedWeight = Number(weight);
     if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) {
-      setCreatingHoldingError("Weight must be greater than zero.");
+      setCreatingHoldingError('Weight must be greater than zero.');
       return;
     }
 
@@ -129,19 +147,26 @@ function Home() {
         ) : holdingsError ? (
           <p>{holdingsError}</p>
         ) : (
-          holdings.map((holding) => (
-            <div key={holding.id}>
-              <p>{holding.metal}</p>
-              <p>
-                {holding.weight} {holding.weight_unit}
-              </p>
-              <p>{holding.purity}</p>
-              <p>{holding.quantity}</p>
-              <p>
-                Total weight: {holding.weight * holding.quantity} {holding.weight_unit}
-              </p>
-            </div>
-          ))
+          <div className="flex gap-2">
+            {holdings.map(({ id, metal, weight_unit, weight, purity, quantity }) => (
+              <div key={id} className="border border-black p-2">
+                <p>{metal}</p>
+                <p>
+                  {weight} {weight_unit}
+                </p>
+                <p>{purity}</p>
+                <p>{quantity}</p>
+                <p>
+                  Total weight: {weight * quantity} {weight_unit}
+                </p>
+                {weight_unit === 'ozt' ? (
+                  <p>Holding value: {calculateHoldingValue(metal, weight, purity, quantity)}</p>
+                ) : (
+                  <p>Holding value: Unavailable.</p>
+                )}
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

@@ -100,7 +100,7 @@ Historical Stack Value belongs to stage 2 and graphs to stage 3. Other excluded 
 
 Use fixed spot prices for gold and silver. Live prices come in a later slice.
 
-- [ ] Holding value equals weight (ozt) × purity × quantity × the matching metal's spot price ($/ozt).
+- [x] Holding value equals weight (ozt) × purity × quantity × the matching metal's spot price ($/ozt).
 - [ ] Two holdings with equivalent weights, one in grams and one in ozt, have equal holding values when quantity, purity, and metal match.
 - [ ] Total Stack Value equals the sum of all holding values.
 
