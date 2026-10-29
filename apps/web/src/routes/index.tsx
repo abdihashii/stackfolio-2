@@ -16,6 +16,7 @@ const fetchAllHoldings = async () => {
     const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
     throw Error(typeof message === 'string' && message.trim() ? message : 'Could not load holdings.');
   }
+  // TODO: replace any with proper type
   return data as any[];
 };
 
@@ -62,6 +63,8 @@ function Home() {
     }
 
     getAllHoldings();
+
+    // TODO: add effect cleanup to ignore results after unmount.
   }, []);
 
   const onAddSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
@@ -87,6 +90,7 @@ function Home() {
       quantity: parsedQuantity,
     };
 
+    // TODO: refresh holdings after succesful POST
     try {
       setCreatingHoldingError('');
       setIsCreatingHoldingLoading(true);
@@ -243,6 +247,7 @@ function Home() {
           </select>
         </div>
 
+        {/* TODO: show 'adding' when loading */}
         <button
           type="submit"
           className="border border-black box-border py-2 px-4 bg-gray-100 hover:cursor-pointer hover:bg-gray-200"
