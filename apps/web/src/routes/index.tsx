@@ -11,6 +11,10 @@ export const Route = createFileRoute('/')({
 const fetchAllHoldings = async () => {
   const res = await fetch(`${backendUrlPath}/holdings`, { headers: { 'Content-Type': 'application/json' } });
   const data = await res.json();
+  if (!res.ok) {
+    const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
+    throw Error(typeof message === 'string' && message.trim() ? message : 'Could not load holdings.');
+  }
   return data as any[];
 };
 
@@ -21,11 +25,20 @@ function Home() {
   const [purity, setPurity] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('1');
   const [holdings, setHoldings] = useState<any[]>([]);
+  const [isHoldingsLoading, setIsHoldingsLoading] = useState<boolean>(true);
+  const [holdingsError, setHoldingsError] = useState<string>('');
 
   useEffect(() => {
     async function getAllHoldings() {
-      const fetchedHoldings = await fetchAllHoldings();
-      setHoldings(fetchedHoldings);
+      try {
+        setIsHoldingsLoading(true);
+        const fetchedHoldings = await fetchAllHoldings();
+        setHoldings(fetchedHoldings);
+      } catch (error) {
+        setHoldingsError(error instanceof Error ? error.message : 'Error getting holdings.');
+      } finally {
+        setIsHoldingsLoading(false);
+      }
     }
 
     getAllHoldings();
@@ -71,19 +84,25 @@ function Home() {
       <h1 className="font-bold text-4xl">StackFolio 2</h1>
 
       <div>
-        <ul>
-          {holdings.map((holding: any) => (
-            <li key={holding.id}>
+        {isHoldingsLoading ? (
+          <p>loading...</p>
+        ) : holdingsError ? (
+          <p>{holdingsError}</p>
+        ) : (
+          holdings.map((holding: any) => (
+            <div key={holding.id}>
               <p>{holding.metal}</p>
               <p>
                 {holding.weight} {holding.weight_unit}
               </p>
               <p>{holding.purity}</p>
               <p>{holding.quantity}</p>
-              <p>Total weight: {holding.weight * holding.quantity} {holding.weight_unit}</p>
-            </li>
-          ))}
-        </ul>
+              <p>
+                Total weight: {holding.weight * holding.quantity} {holding.weight_unit}
+              </p>
+            </div>
+          ))
+        )}
       </div>
 
       {/*
