@@ -21,6 +21,7 @@ const formatUsd = (value: number) => {
   }).format(value);
 };
 
+// TODO: move to lib
 const calculateHoldingValue = (
   metal: 'gold' | 'silver',
   weightUnit: 'ozt' | 'gram',
@@ -48,10 +49,6 @@ interface CreateHoldingInput {
 interface Holding extends CreateHoldingInput {
   id: string;
 }
-
-export const Route = createFileRoute('/')({
-  component: Home,
-});
 
 // TODO: move to a custom hook and API lib files
 const fetchAllHoldings = async (): Promise<Holding[]> => {
@@ -82,6 +79,10 @@ const createHolding = async (payload: CreateHoldingInput): Promise<Holding> => {
   }
   return data;
 };
+
+export const Route = createFileRoute('/')({
+  component: Home,
+});
 
 function Home() {
   // TODO: add ReactHookForm
