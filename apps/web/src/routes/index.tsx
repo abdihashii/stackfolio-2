@@ -37,15 +37,9 @@ const formatUsd = (value: number) => {
 };
 
 // TODO: move to lib
-const calculateHoldingValue = (
-  metal: 'gold' | 'silver',
-  weightUnit: 'ozt' | 'gram',
-  weight: number,
-  purity: number,
-  quantity: number,
-): number => {
+const calculateHoldingValue = ({ metal, weight_unit, weight, purity, quantity }: Holding): number => {
   const spot = metal === 'gold' ? fixedGoldSpotPrice : fixedSilverSpotPrice;
-  const weightOzt = weightUnit === 'gram' ? gramsToTroyOunces(weight) : weight;
+  const weightOzt = weight_unit === 'gram' ? gramsToTroyOunces(weight) : weight;
 
   return weightOzt * purity * quantity * spot;
 };
@@ -161,20 +155,24 @@ function Home() {
           <p>{holdingsError}</p>
         ) : (
           <div className="flex gap-2">
-            {holdings.map(({ id, metal, weight_unit, weight, purity, quantity }) => (
-              <div key={id} className="border border-black p-2">
-                <p>{metal}</p>
-                <p>
-                  {weight} {weight_unit}
-                </p>
-                <p>{purity}</p>
-                <p>{quantity}</p>
-                <p>
-                  Total weight: {weight * quantity} {weight_unit}
-                </p>
-                <p>Holding value: {formatUsd(calculateHoldingValue(metal, weight_unit, weight, purity, quantity))}</p>
-              </div>
-            ))}
+            {holdings.map((holding) => {
+              const { id, metal, weight_unit, weight, purity, quantity } = holding;
+
+              return (
+                <div key={id} className="border border-black p-2">
+                  <p>{metal}</p>
+                  <p>
+                    {weight} {weight_unit}
+                  </p>
+                  <p>{purity}</p>
+                  <p>{quantity}</p>
+                  <p>
+                    Total weight: {weight * quantity} {weight_unit}
+                  </p>
+                  <p>Holding value: {formatUsd(calculateHoldingValue(holding))}</p>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
