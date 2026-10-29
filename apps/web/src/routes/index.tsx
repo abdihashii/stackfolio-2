@@ -44,6 +44,16 @@ const calculateHoldingValue = ({ metal, weight_unit, weight, purity, quantity }:
   return weightOzt * purity * quantity * spot;
 };
 
+// TODO: move to lib
+const calculateStackValue = (holdings: Holding[]): number => {
+  let stackValue = 0;
+  for (const holding of holdings) {
+    stackValue += calculateHoldingValue(holding);
+  }
+
+  return stackValue;
+};
+
 // TODO: move to a custom hook and API lib files
 const fetchAllHoldings = async (): Promise<Holding[]> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
@@ -175,6 +185,10 @@ function Home() {
             })}
           </div>
         )}
+
+        <p>
+          Total Stack Value: {formatUsd(calculateStackValue(holdings))}
+        </p>
       </div>
 
       <form aria-disabled={isCreatingHoldingLoading} className="flex flex-col gap-4 text-xl" onSubmit={onAddSubmit}>
