@@ -1,12 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router';
 import type { SubmitEventHandler } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const backendUrlPath = "http://localhost:8787";
+const backendUrlPath = 'http://localhost:8787';
 
 export const Route = createFileRoute('/')({
   component: Home,
 });
+
+const fetchAllHoldings = async () => {
+  const res = await fetch(`${backendUrlPath}/holdings`, { headers: { 'Content-Type': 'application/json' } });
+  const data = await res.json();
+  return data as any[];
+};
 
 function Home() {
   const [metal, setMetal] = useState<string>('');
@@ -14,35 +20,45 @@ function Home() {
   const [weight, setWeight] = useState<string>('');
   const [purity, setPurity] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('1');
+  const [holdings, setHoldings] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function getAllHoldings() {
+      const fetchedHoldings = await fetchAllHoldings();
+      setHoldings(fetchedHoldings);
+    }
+
+    getAllHoldings();
+  }, []);
 
   const onAddSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
-    const parsedMetal = formData.get("metal");
-    const parsedWeight = Number(formData.get("weight"));
-    const parsedWeightUnit = formData.get("weight_unit");
-    const parsedPurity = Number(formData.get("purity"));
-    const parsedQuantity = Number(formData.get("quantity"));
+    const parsedMetal = formData.get('metal');
+    const parsedWeight = Number(formData.get('weight'));
+    const parsedWeightUnit = formData.get('weight_unit');
+    const parsedPurity = Number(formData.get('purity'));
+    const parsedQuantity = Number(formData.get('quantity'));
 
     if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) {
-      alert("Weight must be greater than zero.");
+      alert('Weight must be greater than zero.');
       return;
     }
 
     const payload = {
       metal: parsedMetal,
       weight: parsedWeight,
-      "weight_unit": parsedWeightUnit,
+      weight_unit: parsedWeightUnit,
       purity: parsedPurity,
       quantity: parsedQuantity,
     };
 
     // TODO: wrap in a try-catch and show server errors properly to UI.
     const res = await fetch(`${backendUrlPath}/holdings`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        'Content-type': 'application/json'
+        'Content-type': 'application/json',
       },
       body: JSON.stringify(payload),
     });
@@ -53,6 +69,22 @@ function Home() {
   return (
     <main className="w-11/12 mx-auto mt-4 flex flex-col items-center gap-8">
       <h1 className="font-bold text-4xl">StackFolio 2</h1>
+
+      <div>
+        <ul>
+          {holdings.map((holding: any) => (
+            <li key={holding.id}>
+              <p>{holding.metal}</p>
+              <p>
+                {holding.weight} {holding.weight_unit}
+              </p>
+              <p>{holding.purity}</p>
+              <p>{holding.quantity}</p>
+              <p>Total weight: {holding.weight * holding.quantity} {holding.weight_unit}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       {/*
         AC: add eight 0.25 troy ounce items, reload, and see them with 2 troy oz total weight.
