@@ -67,6 +67,7 @@ function Home() {
   const [isCreatingHoldingLoading, setIsCreatingHoldingLoading] = useState<boolean>(false);
   const [creatingHoldingError, setCreatingHoldingError] = useState<string>('');
 
+  // TODo: move to custom hook file
   useEffect(() => {
     async function getAllHoldings() {
       try {
