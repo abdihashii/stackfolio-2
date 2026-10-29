@@ -2,8 +2,9 @@ import { createFileRoute } from '@tanstack/react-router';
 import type { SubmitEventHandler } from 'react';
 import { useEffect, useState } from 'react';
 
-const backendUrlPath = 'http://localhost:8787';
+const backendUrlPath = 'http://localhost:8787'; // TODO: move to lib file
 
+// TODO: move to types file
 interface CreateHoldingInput {
   metal: 'gold' | 'silver';
   weight_unit: 'gram' | 'ozt';
@@ -13,6 +14,7 @@ interface CreateHoldingInput {
   holding_type: string | null;
 }
 
+// TODO: move to types file
 interface Holding extends CreateHoldingInput {
   id: string;
 }
