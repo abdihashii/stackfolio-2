@@ -106,11 +106,6 @@ function Home() {
         )}
       </div>
 
-      {/*
-        AC: add eight 0.25 troy ounce items, reload, and see them with 2 troy oz total weight.
-
-        Need a basic form to collect the items: metal type, weight, weight_unit, purity, quantity, and optional holding_type
-      */}
       <form className="flex flex-col gap-4 text-xl" onSubmit={onAddSubmit}>
         <div className="flex gap-2">
           <label htmlFor="metal">Metal:</label>
