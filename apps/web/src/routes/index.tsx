@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import type { SubmitEventHandler } from 'react';
 import { useState } from 'react';
 
+const backendUrlPath = "http://localhost:8787";
+
 export const Route = createFileRoute('/')({
   component: Home,
 });
@@ -13,7 +15,7 @@ function Home() {
   const [purity, setPurity] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('1');
 
-  const onAddSubmit: SubmitEventHandler<HTMLFormElement> = (event) => {
+  const onAddSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
@@ -36,7 +38,16 @@ function Home() {
       quantity: parsedQuantity,
     };
 
-    console.log(payload);
+    // TODO: wrap in a try-catch and show server errors properly to UI.
+    const res = await fetch(`${backendUrlPath}/holdings`, {
+      method: "POST",
+      headers: {
+        'Content-type': 'application/json'
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    console.log(data);
   };
 
   return (
