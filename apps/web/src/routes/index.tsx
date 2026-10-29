@@ -9,17 +9,30 @@ const fixedSilverSpotPrice = 30; // $30 per ozt
 
 const calculateHoldingValue = (
   metal: 'gold' | 'silver',
-  weightOzt: number,
+  weightUnit: 'ozt' | 'gram',
+  weight: number,
   purity: number,
   quantity: number,
 ): string => {
   const spot = metal === 'gold' ? fixedGoldSpotPrice : fixedSilverSpotPrice;
-  const holdingValue = weightOzt * purity * quantity * spot;
+  let parsedWeight = 0;
+  if (weightUnit === 'gram') {
+    parsedWeight = gramsToTroyOunces(weight);
+  } else {
+    parsedWeight = weight;
+  }
 
-  return Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD"
+  const holdingValue = parsedWeight * purity * quantity * spot;
+
+  return Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
   }).format(holdingValue);
+};
+
+// 1 troy ounce = 31.1034768 grams
+const gramsToTroyOunces = (gramWeightUnit: number) => {
+  return gramWeightUnit / 31.1034768;
 };
 
 // TODO: move to types file
@@ -159,11 +172,7 @@ function Home() {
                 <p>
                   Total weight: {weight * quantity} {weight_unit}
                 </p>
-                {weight_unit === 'ozt' ? (
-                  <p>Holding value: {calculateHoldingValue(metal, weight, purity, quantity)}</p>
-                ) : (
-                  <p>Holding value: Unavailable.</p>
-                )}
+                <p>Holding value: {calculateHoldingValue(metal, weight_unit, weight, purity, quantity)}</p>
               </div>
             ))}
           </div>
