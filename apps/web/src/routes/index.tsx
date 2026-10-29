@@ -35,7 +35,7 @@ function Home() {
         const fetchedHoldings = await fetchAllHoldings();
         setHoldings(fetchedHoldings);
       } catch (error) {
-        setHoldingsError(error instanceof Error ? error.message : 'Error getting holdings.');
+        setHoldingsError("Couldn't load your holdings. Reload the page and try again.");
       } finally {
         setIsHoldingsLoading(false);
       }
@@ -67,6 +67,7 @@ function Home() {
       quantity: parsedQuantity,
     };
 
+    // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
     // TODO: wrap in a try-catch and show server errors properly to UI.
     const res = await fetch(`${backendUrlPath}/holdings`, {
       method: 'POST',
