@@ -16,10 +16,27 @@ function Home() {
   const onAddSubmit: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
 
-    const data = new FormData(event.currentTarget);
-    alert(JSON.stringify(Object.fromEntries(data)));
+    const formData = new FormData(event.currentTarget);
+    const parsedMetal = formData.get("metal");
+    const parsedWeight = Number(formData.get("weight"));
+    const parsedWeightUnit = formData.get("weight_unit");
+    const parsedPurity = Number(formData.get("purity"));
+    const parsedQuantity = Number(formData.get("quantity"));
 
-    // TODO: positive weight check > 0
+    if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) {
+      alert("Weight must be greater than zero.");
+      return;
+    }
+
+    const payload = {
+      metal: parsedMetal,
+      weight: parsedWeight,
+      "weight_unit": parsedWeightUnit,
+      purity: parsedPurity,
+      quantity: parsedQuantity,
+    };
+
+    console.log(payload);
   };
 
   return (
