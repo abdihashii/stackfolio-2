@@ -9,6 +9,7 @@ export class AppService {
     return 'Hello World!';
   }
 
+  // TODO: in the future, could use @nestjs/terminus for health checks: https://docs.nestjs.com/reliability/terminus
   async getHealth(): Promise<{ status: string, dbStatus: string, datetime: string }> {
     try {
       await this.dataSource.query('SELECT 1');
