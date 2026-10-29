@@ -9,6 +9,7 @@ export const Route = createFileRoute('/')({
 });
 
 const fetchAllHoldings = async () => {
+  // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
   const res = await fetch(`${backendUrlPath}/holdings`, { headers: { 'Content-Type': 'application/json' } });
   const data = await res.json();
   if (!res.ok) {
@@ -16,6 +17,23 @@ const fetchAllHoldings = async () => {
     throw Error(typeof message === 'string' && message.trim() ? message : 'Could not load holdings.');
   }
   return data as any[];
+};
+
+const createHolding = async (payload: any) => {
+  // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
+  const res = await fetch(`${backendUrlPath}/holdings`, {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
+    throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not create holding.');
+  }
+  return data;
 };
 
 function Home() {
@@ -27,6 +45,8 @@ function Home() {
   const [holdings, setHoldings] = useState<any[]>([]);
   const [isHoldingsLoading, setIsHoldingsLoading] = useState<boolean>(true);
   const [holdingsError, setHoldingsError] = useState<string>('');
+  const [isCreatingHoldingLoading, setIsCreatingHoldingLoading] = useState<boolean>(false);
+  const [creatingHoldingError, setCreatingHoldingError] = useState<string>('');
 
   useEffect(() => {
     async function getAllHoldings() {
@@ -34,7 +54,7 @@ function Home() {
         setIsHoldingsLoading(true);
         const fetchedHoldings = await fetchAllHoldings();
         setHoldings(fetchedHoldings);
-      } catch (error) {
+      } catch {
         setHoldingsError("Couldn't load your holdings. Reload the page and try again.");
       } finally {
         setIsHoldingsLoading(false);
@@ -67,17 +87,16 @@ function Home() {
       quantity: parsedQuantity,
     };
 
-    // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
-    // TODO: wrap in a try-catch and show server errors properly to UI.
-    const res = await fetch(`${backendUrlPath}/holdings`, {
-      method: 'POST',
-      headers: {
-        'Content-type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    console.log(data);
+    try {
+      setCreatingHoldingError('');
+      setIsCreatingHoldingLoading(true);
+      const data = await createHolding(payload);
+      console.log(data);
+    } catch {
+      setCreatingHoldingError('Could not create holding. Please try again');
+    } finally {
+      setIsCreatingHoldingLoading(false);
+    }
   };
 
   return (
@@ -106,7 +125,7 @@ function Home() {
         )}
       </div>
 
-      <form className="flex flex-col gap-4 text-xl" onSubmit={onAddSubmit}>
+      <form aria-disabled={isCreatingHoldingLoading} className="flex flex-col gap-4 text-xl" onSubmit={onAddSubmit}>
         <div className="flex gap-2">
           <label htmlFor="metal">Metal:</label>
           <select
@@ -119,6 +138,7 @@ function Home() {
               setPurity('');
               setMetal(value);
             }}
+            disabled={isCreatingHoldingLoading}
           >
             <option value="">Choose a metal</option>
             <option value="gold">Gold</option>
@@ -137,6 +157,7 @@ function Home() {
               const value = e.target.value;
               setWeightUnit(value);
             }}
+            disabled={isCreatingHoldingLoading}
           >
             <option value="">Choose unit</option>
             <option value="gram">gram</option>
@@ -159,13 +180,13 @@ function Home() {
               const value = e.target.value;
               setWeight(value);
             }}
+            disabled={isCreatingHoldingLoading}
           />
         </div>
 
         <div className="flex gap-2">
           <label htmlFor="purity">Purity:</label>
           <select
-            disabled={metal === ''}
             required
             name="purity"
             id="purity"
@@ -174,6 +195,7 @@ function Home() {
               const value = e.target.value;
               setPurity(value);
             }}
+            disabled={metal === '' || isCreatingHoldingLoading}
           >
             <option value="">Choose purity</option>
 
@@ -210,12 +232,13 @@ function Home() {
               const value = e.target.value;
               setQuantity(value);
             }}
+            disabled={isCreatingHoldingLoading}
           />
         </div>
 
         <div className="flex gap-2">
           <label htmlFor="holding-type">Holding type:</label>
-          <select name="holding_type" id="holding-type">
+          <select name="holding_type" id="holding-type" disabled={isCreatingHoldingLoading}>
             <option value="">None selected</option>
           </select>
         </div>
@@ -223,9 +246,14 @@ function Home() {
         <button
           type="submit"
           className="border border-black box-border py-2 px-4 bg-gray-100 hover:cursor-pointer hover:bg-gray-200"
+          disabled={isCreatingHoldingLoading}
         >
           Add
         </button>
+
+        <p role="alert" aria-atomic="true">
+          {creatingHoldingError}
+        </p>
       </form>
     </main>
   );
