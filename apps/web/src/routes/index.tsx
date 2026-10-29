@@ -2,14 +2,23 @@ import { createFileRoute } from '@tanstack/react-router';
 import type { SubmitEventHandler } from 'react';
 import { useEffect, useState } from 'react';
 
-const backendUrlPath = 'http://localhost:8787'; // TODO: move to lib file
-
+// TODO: move to lib
+const backendUrlPath = 'http://localhost:8787';
 const fixedGoldSpotPrice = 3_000; // $3,000 per ozt
 const fixedSilverSpotPrice = 30; // $30 per ozt
 
+// TODO: move to lib
 const gramsToTroyOunces = (gramWeightUnit: number) => {
   // 1 troy ounce = 31.1034768 grams
   return gramWeightUnit / 31.1034768;
+};
+
+// TODO: move to lib
+const formatUsd = (value: number) => {
+  return Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(value);
 };
 
 const calculateHoldingValue = (
@@ -18,16 +27,11 @@ const calculateHoldingValue = (
   weight: number,
   purity: number,
   quantity: number,
-): string => {
+): number => {
   const spot = metal === 'gold' ? fixedGoldSpotPrice : fixedSilverSpotPrice;
   const weightOzt = weightUnit === 'gram' ? gramsToTroyOunces(weight) : weight;
 
-  const holdingValue = weightOzt * purity * quantity * spot;
-
-  return Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(holdingValue);
+  return weightOzt * purity * quantity * spot;
 };
 
 // TODO: move to types file
@@ -167,7 +171,7 @@ function Home() {
                 <p>
                   Total weight: {weight * quantity} {weight_unit}
                 </p>
-                <p>Holding value: {calculateHoldingValue(metal, weight_unit, weight, purity, quantity)}</p>
+                <p>Holding value: {formatUsd(calculateHoldingValue(metal, weight_unit, weight, purity, quantity))}</p>
               </div>
             ))}
           </div>
