@@ -7,6 +7,11 @@ const backendUrlPath = 'http://localhost:8787'; // TODO: move to lib file
 const fixedGoldSpotPrice = 3_000; // $3,000 per ozt
 const fixedSilverSpotPrice = 30; // $30 per ozt
 
+// 1 troy ounce = 31.1034768 grams
+const gramsToTroyOunces = (gramWeightUnit: number) => {
+  return gramWeightUnit / 31.1034768;
+};
+
 const calculateHoldingValue = (
   metal: 'gold' | 'silver',
   weightUnit: 'ozt' | 'gram',
@@ -15,24 +20,14 @@ const calculateHoldingValue = (
   quantity: number,
 ): string => {
   const spot = metal === 'gold' ? fixedGoldSpotPrice : fixedSilverSpotPrice;
-  let parsedWeight = 0;
-  if (weightUnit === 'gram') {
-    parsedWeight = gramsToTroyOunces(weight);
-  } else {
-    parsedWeight = weight;
-  }
+  const weightOzt = weightUnit === 'gram' ? gramsToTroyOunces(weight) : weight;
 
-  const holdingValue = parsedWeight * purity * quantity * spot;
+  const holdingValue = weightOzt * purity * quantity * spot;
 
   return Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
   }).format(holdingValue);
-};
-
-// 1 troy ounce = 31.1034768 grams
-const gramsToTroyOunces = (gramWeightUnit: number) => {
-  return gramWeightUnit / 31.1034768;
 };
 
 // TODO: move to types file
