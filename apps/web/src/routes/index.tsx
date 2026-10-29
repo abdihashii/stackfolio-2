@@ -4,11 +4,24 @@ import { useEffect, useState } from 'react';
 
 const backendUrlPath = 'http://localhost:8787';
 
+interface CreateHoldingInput {
+  metal: 'gold' | 'silver';
+  weight_unit: 'gram' | 'ozt';
+  weight: number;
+  purity: number;
+  quantity: number;
+  holding_type: string | null;
+}
+
+interface Holding extends CreateHoldingInput {
+  id: string;
+}
+
 export const Route = createFileRoute('/')({
   component: Home,
 });
 
-const fetchAllHoldings = async () => {
+const fetchAllHoldings = async (): Promise<Holding[]> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
   const res = await fetch(`${backendUrlPath}/holdings`, { headers: { 'Content-Type': 'application/json' } });
   const data = await res.json();
@@ -16,11 +29,11 @@ const fetchAllHoldings = async () => {
     const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
     throw Error(typeof message === 'string' && message.trim() ? message : 'Could not load holdings.');
   }
-  // TODO: replace any with proper type
-  return data as any[];
+  return data;
 };
 
-const createHolding = async (payload: any) => {
+// TODO: replace any with proper type
+const createHolding = async (payload: CreateHoldingInput): Promise<Holding> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
   const res = await fetch(`${backendUrlPath}/holdings`, {
     method: 'POST',
@@ -38,12 +51,12 @@ const createHolding = async (payload: any) => {
 };
 
 function Home() {
-  const [metal, setMetal] = useState<string>('');
-  const [weightUnit, setWeightUnit] = useState<string>('');
+  const [metal, setMetal] = useState<CreateHoldingInput['metal'] | ''>('');
+  const [weightUnit, setWeightUnit] = useState<CreateHoldingInput['weight_unit'] | ''>('');
   const [weight, setWeight] = useState<string>('');
   const [purity, setPurity] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('1');
-  const [holdings, setHoldings] = useState<any[]>([]);
+  const [holdings, setHoldings] = useState<Holding[]>([]);
   const [isHoldingsLoading, setIsHoldingsLoading] = useState<boolean>(true);
   const [holdingsError, setHoldingsError] = useState<string>('');
   const [isCreatingHoldingLoading, setIsCreatingHoldingLoading] = useState<boolean>(false);
@@ -70,24 +83,31 @@ function Home() {
   const onAddSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
 
+    // Form values are `strings`. Convert them to numbers at submission.
     const formData = new FormData(event.currentTarget);
     const parsedMetal = formData.get('metal');
     const parsedWeight = Number(formData.get('weight'));
     const parsedWeightUnit = formData.get('weight_unit');
     const parsedPurity = Number(formData.get('purity'));
     const parsedQuantity = Number(formData.get('quantity'));
+    const parsedHoldingType = formData.get('holding_type');
+
+    if (parsedMetal !== 'gold' && parsedMetal !== 'silver') return;
 
     if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) {
       alert('Weight must be greater than zero.');
       return;
     }
 
-    const payload = {
+    if (parsedWeightUnit !== 'gram' && parsedWeightUnit !== 'ozt') return;
+
+    const payload: CreateHoldingInput = {
       metal: parsedMetal,
       weight: parsedWeight,
       weight_unit: parsedWeightUnit,
       purity: parsedPurity,
       quantity: parsedQuantity,
+      holding_type: typeof parsedHoldingType === 'string' && parsedHoldingType !== '' ? parsedHoldingType : null,
     };
 
     // TODO: refresh holdings after succesful POST
@@ -113,7 +133,7 @@ function Home() {
         ) : holdingsError ? (
           <p>{holdingsError}</p>
         ) : (
-          holdings.map((holding: any) => (
+          holdings.map((holding) => (
             <div key={holding.id}>
               <p>{holding.metal}</p>
               <p>
@@ -139,8 +159,10 @@ function Home() {
             value={metal}
             onChange={(e) => {
               const value = e.target.value;
-              setPurity('');
-              setMetal(value);
+              if (value == '' || value === 'gold' || value === 'silver') {
+                setPurity('');
+                setMetal(value);
+              }
             }}
             disabled={isCreatingHoldingLoading}
           >
@@ -159,7 +181,7 @@ function Home() {
             value={weightUnit}
             onChange={(e) => {
               const value = e.target.value;
-              setWeightUnit(value);
+              if (value === 'gram' || value === 'ozt' || value === '') setWeightUnit(value);
             }}
             disabled={isCreatingHoldingLoading}
           >
