@@ -89,16 +89,26 @@ If a metal's price is unavailable, show affected holding values as unavailable, 
 
 Historical Stack Value belongs to stage 2 and graphs to stage 3. Other excluded features are not committed to a future stage.
 
-### Acceptance Criteria
+### Slices
 
-- [ ] Save a holding using metal, per-item weight, unit, predefined purity, and quantity, with or without a holding type.
-- [ ] Enter 0.25 troy oz and quantity 8; see a calculated total weight of 2 troy oz.
-- [ ] Enter one piece of jewelry with quantity 1; value it using the same formula.
-- [ ] Equivalent weights entered in grams and troy ounces produce equivalent values for the same purity and price and are normalized to consistent weights.
-- [ ] Each holding's value matches its fine-metal weight multiplied by the matching spot price.
-- [ ] Total Stack Value equals the sum of individual holding values when all required prices are available.
-- [ ] Missing prices are shown explicitly without displaying a misleading full-stack total.
-- [ ] No cost, date, return, or history inputs are required or displayed.
+#### 1. Add, save, and reload holdings (completed)
+
+- [x] Add a holding through the form, save it, reload, and see it again.
+- [x] Eight 0.25 ozt items display a calculated total weight of 2 ozt.
+
+#### 2. Fixed-price valuation (planned)
+
+Use fixed spot prices for gold and silver. Live prices come in a later slice.
+
+- [ ] Holding value equals weight (ozt) × purity × quantity × the matching metal's spot price ($/ozt).
+- [ ] Two holdings with equivalent weights, one in grams and one in ozt, have equal holding values when quantity, purity, and metal match.
+- [ ] Total Stack Value equals the sum of all holding values.
+
+#### 3. (unplanned)
+
+TBD
+
+- [ ] TBD
 
 ### Decisions Still Open for Stage 1
 
