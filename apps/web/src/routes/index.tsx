@@ -7,6 +7,21 @@ const backendUrlPath = 'http://localhost:8787';
 const fixedGoldSpotPrice = 3_000; // $3,000 per ozt
 const fixedSilverSpotPrice = 30; // $30 per ozt
 
+// TODO: move to types file
+interface CreateHoldingInput {
+  metal: 'gold' | 'silver';
+  weight_unit: 'gram' | 'ozt';
+  weight: number;
+  purity: number;
+  quantity: number;
+  holding_type: string | null;
+}
+
+// TODO: move to types file
+interface Holding extends CreateHoldingInput {
+  id: string;
+}
+
 // TODO: move to lib
 const gramsToTroyOunces = (gramWeightUnit: number) => {
   // 1 troy ounce = 31.1034768 grams
@@ -34,21 +49,6 @@ const calculateHoldingValue = (
 
   return weightOzt * purity * quantity * spot;
 };
-
-// TODO: move to types file
-interface CreateHoldingInput {
-  metal: 'gold' | 'silver';
-  weight_unit: 'gram' | 'ozt';
-  weight: number;
-  purity: number;
-  quantity: number;
-  holding_type: string | null;
-}
-
-// TODO: move to types file
-interface Holding extends CreateHoldingInput {
-  id: string;
-}
 
 // TODO: move to a custom hook and API lib files
 const fetchAllHoldings = async (): Promise<Holding[]> => {
