@@ -56,6 +56,7 @@ function Home() {
   const [weight, setWeight] = useState<string>('');
   const [purity, setPurity] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('1');
+  const [holdingType, setHoldingType] = useState<string>('');
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [isHoldingsLoading, setIsHoldingsLoading] = useState<boolean>(true);
   const [holdingsError, setHoldingsError] = useState<string>('');
@@ -83,31 +84,21 @@ function Home() {
   const onAddSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
 
-    // Form values are `strings`. Convert them to numbers at submission.
-    const formData = new FormData(event.currentTarget);
-    const parsedMetal = formData.get('metal');
-    const parsedWeight = Number(formData.get('weight'));
-    const parsedWeightUnit = formData.get('weight_unit');
-    const parsedPurity = Number(formData.get('purity'));
-    const parsedQuantity = Number(formData.get('quantity'));
-    const parsedHoldingType = formData.get('holding_type');
+    if (metal === '' || weightUnit === '') return;
 
-    if (parsedMetal !== 'gold' && parsedMetal !== 'silver') return;
-
+    const parsedWeight = Number(weight);
     if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) {
-      alert('Weight must be greater than zero.');
+      setCreatingHoldingError("Weight must be greater than zero.");
       return;
     }
 
-    if (parsedWeightUnit !== 'gram' && parsedWeightUnit !== 'ozt') return;
-
     const payload: CreateHoldingInput = {
-      metal: parsedMetal,
+      metal,
       weight: parsedWeight,
-      weight_unit: parsedWeightUnit,
-      purity: parsedPurity,
-      quantity: parsedQuantity,
-      holding_type: typeof parsedHoldingType === 'string' && parsedHoldingType !== '' ? parsedHoldingType : null,
+      weight_unit: weightUnit,
+      purity: Number(purity),
+      quantity: Number(quantity),
+      holding_type: holdingType || null,
     };
 
     // TODO: refresh holdings after succesful POST
@@ -264,7 +255,15 @@ function Home() {
 
         <div className="flex gap-2">
           <label htmlFor="holding-type">Holding type:</label>
-          <select name="holding_type" id="holding-type" disabled={isCreatingHoldingLoading}>
+          <select
+            name="holding_type"
+            id="holding-type"
+            disabled={isCreatingHoldingLoading}
+            value={holdingType}
+            onChange={(e) => {
+              setHoldingType(e.target.value);
+            }}
+          >
             <option value="">None selected</option>
           </select>
         </div>
