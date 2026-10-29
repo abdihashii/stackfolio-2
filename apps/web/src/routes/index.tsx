@@ -51,6 +51,7 @@ const createHolding = async (payload: CreateHoldingInput): Promise<Holding> => {
 };
 
 function Home() {
+  // TODO: add ReactHookForm
   const [metal, setMetal] = useState<CreateHoldingInput['metal'] | ''>('');
   const [weightUnit, setWeightUnit] = useState<CreateHoldingInput['weight_unit'] | ''>('');
   const [weight, setWeight] = useState<string>('');
