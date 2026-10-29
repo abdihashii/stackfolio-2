@@ -7,8 +7,8 @@ const backendUrlPath = 'http://localhost:8787'; // TODO: move to lib file
 const fixedGoldSpotPrice = 3_000; // $3,000 per ozt
 const fixedSilverSpotPrice = 30; // $30 per ozt
 
-// 1 troy ounce = 31.1034768 grams
 const gramsToTroyOunces = (gramWeightUnit: number) => {
+  // 1 troy ounce = 31.1034768 grams
   return gramWeightUnit / 31.1034768;
 };
 
