@@ -183,12 +183,10 @@ function Home() {
                 </div>
               );
             })}
+
+            <p>Total Stack Value: {formatUsd(calculateStackValue(holdings))}</p>
           </div>
         )}
-
-        <p>
-          Total Stack Value: {formatUsd(calculateStackValue(holdings))}
-        </p>
       </div>
 
       <form aria-disabled={isCreatingHoldingLoading} className="flex flex-col gap-4 text-xl" onSubmit={onAddSubmit}>
