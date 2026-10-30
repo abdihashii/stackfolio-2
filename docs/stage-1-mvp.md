@@ -96,7 +96,7 @@ Historical Stack Value belongs to stage 2 and graphs to stage 3. Other excluded 
 - [x] Add a holding through the form, save it, reload, and see it again.
 - [x] Eight 0.25 ozt items display a calculated total weight of 2 ozt.
 
-#### 2. Fixed-price valuation (planned)
+#### 2. Fixed-price valuation (completed)
 
 Use fixed spot prices for gold and silver. Live prices come in a later slice.
 
@@ -104,11 +104,13 @@ Use fixed spot prices for gold and silver. Live prices come in a later slice.
 - [x] Two holdings with equivalent weights, one in grams and one in ozt, have equal holding values when quantity, purity, and metal match.
 - [x] Total Stack Value equals the sum of all holding values.
 
-#### 3. (unplanned)
+#### 3. (planned)
 
-TBD
+Replace fixed spot prices with latest-available fetched prices.
 
-- [ ] TBD
+- [ ] After page load, holding values and Stack Value use fetched gold/silver spot prices with confirmed currency and units.
+- [ ] Show the price timestamp so users know how recent the data is.
+- [ ] While prices load, show a loading state. If a required price is unavailable, show affected values and Stack Value as unavailable.
 
 ### Decisions Still Open for Stage 1
 
