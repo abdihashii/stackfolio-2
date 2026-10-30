@@ -165,6 +165,7 @@ function Home() {
           <p>{holdingsError}</p>
         ) : (
           <div className="flex flex-col gap-4">
+            {/* TODO: move to its own component */}
             <div className="flex gap-2">
               {holdings.map((holding) => {
                 const { id, metal, weight_unit, weight, purity, quantity } = holding;
@@ -191,6 +192,7 @@ function Home() {
         )}
       </div>
 
+      {/* TODO: move to its own component */}
       <form aria-disabled={isCreatingHoldingLoading} className="flex flex-col gap-4 text-xl" onSubmit={onAddSubmit}>
         <div className="flex gap-2">
           <label htmlFor="metal">Metal:</label>
