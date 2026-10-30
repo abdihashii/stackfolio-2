@@ -104,7 +104,7 @@ Use fixed spot prices for gold and silver. Live prices come in a later slice.
 - [x] Two holdings with equivalent weights, one in grams and one in ozt, have equal holding values when quantity, purity, and metal match.
 - [x] Total Stack Value equals the sum of all holding values.
 
-#### 3. (planned)
+#### 3. Latest-available spot prices (planned)
 
 Replace fixed spot prices with latest-available fetched prices.
 
