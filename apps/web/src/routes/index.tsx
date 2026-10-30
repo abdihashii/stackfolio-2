@@ -3,7 +3,7 @@ import type { SubmitEventHandler } from 'react';
 import { useEffect, useState } from 'react';
 
 // TODO: move to lib
-const backendUrlPath = 'http://localhost:8787';
+const backendUrlPath = import.meta.env.VITE_API_URL;
 const fixedGoldSpotPrice = 3_000; // $3,000 per ozt
 const fixedSilverSpotPrice = 30; // $30 per ozt
 
