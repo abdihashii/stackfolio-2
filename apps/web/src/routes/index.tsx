@@ -54,6 +54,15 @@ const calculateStackValue = (holdings: Holding[]): number => {
   return stackValue;
 };
 
+// TODO: move to lib
+const fetchSpotMetalPrice = async (metal: 'gold' | 'silver') => {
+  const res = await fetch(`${backendUrlPath}/spot-prices/${metal}`);
+  if (!res.ok) {
+    throw new Error(`Could not fetch spot price for ${metal}`);
+  }
+  return await res.json();
+};
+
 // TODO: move to a custom hook and API lib files
 const fetchAllHoldings = async (): Promise<Holding[]> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
@@ -101,6 +110,9 @@ function Home() {
   const [holdingsError, setHoldingsError] = useState<string>('');
   const [isCreatingHoldingLoading, setIsCreatingHoldingLoading] = useState<boolean>(false);
   const [creatingHoldingError, setCreatingHoldingError] = useState<string>('');
+  const [goldSpotPrice, setGoldSpotPrice] = useState<number | undefined>(undefined);
+  const [isGoldSpotPriceLoading, setIsGoldSpotPriceLoading] = useState<boolean>(true);
+  const [goldSpotPriceError, setGoldSpotPriceError] = useState<string>('');
 
   // TODo: move to custom hook file
   useEffect(() => {
@@ -116,7 +128,20 @@ function Home() {
       }
     }
 
+    async function getGoldSpotPrice() {
+      try {
+        setIsGoldSpotPriceLoading(true);
+        const fetchedGoldSpotPrice = await fetchSpotMetalPrice('gold');
+        setGoldSpotPrice(fetchedGoldSpotPrice.rate.price);
+      } catch (error) {
+        setGoldSpotPriceError('Could not load gold spot price. Reload the page and try again.');
+      } finally {
+        setIsGoldSpotPriceLoading(false);
+      }
+    }
+
     getAllHoldings();
+    getGoldSpotPrice();
 
     // TODO: add effect cleanup to ignore results after unmount.
   }, []);
@@ -154,6 +179,8 @@ function Home() {
     }
   };
 
+  const hasGold = holdings.some((holding) => holding.metal === 'gold');
+
   return (
     <main className="w-11/12 mx-auto mt-4 flex flex-col items-center gap-8">
       <h1 className="font-bold text-4xl">StackFolio 2</h1>
@@ -181,13 +208,26 @@ function Home() {
                     <p>
                       Total weight: {weight * quantity} {weight_unit}
                     </p>
-                    <p>Holding value: {formatUsd(calculateHoldingValue(holding))}</p>
+                    {metal === 'gold' && isGoldSpotPriceLoading ? (
+                      <p>Gold spot prices loading...</p>
+                    ) : metal === 'gold' && goldSpotPriceError ? (
+                      goldSpotPriceError
+                    ) : (
+                      <p>Holding value: {formatUsd(calculateHoldingValue(holding))}</p>
+                    )}
                   </div>
                 );
               })}
             </div>
 
-            <p>Total Stack Value: {formatUsd(calculateStackValue(holdings))}</p>
+            <p>
+              Total Stack Value:{' '}
+              {hasGold && isGoldSpotPriceLoading
+                ? 'Loading...'
+                : hasGold && goldSpotPriceError
+                  ? 'Unavailable'
+                  : formatUsd(calculateStackValue(holdings))}
+            </p>
           </div>
         )}
       </div>
