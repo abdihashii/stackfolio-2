@@ -164,25 +164,27 @@ function Home() {
         ) : holdingsError ? (
           <p>{holdingsError}</p>
         ) : (
-          <div className="flex gap-2">
-            {holdings.map((holding) => {
-              const { id, metal, weight_unit, weight, purity, quantity } = holding;
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-2">
+              {holdings.map((holding) => {
+                const { id, metal, weight_unit, weight, purity, quantity } = holding;
 
-              return (
-                <div key={id} className="border border-black p-2">
-                  <p>{metal}</p>
-                  <p>
-                    {weight} {weight_unit}
-                  </p>
-                  <p>{purity}</p>
-                  <p>{quantity}</p>
-                  <p>
-                    Total weight: {weight * quantity} {weight_unit}
-                  </p>
-                  <p>Holding value: {formatUsd(calculateHoldingValue(holding))}</p>
-                </div>
-              );
-            })}
+                return (
+                  <div key={id} className="border border-black p-2">
+                    <p>{metal}</p>
+                    <p>
+                      {weight} {weight_unit}
+                    </p>
+                    <p>{purity}</p>
+                    <p>{quantity}</p>
+                    <p>
+                      Total weight: {weight * quantity} {weight_unit}
+                    </p>
+                    <p>Holding value: {formatUsd(calculateHoldingValue(holding))}</p>
+                  </div>
+                );
+              })}
+            </div>
 
             <p>Total Stack Value: {formatUsd(calculateStackValue(holdings))}</p>
           </div>
