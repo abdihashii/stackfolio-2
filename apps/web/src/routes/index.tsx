@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 
 // TODO: move to lib
 const backendUrlPath = import.meta.env.VITE_API_URL;
-const fixedSilverSpotPrice = 30; // $30 per ozt
 
 // TODO: move to types file
 interface CreateHoldingInput {
@@ -116,6 +115,9 @@ function Home() {
   const [goldSpotPrice, setGoldSpotPrice] = useState<number | undefined>(undefined);
   const [isGoldSpotPriceLoading, setIsGoldSpotPriceLoading] = useState<boolean>(true);
   const [goldSpotPriceError, setGoldSpotPriceError] = useState<string>('');
+  const [silverSpotPrice, setSilverSpotPrice] = useState<number | undefined>(undefined);
+  const [isSilverSpotPriceLoading, setIsSilverSpotPriceLoading] = useState<boolean>(true);
+  const [silverSpotPriceError, setSilverSpotPriceError] = useState<string>('');
 
   // TODo: move to custom hook file
   useEffect(() => {
@@ -143,8 +145,21 @@ function Home() {
       }
     }
 
+    async function getSilverSpotPrice() {
+      try {
+        setIsSilverSpotPriceLoading(true);
+        const fetchedSilverSpotPrice = await fetchSpotMetalPrice('silver');
+        setSilverSpotPrice(fetchedSilverSpotPrice.rate.price);
+      } catch (error) {
+        setSilverSpotPriceError('Could not load silver spot price. Reload the page and try again.');
+      } finally {
+        setIsSilverSpotPriceLoading(false);
+      }
+    }
+
     getAllHoldings();
     getGoldSpotPrice();
+    getSilverSpotPrice();
 
     // TODO: add effect cleanup to ignore results after unmount.
   }, []);
@@ -185,7 +200,7 @@ function Home() {
   const hasGold = holdings.some((holding) => holding.metal === 'gold');
   const stackValue = calculateStackValue(holdings, {
     gold: goldSpotPrice,
-    silver: fixedSilverSpotPrice,
+    silver: silverSpotPrice,
   });
 
   return (
@@ -203,7 +218,7 @@ function Home() {
             <div className="flex gap-2">
               {holdings.map((holding) => {
                 const { id, metal, weight_unit, weight, purity, quantity } = holding;
-                const spotPrice = metal === 'gold' ? goldSpotPrice : fixedSilverSpotPrice;
+                const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
 
                 return (
                   <div key={id} className="border border-black p-2">
