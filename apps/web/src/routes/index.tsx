@@ -138,7 +138,7 @@ function Home() {
         setIsGoldSpotPriceLoading(true);
         const fetchedGoldSpotPrice = await fetchSpotMetalPrice('gold');
         setGoldSpotPrice(fetchedGoldSpotPrice.rate.price);
-      } catch (error) {
+      } catch {
         setGoldSpotPriceError('Could not load gold spot price. Reload the page and try again.');
       } finally {
         setIsGoldSpotPriceLoading(false);
@@ -150,7 +150,7 @@ function Home() {
         setIsSilverSpotPriceLoading(true);
         const fetchedSilverSpotPrice = await fetchSpotMetalPrice('silver');
         setSilverSpotPrice(fetchedSilverSpotPrice.rate.price);
-      } catch (error) {
+      } catch {
         setSilverSpotPriceError('Could not load silver spot price. Reload the page and try again.');
       } finally {
         setIsSilverSpotPriceLoading(false);
@@ -198,6 +198,7 @@ function Home() {
   };
 
   const hasGold = holdings.some((holding) => holding.metal === 'gold');
+  const hasSilver = holdings.some((holding) => holding.metal === 'silver');
   const stackValue = calculateStackValue(holdings, {
     gold: goldSpotPrice,
     silver: silverSpotPrice,
@@ -219,6 +220,8 @@ function Home() {
               {holdings.map((holding) => {
                 const { id, metal, weight_unit, weight, purity, quantity } = holding;
                 const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
+                const isSpotPriceLoading = metal === 'gold' ? isGoldSpotPriceLoading : isSilverSpotPriceLoading;
+                const spotPriceError = metal === 'gold' ? goldSpotPriceError : silverSpotPriceError;
 
                 return (
                   <div key={id} className="border border-black p-2">
@@ -231,10 +234,10 @@ function Home() {
                     <p>
                       Total weight: {weight * quantity} {weight_unit}
                     </p>
-                    {metal === 'gold' && isGoldSpotPriceLoading ? (
-                      <p>Gold spot prices loading...</p>
-                    ) : metal === 'gold' && goldSpotPriceError ? (
-                      goldSpotPriceError
+                    {isSpotPriceLoading ? (
+                      <p>Holding value: loading...</p>
+                    ) : spotPriceError ? (
+                      <p>{spotPriceError}</p>
                     ) : spotPrice !== undefined ? (
                       <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
                     ) : (
@@ -247,9 +250,9 @@ function Home() {
 
             <p>
               Total Stack Value:{' '}
-              {hasGold && isGoldSpotPriceLoading
+              {(hasGold && isGoldSpotPriceLoading) || (hasSilver && isSilverSpotPriceLoading)
                 ? 'Loading...'
-                : hasGold && goldSpotPriceError
+                : (hasGold && goldSpotPriceError) || (hasSilver && silverSpotPriceError)
                   ? 'Unavailable'
                   : stackValue !== undefined
                     ? formatUsd(stackValue)
