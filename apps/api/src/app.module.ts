@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { Holding } from './holdings/entities/holding.entity.js';
 import { HoldingsModule } from './holdings/holdings.module.js';
+import { SpotPricesModule } from './spot-prices/spot-prices.module.js';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { HoldingsModule } from './holdings/holdings.module.js';
       synchronize: true,
     }),
     HoldingsModule,
+    SpotPricesModule,
+    ConfigModule,
   ],
   controllers: [AppController],
   providers: [AppService],
