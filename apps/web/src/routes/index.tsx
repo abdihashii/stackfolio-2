@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 
 // TODO: move to lib
 const backendUrlPath = import.meta.env.VITE_API_URL;
-const fixedGoldSpotPrice = 3_000; // $3,000 per ozt
 const fixedSilverSpotPrice = 30; // $30 per ozt
 
 // TODO: move to types file
@@ -37,18 +36,22 @@ const formatUsd = (value: number) => {
 };
 
 // TODO: move to lib
-const calculateHoldingValue = ({ metal, weight_unit, weight, purity, quantity }: Holding): number => {
-  const spot = metal === 'gold' ? fixedGoldSpotPrice : fixedSilverSpotPrice;
+const calculateHoldingValue = ({ weight_unit, weight, purity, quantity }: Holding, spotPrice: number): number => {
   const weightOzt = weight_unit === 'gram' ? gramsToTroyOunces(weight) : weight;
 
-  return weightOzt * purity * quantity * spot;
+  return weightOzt * purity * quantity * spotPrice;
 };
 
 // TODO: move to lib
-const calculateStackValue = (holdings: Holding[]): number => {
+const calculateStackValue = (
+  holdings: Holding[],
+  spotPrices: Record<'gold' | 'silver', number | undefined>,
+): number | undefined => {
   let stackValue = 0;
   for (const holding of holdings) {
-    stackValue += calculateHoldingValue(holding);
+    const spotPrice = spotPrices[holding.metal];
+    if (spotPrice === undefined) return undefined;
+    stackValue += calculateHoldingValue(holding, spotPrice);
   }
 
   return stackValue;
@@ -180,6 +183,10 @@ function Home() {
   };
 
   const hasGold = holdings.some((holding) => holding.metal === 'gold');
+  const stackValue = calculateStackValue(holdings, {
+    gold: goldSpotPrice,
+    silver: fixedSilverSpotPrice,
+  });
 
   return (
     <main className="w-11/12 mx-auto mt-4 flex flex-col items-center gap-8">
@@ -196,6 +203,7 @@ function Home() {
             <div className="flex gap-2">
               {holdings.map((holding) => {
                 const { id, metal, weight_unit, weight, purity, quantity } = holding;
+                const spotPrice = metal === 'gold' ? goldSpotPrice : fixedSilverSpotPrice;
 
                 return (
                   <div key={id} className="border border-black p-2">
@@ -212,8 +220,10 @@ function Home() {
                       <p>Gold spot prices loading...</p>
                     ) : metal === 'gold' && goldSpotPriceError ? (
                       goldSpotPriceError
+                    ) : spotPrice !== undefined ? (
+                      <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
                     ) : (
-                      <p>Holding value: {formatUsd(calculateHoldingValue(holding))}</p>
+                      <p>Holding value: Unavailable</p>
                     )}
                   </div>
                 );
@@ -226,7 +236,9 @@ function Home() {
                 ? 'Loading...'
                 : hasGold && goldSpotPriceError
                   ? 'Unavailable'
-                  : formatUsd(calculateStackValue(holdings))}
+                  : stackValue !== undefined
+                    ? formatUsd(stackValue)
+                    : 'Unavailable'}
             </p>
           </div>
         )}
