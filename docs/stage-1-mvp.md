@@ -108,7 +108,7 @@ Use fixed spot prices for gold and silver. Live prices come in a later slice.
 
 Replace fixed spot prices with latest-available fetched prices.
 
-- [ ] After page load, holding values and Stack Value use fetched gold/silver spot prices with confirmed currency and units.
+- [x] After page load, holding values and Stack Value use fetched gold/silver spot prices with confirmed currency and units.
 - [ ] Show the price timestamp so users know how recent the data is.
 - [ ] While prices load, show a loading state. If a required price is unavailable, show affected values and Stack Value as unavailable.
 
