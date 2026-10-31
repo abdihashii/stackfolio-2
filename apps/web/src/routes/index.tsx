@@ -220,40 +220,44 @@ function Home() {
         <div className="flex flex-col gap-4 items-center">
           {/* TODO: move to its own component */}
           <div className="flex gap-2">
-            {holdings.map((holding) => {
-              const { id, metal, weight_unit, weight, purity, quantity } = holding;
-              const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
-              const spotPriceTimestamp = metal === 'gold' ? goldSpotPriceTimestamp : silverSpotPriceTimestamp;
-              const isSpotPriceLoading = metal === 'gold' ? isGoldSpotPriceLoading : isSilverSpotPriceLoading;
-              const spotPriceError = metal === 'gold' ? goldSpotPriceError : silverSpotPriceError;
+            {holdings.length > 0 ? (
+              holdings.map((holding) => {
+                const { id, metal, weight_unit, weight, purity, quantity } = holding;
+                const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
+                const spotPriceTimestamp = metal === 'gold' ? goldSpotPriceTimestamp : silverSpotPriceTimestamp;
+                const isSpotPriceLoading = metal === 'gold' ? isGoldSpotPriceLoading : isSilverSpotPriceLoading;
+                const spotPriceError = metal === 'gold' ? goldSpotPriceError : silverSpotPriceError;
 
-              return (
-                <div key={id} className="border border-black p-2">
-                  <p>{metal}</p>
-                  <p>
-                    {weight} {weight_unit}
-                  </p>
-                  <p>{purity}</p>
-                  <p>{quantity}</p>
-                  <p>
-                    Total weight: {weight * quantity} {weight_unit}
-                  </p>
-                  {isSpotPriceLoading ? (
-                    <p>Holding value: loading...</p>
-                  ) : spotPriceError ? (
-                    <p>{spotPriceError}</p>
-                  ) : spotPrice !== undefined ? (
-                    <>
-                      <p>Price updated: {new Date(spotPriceTimestamp).toISOString()}</p>
+                return (
+                  <div key={id} className="border border-black p-2">
+                    <p>{metal}</p>
+                    <p>
+                      {weight} {weight_unit}
+                    </p>
+                    <p>{purity}</p>
+                    <p>{quantity}</p>
+                    <p>
+                      Total weight: {weight * quantity} {weight_unit}
+                    </p>
+                    {isSpotPriceLoading ? (
+                      <p>Holding value: loading...</p>
+                    ) : spotPriceError ? (
+                      <p>{spotPriceError}</p>
+                    ) : spotPrice !== undefined ? (
+                      <>
+                        <p>Price updated: {new Date(spotPriceTimestamp).toISOString()}</p>
 
-                      <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
-                    </>
-                  ) : (
-                    <p>Holding value: Unavailable</p>
-                  )}
-                </div>
-              );
-            })}
+                        <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
+                      </>
+                    ) : (
+                      <p>Holding value: Unavailable</p>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <p>No holdings yet. Add your first holding below.</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1 items-center">
