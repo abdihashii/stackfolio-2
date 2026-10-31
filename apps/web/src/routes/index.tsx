@@ -119,6 +119,7 @@ function Home() {
   const [isSilverSpotPriceLoading, setIsSilverSpotPriceLoading] = useState<boolean>(true);
   const [silverSpotPriceError, setSilverSpotPriceError] = useState<string>('');
   const [goldSpotPriceTimestamp, setGoldSpotPriceTimestamp] = useState<string>(''); // TODO: simply spot price state
+  const [silverSpotPriceTimestamp, setSilverSpotPriceTimestamp] = useState<string>(''); // TODO: simply spot price state
 
   // TODo: move to custom hook file
   useEffect(() => {
@@ -152,6 +153,7 @@ function Home() {
         setIsSilverSpotPriceLoading(true);
         const fetchedSilverSpotPrice = await fetchSpotMetalPrice('silver');
         setSilverSpotPrice(fetchedSilverSpotPrice.rate.price);
+        setSilverSpotPriceTimestamp(fetchedSilverSpotPrice.timestamp);
       } catch {
         setSilverSpotPriceError('Could not load silver spot price. Reload the page and try again.');
       } finally {
@@ -222,7 +224,7 @@ function Home() {
               {holdings.map((holding) => {
                 const { id, metal, weight_unit, weight, purity, quantity } = holding;
                 const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
-                const spotPriceTimestamp = metal === 'gold' && goldSpotPriceTimestamp;
+                const spotPriceTimestamp = metal === 'gold' ? goldSpotPriceTimestamp : silverSpotPriceTimestamp;
                 const isSpotPriceLoading = metal === 'gold' ? isGoldSpotPriceLoading : isSilverSpotPriceLoading;
                 const spotPriceError = metal === 'gold' ? goldSpotPriceError : silverSpotPriceError;
 
@@ -244,8 +246,7 @@ function Home() {
                     ) : spotPrice !== undefined ? (
                       <>
                         <p>
-                          Price updated: {new Date(goldSpotPriceTimestamp).toLocaleDateString()}{' '}
-                          {new Date(goldSpotPriceTimestamp).toLocaleTimeString()}
+                          Price updated: {new Date(spotPriceTimestamp).toISOString()}
                         </p>
 
                         <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
