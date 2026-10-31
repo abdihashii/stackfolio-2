@@ -256,16 +256,19 @@ function Home() {
             })}
           </div>
 
-          <p>
-            Total Stack Value:{' '}
-            {(hasGold && isGoldSpotPriceLoading) || (hasSilver && isSilverSpotPriceLoading)
-              ? 'Loading...'
-              : (hasGold && goldSpotPriceError) || (hasSilver && silverSpotPriceError)
-                ? 'Unavailable'
-                : stackValue !== undefined
-                  ? formatUsd(stackValue)
-                  : 'Unavailable'}
-          </p>
+          <div className="flex flex-col gap-1 items-center">
+            <p>
+              Total Stack Value:{' '}
+              {(hasGold && isGoldSpotPriceLoading) || (hasSilver && isSilverSpotPriceLoading)
+                ? 'Loading...'
+                : (hasGold && goldSpotPriceError) || (hasSilver && silverSpotPriceError)
+                  ? 'Unavailable'
+                  : stackValue !== undefined
+                    ? formatUsd(stackValue)
+                    : 'Unavailable'}
+            </p>
+            <p>Based on weight, purity, quantity, and spot price. Actual resale value may differ.</p>
+          </div>
         </div>
       )}
 
