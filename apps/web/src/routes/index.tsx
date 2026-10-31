@@ -212,66 +212,62 @@ function Home() {
     <main className="w-11/12 mx-auto mt-4 flex flex-col items-center gap-8">
       <h1 className="font-bold text-4xl">StackFolio 2</h1>
 
-      <div>
-        {isHoldingsLoading ? (
-          <p>loading...</p>
-        ) : holdingsError ? (
-          <p>{holdingsError}</p>
-        ) : (
-          <div className="flex flex-col gap-4">
-            {/* TODO: move to its own component */}
-            <div className="flex gap-2">
-              {holdings.map((holding) => {
-                const { id, metal, weight_unit, weight, purity, quantity } = holding;
-                const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
-                const spotPriceTimestamp = metal === 'gold' ? goldSpotPriceTimestamp : silverSpotPriceTimestamp;
-                const isSpotPriceLoading = metal === 'gold' ? isGoldSpotPriceLoading : isSilverSpotPriceLoading;
-                const spotPriceError = metal === 'gold' ? goldSpotPriceError : silverSpotPriceError;
+      {isHoldingsLoading ? (
+        <p>loading...</p>
+      ) : holdingsError ? (
+        <p>{holdingsError}</p>
+      ) : (
+        <div className="flex flex-col gap-4 items-center">
+          {/* TODO: move to its own component */}
+          <div className="flex gap-2">
+            {holdings.map((holding) => {
+              const { id, metal, weight_unit, weight, purity, quantity } = holding;
+              const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
+              const spotPriceTimestamp = metal === 'gold' ? goldSpotPriceTimestamp : silverSpotPriceTimestamp;
+              const isSpotPriceLoading = metal === 'gold' ? isGoldSpotPriceLoading : isSilverSpotPriceLoading;
+              const spotPriceError = metal === 'gold' ? goldSpotPriceError : silverSpotPriceError;
 
-                return (
-                  <div key={id} className="border border-black p-2">
-                    <p>{metal}</p>
-                    <p>
-                      {weight} {weight_unit}
-                    </p>
-                    <p>{purity}</p>
-                    <p>{quantity}</p>
-                    <p>
-                      Total weight: {weight * quantity} {weight_unit}
-                    </p>
-                    {isSpotPriceLoading ? (
-                      <p>Holding value: loading...</p>
-                    ) : spotPriceError ? (
-                      <p>{spotPriceError}</p>
-                    ) : spotPrice !== undefined ? (
-                      <>
-                        <p>
-                          Price updated: {new Date(spotPriceTimestamp).toISOString()}
-                        </p>
+              return (
+                <div key={id} className="border border-black p-2">
+                  <p>{metal}</p>
+                  <p>
+                    {weight} {weight_unit}
+                  </p>
+                  <p>{purity}</p>
+                  <p>{quantity}</p>
+                  <p>
+                    Total weight: {weight * quantity} {weight_unit}
+                  </p>
+                  {isSpotPriceLoading ? (
+                    <p>Holding value: loading...</p>
+                  ) : spotPriceError ? (
+                    <p>{spotPriceError}</p>
+                  ) : spotPrice !== undefined ? (
+                    <>
+                      <p>Price updated: {new Date(spotPriceTimestamp).toISOString()}</p>
 
-                        <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
-                      </>
-                    ) : (
-                      <p>Holding value: Unavailable</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <p>
-              Total Stack Value:{' '}
-              {(hasGold && isGoldSpotPriceLoading) || (hasSilver && isSilverSpotPriceLoading)
-                ? 'Loading...'
-                : (hasGold && goldSpotPriceError) || (hasSilver && silverSpotPriceError)
-                  ? 'Unavailable'
-                  : stackValue !== undefined
-                    ? formatUsd(stackValue)
-                    : 'Unavailable'}
-            </p>
+                      <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
+                    </>
+                  ) : (
+                    <p>Holding value: Unavailable</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        )}
-      </div>
+
+          <p>
+            Total Stack Value:{' '}
+            {(hasGold && isGoldSpotPriceLoading) || (hasSilver && isSilverSpotPriceLoading)
+              ? 'Loading...'
+              : (hasGold && goldSpotPriceError) || (hasSilver && silverSpotPriceError)
+                ? 'Unavailable'
+                : stackValue !== undefined
+                  ? formatUsd(stackValue)
+                  : 'Unavailable'}
+          </p>
+        </div>
+      )}
 
       {/* TODO: move to its own component */}
       <form aria-disabled={isCreatingHoldingLoading} className="flex flex-col gap-4 text-xl" onSubmit={onAddSubmit}>
