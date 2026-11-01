@@ -220,46 +220,43 @@ function Home() {
         ) : holdingsError ? (
           <p>{holdingsError}</p>
         ) : (
-          <div className="flex flex-col gap-4 items-center">
-            {/* TODO: move to its own component */}
-            <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-              {holdings.length > 0 ? (
-                holdings.map((holding) => {
-                  const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
-                  const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
+          <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+            {holdings.length > 0 ? (
+              holdings.map((holding) => {
+                const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
+                const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
 
-                  return (
-                    <div key={id} className="border border-black p-2">
-                      <p>{metal}</p>
-                      <p>
-                        {weight} {weight_unit}
-                      </p>
-                      <p>{purity}</p>
-                      <p>{quantity}</p>
-                      <p>
-                        Total weight: {weight * quantity} {weight_unit}
-                      </p>
-                      {holding_type && <p>{holding_type}</p>}
-                      {isSpotPricesLoading ? (
-                        <p>Holding value: loading...</p>
-                      ) : spotPricesError ? (
-                        <p>{spotPricesError}</p>
-                      ) : spotPrice !== undefined ? (
-                        <>
-                          <p>Price snapshot: {new Date(spotPricesTimestamp).toISOString()}</p>
+                return (
+                  <div key={id} className="border border-black p-2">
+                    <p>{metal}</p>
+                    <p>
+                      {weight} {weight_unit}
+                    </p>
+                    <p>{purity}</p>
+                    <p>{quantity}</p>
+                    <p>
+                      Total weight: {weight * quantity} {weight_unit}
+                    </p>
+                    {holding_type && <p>{holding_type}</p>}
+                    {isSpotPricesLoading ? (
+                      <p>Holding value: loading...</p>
+                    ) : spotPricesError ? (
+                      <p>{spotPricesError}</p>
+                    ) : spotPrice !== undefined ? (
+                      <>
+                        <p>Price snapshot: {new Date(spotPricesTimestamp).toISOString()}</p>
 
-                          <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
-                        </>
-                      ) : (
-                        <p>Holding value: Unavailable</p>
-                      )}
-                    </div>
-                  );
-                })
-              ) : (
-                <p>No holdings yet. Add your first holding below.</p>
-              )}
-            </div>
+                        <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
+                      </>
+                    ) : (
+                      <p>Holding value: Unavailable</p>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <p>No holdings yet. Add your first holding below.</p>
+            )}
           </div>
         )}
 
