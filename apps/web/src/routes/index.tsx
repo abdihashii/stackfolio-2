@@ -383,8 +383,7 @@ function Home() {
             onChange={(e) => {
               const value = e.target.value;
               const selected = holdingTypes.find((type) => type === value);
-              if (value === '') setHoldingType('')
-              else if (selected !== undefined) setHoldingType(selected);
+              setHoldingType(selected ?? '');
             }}
           >
             <option value="">None selected</option>
