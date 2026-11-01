@@ -228,7 +228,7 @@ function Home() {
 
                 return (
                   <div key={id} className="rounded-md border border-gray-300 p-4">
-                    <p>{metal}</p>
+                    <h2 className="text-lg font-semibold capitalize">{metal}</h2>
                     <p>
                       Weight: {weight} {weight_unit}
                     </p>
