@@ -114,9 +114,6 @@ Replace fixed spot prices with latest-available fetched prices.
 - [x] Show the price timestamp so users know how recent the data is.
 - [x] While prices load, show a loading state. If a required price is unavailable, show affected values and Stack Value as unavailable.
 
-### Decisions Still Open for Stage 1
+### Final Verification Pending
 
-- Predefined purity options for each metal
-- Predefined optional holding types
-- Display currency and confirmation of the existing spot-price units
-- Price refresh frequency and stale-price behavior
+- Verify the combined `/spot-prices` endpoint's failure path and run workspace checks.
