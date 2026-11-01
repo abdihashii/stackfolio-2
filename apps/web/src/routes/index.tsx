@@ -201,6 +201,11 @@ function Home() {
     <main className="w-11/12 mx-auto mt-4 flex flex-col items-center gap-8">
       <h1 className="font-bold text-4xl">StackFolio 2</h1>
 
+      <div className="flex flex-col gap-1 items-center">
+        <h2 className='font-bold text-2xl'>Total Stack Value: {stackValueText}</h2>
+        <p className="text-gray-500">Based on weight, purity, quantity, and spot price. Actual resale value may differ.</p>
+      </div>
+
       {isHoldingsLoading ? (
         <p>loading...</p>
       ) : holdingsError ? (
@@ -244,11 +249,6 @@ function Home() {
             ) : (
               <p>No holdings yet. Add your first holding below.</p>
             )}
-          </div>
-
-          <div className="flex flex-col gap-1 items-center">
-            <p>Total Stack Value: {stackValueText}</p>
-            <p>Based on weight, purity, quantity, and spot price. Actual resale value may differ.</p>
           </div>
         </div>
       )}
