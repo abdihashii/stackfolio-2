@@ -207,7 +207,7 @@ function Home() {
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
       <h1 className="font-bold text-4xl">StackFolio 2</h1>
 
-      <div className="flex flex-col gap-1 items-center border border-black p-4 w-full max-w-md">
+      <div className="flex w-full max-w-md flex-col gap-1 rounded-md border border-gray-300 p-4">
         <h2 className="font-bold text-2xl">Total Stack Value: {stackValueText}</h2>
         <p className="text-gray-500">
           Based on weight, purity, quantity, and spot price. Actual resale value may differ.
