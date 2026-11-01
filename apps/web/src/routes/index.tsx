@@ -176,7 +176,6 @@ function Home() {
       holding_type: holdingType || null,
     };
 
-    // TODO: refresh holdings after succesful POST
     try {
       setCreatingHoldingError('');
       setIsCreatingHoldingLoading(true);
