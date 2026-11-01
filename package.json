@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "scripts": {
+    "typecheck": "bun run --cwd apps/api typecheck && bun run --cwd apps/web typecheck",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
