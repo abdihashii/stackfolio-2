@@ -336,6 +336,7 @@ function Home() {
               setPurity(value);
             }}
             disabled={metal === '' || isCreatingHoldingLoading}
+            autoComplete='off'
           >
             <option value="">Choose purity</option>
 
