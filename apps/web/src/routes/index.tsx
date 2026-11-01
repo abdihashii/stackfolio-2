@@ -230,10 +230,10 @@ function Home() {
                   <div key={id} className="border border-black p-2">
                     <p>{metal}</p>
                     <p>
-                      {weight} {weight_unit}
+                      Weight: {weight} {weight_unit}
                     </p>
-                    <p>{purity}</p>
-                    <p>{quantity}</p>
+                    <p>Purity: {purity}</p>
+                    <p>Quantity: {quantity}</p>
                     <p>
                       Total weight: {weight * quantity} {weight_unit}
                     </p>
