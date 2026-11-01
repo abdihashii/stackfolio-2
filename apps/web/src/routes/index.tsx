@@ -204,7 +204,7 @@ function Home() {
   }
 
   return (
-    <main className="w-11/12 mx-auto mt-4 flex flex-col items-center gap-8">
+    <main className="mx-auto w-full max-w-6xl px-4 py-8">
       <h1 className="font-bold text-4xl">StackFolio 2</h1>
 
       <div className="flex flex-col gap-1 items-center border border-black p-4 w-4/12">
@@ -336,7 +336,7 @@ function Home() {
               setPurity(value);
             }}
             disabled={metal === '' || isCreatingHoldingLoading}
-            autoComplete='off'
+            autoComplete="off"
           >
             <option value="">Choose purity</option>
 
