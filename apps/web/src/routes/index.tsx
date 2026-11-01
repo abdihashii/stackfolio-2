@@ -57,12 +57,13 @@ const calculateStackValue = (
 };
 
 // TODO: move to lib
-const fetchSpotMetalPrice = async (metal: 'gold' | 'silver') => {
-  const res = await fetch(`${backendUrlPath}/spot-prices/${metal}`);
+const fetchSpotPrices = async () => {
+  const res = await fetch(`${backendUrlPath}/spot-prices`);
   if (!res.ok) {
-    throw new Error(`Could not fetch spot price for ${metal}`);
+    throw new Error(`Could not fetch spot prices.`);
   }
-  return await res.json();
+  const data = (await res.json()) as { timestamp: string; prices: { gold: number; silver: number } };
+  return data;
 };
 
 // TODO: move to a custom hook and API lib files
@@ -113,13 +114,10 @@ function Home() {
   const [isCreatingHoldingLoading, setIsCreatingHoldingLoading] = useState<boolean>(false);
   const [creatingHoldingError, setCreatingHoldingError] = useState<string>('');
   const [goldSpotPrice, setGoldSpotPrice] = useState<number | undefined>(undefined);
-  const [isGoldSpotPriceLoading, setIsGoldSpotPriceLoading] = useState<boolean>(true);
-  const [goldSpotPriceError, setGoldSpotPriceError] = useState<string>('');
   const [silverSpotPrice, setSilverSpotPrice] = useState<number | undefined>(undefined);
-  const [isSilverSpotPriceLoading, setIsSilverSpotPriceLoading] = useState<boolean>(true);
-  const [silverSpotPriceError, setSilverSpotPriceError] = useState<string>('');
-  const [goldSpotPriceTimestamp, setGoldSpotPriceTimestamp] = useState<string>(''); // TODO: simply spot price state
-  const [silverSpotPriceTimestamp, setSilverSpotPriceTimestamp] = useState<string>(''); // TODO: simply spot price state
+  const [isSpotPricesLoading, setIsSpotPricesLoading] = useState<boolean>(true);
+  const [spotPricesError, setSpotPricesError] = useState<string>('');
+  const [spotPricesTimestamp, setSpotPricesTimestamp] = useState<string>(''); // TODO: simply spot price state
 
   // TODo: move to custom hook file
   useEffect(() => {
@@ -135,35 +133,22 @@ function Home() {
       }
     }
 
-    async function getGoldSpotPrice() {
+    async function getSpotPrices() {
       try {
-        setIsGoldSpotPriceLoading(true);
-        const fetchedGoldSpotPrice = await fetchSpotMetalPrice('gold');
-        setGoldSpotPrice(fetchedGoldSpotPrice.rate.price);
-        setGoldSpotPriceTimestamp(fetchedGoldSpotPrice.timestamp);
+        setIsSpotPricesLoading(true);
+        const fetchedSpotPrices = await fetchSpotPrices();
+        setGoldSpotPrice(fetchedSpotPrices.prices.gold);
+        setSilverSpotPrice(fetchedSpotPrices.prices.silver);
+        setSpotPricesTimestamp(fetchedSpotPrices.timestamp);
       } catch {
-        setGoldSpotPriceError('Could not load gold spot price. Reload the page and try again.');
+        setSpotPricesError('Could not load spot prices. Reload the page and try again.');
       } finally {
-        setIsGoldSpotPriceLoading(false);
-      }
-    }
-
-    async function getSilverSpotPrice() {
-      try {
-        setIsSilverSpotPriceLoading(true);
-        const fetchedSilverSpotPrice = await fetchSpotMetalPrice('silver');
-        setSilverSpotPrice(fetchedSilverSpotPrice.rate.price);
-        setSilverSpotPriceTimestamp(fetchedSilverSpotPrice.timestamp);
-      } catch {
-        setSilverSpotPriceError('Could not load silver spot price. Reload the page and try again.');
-      } finally {
-        setIsSilverSpotPriceLoading(false);
+        setIsSpotPricesLoading(false);
       }
     }
 
     getAllHoldings();
-    getGoldSpotPrice();
-    getSilverSpotPrice();
+    getSpotPrices();
 
     // TODO: add effect cleanup to ignore results after unmount.
   }, []);
@@ -201,8 +186,6 @@ function Home() {
     }
   };
 
-  const hasGold = holdings.some((holding) => holding.metal === 'gold');
-  const hasSilver = holdings.some((holding) => holding.metal === 'silver');
   const stackValue = calculateStackValue(holdings, {
     gold: goldSpotPrice,
     silver: silverSpotPrice,
@@ -224,9 +207,6 @@ function Home() {
               holdings.map((holding) => {
                 const { id, metal, weight_unit, weight, purity, quantity } = holding;
                 const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
-                const spotPriceTimestamp = metal === 'gold' ? goldSpotPriceTimestamp : silverSpotPriceTimestamp;
-                const isSpotPriceLoading = metal === 'gold' ? isGoldSpotPriceLoading : isSilverSpotPriceLoading;
-                const spotPriceError = metal === 'gold' ? goldSpotPriceError : silverSpotPriceError;
 
                 return (
                   <div key={id} className="border border-black p-2">
@@ -239,13 +219,13 @@ function Home() {
                     <p>
                       Total weight: {weight * quantity} {weight_unit}
                     </p>
-                    {isSpotPriceLoading ? (
+                    {isSpotPricesLoading ? (
                       <p>Holding value: loading...</p>
-                    ) : spotPriceError ? (
-                      <p>{spotPriceError}</p>
+                    ) : spotPricesError ? (
+                      <p>{spotPricesError}</p>
                     ) : spotPrice !== undefined ? (
                       <>
-                        <p>Price updated: {new Date(spotPriceTimestamp).toISOString()}</p>
+                        <p>Price snapshot: {new Date(spotPricesTimestamp).toISOString()}</p>
 
                         <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
                       </>
@@ -263,13 +243,14 @@ function Home() {
           <div className="flex flex-col gap-1 items-center">
             <p>
               Total Stack Value:{' '}
-              {(hasGold && isGoldSpotPriceLoading) || (hasSilver && isSilverSpotPriceLoading)
-                ? 'Loading...'
-                : (hasGold && goldSpotPriceError) || (hasSilver && silverSpotPriceError)
-                  ? 'Unavailable'
-                  : stackValue !== undefined
-                    ? formatUsd(stackValue)
-                    : 'Unavailable'}
+              {holdings.length > 0 &&
+                (isSpotPricesLoading
+                  ? 'Loading...'
+                  : holdings.length > 0 && spotPricesError
+                    ? 'Unavailable'
+                    : stackValue !== undefined
+                      ? formatUsd(stackValue)
+                      : 'Unavailable')}
             </p>
             <p>Based on weight, purity, quantity, and spot price. Actual resale value may differ.</p>
           </div>
