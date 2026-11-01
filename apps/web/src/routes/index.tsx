@@ -387,10 +387,11 @@ function Home() {
             }}
           >
             <option value="">None selected</option>
-            <option value="coin">Coin</option>
-            <option value="bar">Bar</option>
-            <option value="round">Round</option>
-            <option value="jewelry">Jewelry</option>
+            {holdingTypes.map((type) => (
+              <option key={type} value={type}>
+                {type[0].toUpperCase() + type.substring(1)}
+              </option>
+            ))}
           </select>
         </div>
 
