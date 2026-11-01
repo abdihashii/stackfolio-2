@@ -36,7 +36,9 @@ Use one manual add flow for gold and silver holdings. No product catalog is requ
 
 Weight is the metal alloy's weight before adjusting for purity. Purity is applied once to calculate fine-metal content. Items with different weights or purities belong in separate entries.
 
-Holding type is descriptive and does not change the valuation formula.
+Purity options: gold uses 9K, 14K, 18K, 24K (100%, nominal), .999, and .9999; silver uses .925, .999, and .9999. Karat values are divided by 24 for calculation.
+
+Optional holding types for both metals: Coin, Bar, Round, Jewelry. Holding type is descriptive and does not change the valuation formula.
 
 **Add flow:** Select metal → enter per-item weight and unit → select purity → enter quantity → optionally select holding type → save.
 
