@@ -207,211 +207,213 @@ function Home() {
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
       <h1 className="font-bold text-4xl">StackFolio 2</h1>
 
-      <div className="flex flex-col gap-1 items-center border border-black p-4 w-4/12">
+      <div className="flex flex-col gap-1 items-center border border-black p-4 w-full max-w-md">
         <h2 className="font-bold text-2xl">Total Stack Value: {stackValueText}</h2>
         <p className="text-gray-500">
           Based on weight, purity, quantity, and spot price. Actual resale value may differ.
         </p>
       </div>
 
-      {isHoldingsLoading ? (
-        <p>loading...</p>
-      ) : holdingsError ? (
-        <p>{holdingsError}</p>
-      ) : (
-        <div className="flex flex-col gap-4 items-center">
-          {/* TODO: move to its own component */}
-          <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {holdings.length > 0 ? (
-              holdings.map((holding) => {
-                const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
-                const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        {isHoldingsLoading ? (
+          <p>loading...</p>
+        ) : holdingsError ? (
+          <p>{holdingsError}</p>
+        ) : (
+          <div className="flex flex-col gap-4 items-center">
+            {/* TODO: move to its own component */}
+            <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+              {holdings.length > 0 ? (
+                holdings.map((holding) => {
+                  const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
+                  const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
 
-                return (
-                  <div key={id} className="border border-black p-2">
-                    <p>{metal}</p>
-                    <p>
-                      {weight} {weight_unit}
-                    </p>
-                    <p>{purity}</p>
-                    <p>{quantity}</p>
-                    <p>
-                      Total weight: {weight * quantity} {weight_unit}
-                    </p>
-                    {holding_type && <p>{holding_type}</p>}
-                    {isSpotPricesLoading ? (
-                      <p>Holding value: loading...</p>
-                    ) : spotPricesError ? (
-                      <p>{spotPricesError}</p>
-                    ) : spotPrice !== undefined ? (
-                      <>
-                        <p>Price snapshot: {new Date(spotPricesTimestamp).toISOString()}</p>
+                  return (
+                    <div key={id} className="border border-black p-2">
+                      <p>{metal}</p>
+                      <p>
+                        {weight} {weight_unit}
+                      </p>
+                      <p>{purity}</p>
+                      <p>{quantity}</p>
+                      <p>
+                        Total weight: {weight * quantity} {weight_unit}
+                      </p>
+                      {holding_type && <p>{holding_type}</p>}
+                      {isSpotPricesLoading ? (
+                        <p>Holding value: loading...</p>
+                      ) : spotPricesError ? (
+                        <p>{spotPricesError}</p>
+                      ) : spotPrice !== undefined ? (
+                        <>
+                          <p>Price snapshot: {new Date(spotPricesTimestamp).toISOString()}</p>
 
-                        <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
-                      </>
-                    ) : (
-                      <p>Holding value: Unavailable</p>
-                    )}
-                  </div>
-                );
-              })
-            ) : (
-              <p>No holdings yet. Add your first holding below.</p>
-            )}
+                          <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
+                        </>
+                      ) : (
+                        <p>Holding value: Unavailable</p>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <p>No holdings yet. Add your first holding below.</p>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* TODO: move to its own component */}
-      <form aria-disabled={isCreatingHoldingLoading} className="flex flex-col gap-4 text-xl" onSubmit={onAddSubmit}>
-        <div className="flex gap-2">
-          <label htmlFor="metal">Metal:</label>
-          <select
-            required
-            name="metal"
-            id="metal"
-            value={metal}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (value == '' || value === 'gold' || value === 'silver') {
-                setPurity('');
-                setMetal(value);
-              }
-            }}
+        {/* TODO: move to its own component */}
+        <form aria-disabled={isCreatingHoldingLoading} className="flex flex-col gap-4 text-xl" onSubmit={onAddSubmit}>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="metal">Metal:</label>
+            <select
+              required
+              name="metal"
+              id="metal"
+              value={metal}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value == '' || value === 'gold' || value === 'silver') {
+                  setPurity('');
+                  setMetal(value);
+                }
+              }}
+              disabled={isCreatingHoldingLoading}
+            >
+              <option value="">Choose a metal</option>
+              <option value="gold">Gold</option>
+              <option value="silver">Silver</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="weight-unit">Weight unit:</label>
+            <select
+              required
+              name="weight_unit"
+              id="weight-unit"
+              value={weightUnit}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === 'gram' || value === 'ozt' || value === '') setWeightUnit(value);
+              }}
+              disabled={isCreatingHoldingLoading}
+            >
+              <option value="">Choose unit</option>
+              <option value="gram">gram</option>
+              <option value="ozt">troy ounce</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="weight">Weight per item:</label>
+            <input
+              required
+              name="weight"
+              id="weight"
+              type="number"
+              placeholder="Enter weight"
+              min="0"
+              step="any"
+              value={weight}
+              onChange={(e) => {
+                const value = e.target.value;
+                setWeight(value);
+              }}
+              disabled={isCreatingHoldingLoading}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="purity">Purity:</label>
+            <select
+              required
+              name="purity"
+              id="purity"
+              value={purity}
+              onChange={(e) => {
+                const value = e.target.value;
+                setPurity(value);
+              }}
+              disabled={metal === '' || isCreatingHoldingLoading}
+              autoComplete="off"
+            >
+              <option value="">Choose purity</option>
+
+              {metal === 'gold' ? (
+                <>
+                  <option value={9 / 24}>9K</option>
+                  <option value={14 / 24}>14K</option>
+                  <option value={18 / 24}>18K</option>
+                  <option value={24 / 24}>24K (100%, nominal)</option>
+                  <option value={0.999}>Fine gold (.999)</option>
+                  <option value={0.9999}>Fine gold (.9999)</option>
+                </>
+              ) : (
+                <>
+                  <option value="0.925">Sterling silver (.925)</option>
+                  <option value="0.999">Fine silver (.999)</option>
+                  <option value="0.9999">Fine silver (.9999)</option>
+                </>
+              )}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="quantity">Quantity:</label>
+            <input
+              required
+              name="quantity"
+              id="quantity"
+              type="number"
+              min="1"
+              step="1"
+              value={quantity}
+              onChange={(e) => {
+                const value = e.target.value;
+                setQuantity(value);
+              }}
+              disabled={isCreatingHoldingLoading}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="holding-type">Holding type:</label>
+            <select
+              name="holding_type"
+              id="holding-type"
+              disabled={isCreatingHoldingLoading}
+              value={holdingType}
+              onChange={(e) => {
+                const value = e.target.value;
+                const selected = holdingTypes.find((type) => type === value);
+                setHoldingType(selected ?? '');
+              }}
+            >
+              <option value="">None selected</option>
+              {holdingTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type[0].toUpperCase() + type.substring(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* TODO: show 'adding' when loading */}
+          <button
+            type="submit"
+            className="border border-black box-border py-2 px-4 bg-gray-100 hover:cursor-pointer hover:bg-gray-200"
             disabled={isCreatingHoldingLoading}
           >
-            <option value="">Choose a metal</option>
-            <option value="gold">Gold</option>
-            <option value="silver">Silver</option>
-          </select>
-        </div>
+            Add
+          </button>
 
-        <div className="flex gap-2">
-          <label htmlFor="weight-unit">Weight unit:</label>
-          <select
-            required
-            name="weight_unit"
-            id="weight-unit"
-            value={weightUnit}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (value === 'gram' || value === 'ozt' || value === '') setWeightUnit(value);
-            }}
-            disabled={isCreatingHoldingLoading}
-          >
-            <option value="">Choose unit</option>
-            <option value="gram">gram</option>
-            <option value="ozt">troy ounce</option>
-          </select>
-        </div>
-
-        <div className="flex gap-2">
-          <label htmlFor="weight">Weight per item:</label>
-          <input
-            required
-            name="weight"
-            id="weight"
-            type="number"
-            placeholder="Enter weight"
-            min="0"
-            step="any"
-            value={weight}
-            onChange={(e) => {
-              const value = e.target.value;
-              setWeight(value);
-            }}
-            disabled={isCreatingHoldingLoading}
-          />
-        </div>
-
-        <div className="flex gap-2">
-          <label htmlFor="purity">Purity:</label>
-          <select
-            required
-            name="purity"
-            id="purity"
-            value={purity}
-            onChange={(e) => {
-              const value = e.target.value;
-              setPurity(value);
-            }}
-            disabled={metal === '' || isCreatingHoldingLoading}
-            autoComplete="off"
-          >
-            <option value="">Choose purity</option>
-
-            {metal === 'gold' ? (
-              <>
-                <option value={9 / 24}>9K</option>
-                <option value={14 / 24}>14K</option>
-                <option value={18 / 24}>18K</option>
-                <option value={24 / 24}>24K (100%, nominal)</option>
-                <option value={0.999}>Fine gold (.999)</option>
-                <option value={0.9999}>Fine gold (.9999)</option>
-              </>
-            ) : (
-              <>
-                <option value="0.925">Sterling silver (.925)</option>
-                <option value="0.999">Fine silver (.999)</option>
-                <option value="0.9999">Fine silver (.9999)</option>
-              </>
-            )}
-          </select>
-        </div>
-
-        <div className="flex gap-2">
-          <label htmlFor="quantity">Quantity:</label>
-          <input
-            required
-            name="quantity"
-            id="quantity"
-            type="number"
-            min="1"
-            step="1"
-            value={quantity}
-            onChange={(e) => {
-              const value = e.target.value;
-              setQuantity(value);
-            }}
-            disabled={isCreatingHoldingLoading}
-          />
-        </div>
-
-        <div className="flex gap-2">
-          <label htmlFor="holding-type">Holding type:</label>
-          <select
-            name="holding_type"
-            id="holding-type"
-            disabled={isCreatingHoldingLoading}
-            value={holdingType}
-            onChange={(e) => {
-              const value = e.target.value;
-              const selected = holdingTypes.find((type) => type === value);
-              setHoldingType(selected ?? '');
-            }}
-          >
-            <option value="">None selected</option>
-            {holdingTypes.map((type) => (
-              <option key={type} value={type}>
-                {type[0].toUpperCase() + type.substring(1)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* TODO: show 'adding' when loading */}
-        <button
-          type="submit"
-          className="border border-black box-border py-2 px-4 bg-gray-100 hover:cursor-pointer hover:bg-gray-200"
-          disabled={isCreatingHoldingLoading}
-        >
-          Add
-        </button>
-
-        <p role="alert" aria-atomic="true">
-          {creatingHoldingError}
-        </p>
-      </form>
+          <p role="alert" aria-atomic="true">
+            {creatingHoldingError}
+          </p>
+        </form>
+      </div>
     </main>
   );
 }
