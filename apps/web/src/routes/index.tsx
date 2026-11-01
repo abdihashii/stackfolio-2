@@ -194,7 +194,7 @@ function Home() {
   if (holdings.length > 0 && isSpotPricesLoading) {
     stackValueText = 'Loading...';
   } else if (stackValue !== undefined && (holdings.length === 0 || !spotPricesError)) {
-    stackValueText = formatUsd(stackValue ?? 0);
+    stackValueText = formatUsd(stackValue);
   }
 
   return (
