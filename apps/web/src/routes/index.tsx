@@ -244,7 +244,9 @@ function Home() {
                       <p>{spotPricesError}</p>
                     ) : spotPrice !== undefined ? (
                       <>
-                        <p>Price snapshot: {new Date(spotPricesTimestamp).toISOString()}</p>
+                        <p className="mt-2 text-sm text-gray-500 wrap-break-word">
+                          Price snapshot: {new Date(spotPricesTimestamp).toISOString()}
+                        </p>
 
                         <p className="mt-3 font-semibold">
                           Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}
