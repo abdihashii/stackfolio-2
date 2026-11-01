@@ -405,13 +405,12 @@ function Home() {
             </select>
           </div>
 
-          {/* TODO: show 'adding' when loading */}
           <button
             type="submit"
             className="rounded-md bg-gray-900 px-4 py-2 font-semibold text-white hover:bg-gray-800 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isCreatingHoldingLoading}
           >
-            Add
+            {isCreatingHoldingLoading ? 'Adding...' : 'Add'}
           </button>
 
           <p role="alert" aria-atomic="true">
