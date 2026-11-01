@@ -202,8 +202,10 @@ function Home() {
       <h1 className="font-bold text-4xl">StackFolio 2</h1>
 
       <div className="flex flex-col gap-1 items-center">
-        <h2 className='font-bold text-2xl'>Total Stack Value: {stackValueText}</h2>
-        <p className="text-gray-500">Based on weight, purity, quantity, and spot price. Actual resale value may differ.</p>
+        <h2 className="font-bold text-2xl">Total Stack Value: {stackValueText}</h2>
+        <p className="text-gray-500">
+          Based on weight, purity, quantity, and spot price. Actual resale value may differ.
+        </p>
       </div>
 
       {isHoldingsLoading ? (
