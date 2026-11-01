@@ -5,6 +5,9 @@ import { useEffect, useState } from 'react';
 // TODO: move to lib
 const backendUrlPath = import.meta.env.VITE_API_URL;
 
+const holdingTypes = ['coin', 'bar', 'round', 'jewelry'] as const;
+type HoldingType = (typeof holdingTypes)[number];
+
 // TODO: move to types file
 interface CreateHoldingInput {
   metal: 'gold' | 'silver';
@@ -12,7 +15,7 @@ interface CreateHoldingInput {
   weight: number;
   purity: number;
   quantity: number;
-  holding_type: string | null;
+  holding_type: HoldingType | null;
 }
 
 // TODO: move to types file
@@ -107,7 +110,7 @@ function Home() {
   const [weight, setWeight] = useState<string>('');
   const [purity, setPurity] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('1');
-  const [holdingType, setHoldingType] = useState<string>('');
+  const [holdingType, setHoldingType] = useState<HoldingType | ''>('');
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [isHoldingsLoading, setIsHoldingsLoading] = useState<boolean>(true);
   const [holdingsError, setHoldingsError] = useState<string>('');
@@ -218,7 +221,7 @@ function Home() {
           <div className="flex gap-2">
             {holdings.length > 0 ? (
               holdings.map((holding) => {
-                const { id, metal, weight_unit, weight, purity, quantity } = holding;
+                const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
                 const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
 
                 return (
@@ -232,6 +235,7 @@ function Home() {
                     <p>
                       Total weight: {weight * quantity} {weight_unit}
                     </p>
+                    {holding_type && <p>{holding_type}</p>}
                     {isSpotPricesLoading ? (
                       <p>Holding value: loading...</p>
                     ) : spotPricesError ? (
@@ -377,10 +381,17 @@ function Home() {
             disabled={isCreatingHoldingLoading}
             value={holdingType}
             onChange={(e) => {
-              setHoldingType(e.target.value);
+              const value = e.target.value;
+              const selected = holdingTypes.find((type) => type === value);
+              if (value === '') setHoldingType('')
+              else if (selected !== undefined) setHoldingType(selected);
             }}
           >
             <option value="">None selected</option>
+            <option value="coin">Coin</option>
+            <option value="bar">Bar</option>
+            <option value="round">Round</option>
+            <option value="jewelry">Jewelry</option>
           </select>
         </div>
 
