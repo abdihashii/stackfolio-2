@@ -204,7 +204,7 @@ function Home() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8">
+    <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
       <h1 className="font-bold text-4xl">StackFolio 2</h1>
 
       <div className="flex flex-col gap-1 items-center border border-black p-4 w-4/12">
@@ -221,7 +221,7 @@ function Home() {
       ) : (
         <div className="flex flex-col gap-4 items-center">
           {/* TODO: move to its own component */}
-          <div className="flex gap-2">
+          <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {holdings.length > 0 ? (
               holdings.map((holding) => {
                 const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
