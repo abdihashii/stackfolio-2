@@ -246,10 +246,12 @@ function Home() {
                       <>
                         <p>Price snapshot: {new Date(spotPricesTimestamp).toISOString()}</p>
 
-                        <p>Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
+                        <p className="mt-3 font-semibold">
+                          Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}
+                        </p>
                       </>
                     ) : (
-                      <p>Holding value: Unavailable</p>
+                      <p className="mt-3 font-semibold">Holding value: Unavailable</p>
                     )}
                   </div>
                 );
