@@ -180,8 +180,8 @@ function Home() {
     try {
       setCreatingHoldingError('');
       setIsCreatingHoldingLoading(true);
-      const data = await createHolding(payload);
-      console.log(data);
+      const savedHolding = await createHolding(payload);
+      setHoldings((currentHoldings) => [...currentHoldings, savedHolding]);
     } catch {
       setCreatingHoldingError('Could not create holding. Please try again');
     } finally {
