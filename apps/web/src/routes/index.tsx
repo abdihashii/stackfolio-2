@@ -262,6 +262,8 @@ function Home() {
 
         {/* TODO: move to its own component */}
         <form aria-disabled={isCreatingHoldingLoading} className="flex flex-col gap-4 text-xl" onSubmit={onAddSubmit}>
+          <h2 className="font-bold text-xl">Add holding</h2>
+
           <div className="flex flex-col gap-1">
             <label htmlFor="metal">Metal:</label>
             <select
