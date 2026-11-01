@@ -194,10 +194,14 @@ function Home() {
     silver: silverSpotPrice,
   });
   let stackValueText = 'Unavailable';
-  if (holdings.length > 0 && isSpotPricesLoading) {
+  if (isHoldingsLoading) {
     stackValueText = 'Loading...';
-  } else if (stackValue !== undefined && (holdings.length === 0 || !spotPricesError)) {
-    stackValueText = formatUsd(stackValue);
+  } else if (!holdingsError) {
+    if (holdings.length > 0 && isSpotPricesLoading) {
+      stackValueText = 'Loading...';
+    } else if (stackValue !== undefined && (holdings.length === 0 || !spotPricesError)) {
+      stackValueText = formatUsd(stackValue);
+    }
   }
 
   return (
