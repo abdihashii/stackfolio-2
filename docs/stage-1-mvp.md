@@ -115,7 +115,3 @@ Replace fixed spot prices with latest-available fetched prices.
 - [x] After page load, holding values and Stack Value use fetched gold/silver spot prices with confirmed currency and units.
 - [x] Show the price timestamp so users know how recent the data is.
 - [x] While prices load, show a loading state. If a required price is unavailable, show affected values and Stack Value as unavailable.
-
-### Final Verification Pending
-
-- Verify the combined `/spot-prices` endpoint's failure path and run workspace checks.
