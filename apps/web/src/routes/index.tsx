@@ -227,7 +227,7 @@ function Home() {
                 const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
 
                 return (
-                  <div key={id} className="border border-black p-2">
+                  <div key={id} className="rounded-md border border-gray-300 p-4">
                     <p>{metal}</p>
                     <p>
                       Weight: {weight} {weight_unit}
