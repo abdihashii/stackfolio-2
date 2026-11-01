@@ -45,6 +45,20 @@ describe('SpotPricesService', () => {
     await expect(service.getSpotPrices()).resolves.toEqual(data);
   });
 
+  it('rejects a null prices object', async () => {
+    const data = {
+      timestamp: '2026-01-01T00:00:00.000Z',
+      currency: 'USD',
+      unit: 'toz',
+      prices: null,
+      source: 'database',
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(data), { status: 200 }));
+
+    await expect(service.getSpotPrices()).rejects.toThrow('Invalid spot prices.');
+  });
+
   it('rejects a null gold spot price', async () => {
     const data = {
       timestamp: '2026-01-01T00:00:00.000Z',
@@ -59,6 +73,6 @@ describe('SpotPricesService', () => {
 
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(data), { status: 200 }));
 
-    await expect(service.getSpotPrices()).rejects.toThrow('Invalid gold price.')
-  })
+    await expect(service.getSpotPrices()).rejects.toThrow('Invalid gold price.');
+  });
 });
