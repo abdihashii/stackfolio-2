@@ -66,7 +66,9 @@ Purity is a fraction in the calculation, for example 75% = 0.75.
 
 Weight and spot price must use consistent units. One troy ounce equals 31.1034768 grams. Convert weights or the price unit before calculating value; never treat a troy ounce as an ordinary ounce.
 
-Use the latest available spot price for each metal and show the price timestamp. Explain Stack Value in the interface as **“Metal value calculated from weight, purity, quantity, and current spot prices.”**
+Use the latest available prices in USD per troy ounce. Fetch on page load; reload to refresh. The shared price source collects hourly on UTC weekdays, reads KV first, and falls back to the latest D1 snapshot when the cache expires, including weekends. Show the snapshot's collection hour in UTC, not the request time. Automatic refresh and stale-price warnings are deferred; older snapshots remain usable with their timestamp displayed.
+
+Explain Stack Value in the interface as **“Based on weight, purity, quantity, and spot price. Actual resale value may differ.”**
 
 If a metal's price is unavailable, show affected holding values as unavailable, not zero. Do not present a partial sum as the total Stack Value.
 
