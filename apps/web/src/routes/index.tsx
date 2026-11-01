@@ -279,6 +279,7 @@ function Home() {
                 }
               }}
               disabled={isCreatingHoldingLoading}
+              className="w-full rounded-md border border-gray-300 px-3 py-2"
             >
               <option value="">Choose a metal</option>
               <option value="gold">Gold</option>
@@ -298,6 +299,7 @@ function Home() {
                 if (value === 'gram' || value === 'ozt' || value === '') setWeightUnit(value);
               }}
               disabled={isCreatingHoldingLoading}
+              className="w-full rounded-md border border-gray-300 px-3 py-2"
             >
               <option value="">Choose unit</option>
               <option value="gram">gram</option>
@@ -321,6 +323,7 @@ function Home() {
                 setWeight(value);
               }}
               disabled={isCreatingHoldingLoading}
+              className="w-full rounded-md border border-gray-300 px-3 py-2"
             />
           </div>
 
@@ -337,6 +340,7 @@ function Home() {
               }}
               disabled={metal === '' || isCreatingHoldingLoading}
               autoComplete="off"
+              className="w-full rounded-md border border-gray-300 px-3 py-2"
             >
               <option value="">Choose purity</option>
 
@@ -374,6 +378,7 @@ function Home() {
                 setQuantity(value);
               }}
               disabled={isCreatingHoldingLoading}
+              className="w-full rounded-md border border-gray-300 px-3 py-2"
             />
           </div>
 
@@ -389,6 +394,7 @@ function Home() {
                 const selected = holdingTypes.find((type) => type === value);
                 setHoldingType(selected ?? '');
               }}
+              className="w-full rounded-md border border-gray-300 px-3 py-2"
             >
               <option value="">None selected</option>
               {holdingTypes.map((type) => (
@@ -402,7 +408,7 @@ function Home() {
           {/* TODO: show 'adding' when loading */}
           <button
             type="submit"
-            className="border border-black box-border py-2 px-4 bg-gray-100 hover:cursor-pointer hover:bg-gray-200"
+            className="rounded-md bg-gray-900 px-4 py-2 font-semibold text-white hover:bg-gray-800 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isCreatingHoldingLoading}
           >
             Add
