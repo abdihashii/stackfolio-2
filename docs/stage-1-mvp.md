@@ -1,11 +1,4 @@
-# StackFolio 2: Staged Product Scope
-
-## Long-Term Stages
-
-1. **Current Stack Value:** Add holdings and see their current metal value at spot prices.
-2. **Historical Stack Value:** Track stack value over time. History start dates and handling changes to holdings will be defined in this stage.
-3. **Graphs:** Visualize stack value history.
-4. **TBD.**
+# StackFolio 2: Stage 1 Product Scope
 
 ## Stage 1: Current Stack Value
 
