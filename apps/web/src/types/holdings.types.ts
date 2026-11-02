@@ -14,6 +14,7 @@ export interface CreateHoldingInput {
   purity: number;
   quantity: number;
   holding_type: HoldingType | null;
+  acquisition_date: string | null;
 }
 
 export interface Holding extends CreateHoldingInput {

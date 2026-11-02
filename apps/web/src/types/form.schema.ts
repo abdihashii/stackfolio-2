@@ -9,5 +9,6 @@ export const schema = z.object({
   purity: z.number().positive().max(1),
   quantity: z.number().int().positive().max(2147483647),
   holding_type: z.enum(holdingTypes).nullable(),
+  acquisition_date: z.iso.date().nullable(),
 });
 export type FormValues = z.infer<typeof schema>;
