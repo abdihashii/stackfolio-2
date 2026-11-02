@@ -25,7 +25,7 @@ export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps
       noValidate
       autoComplete="off"
       aria-disabled={isSubmitting}
-      className="flex flex-col gap-4 text-xl"
+      className="flex flex-col gap-4"
       onSubmit={handleSubmit(onSubmit)}
     >
       <h2 className="font-bold text-xl">Add holding</h2>
