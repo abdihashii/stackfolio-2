@@ -7,7 +7,7 @@ type FormProps = {
   form: UseFormReturn<CreateHoldingInput>;
   onSubmit: SubmitHandler<CreateHoldingInput>;
   creatingHoldingError: string;
-  isBusy: boolean
+  isBusy: boolean;
 };
 
 export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps) => {
