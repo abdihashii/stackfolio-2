@@ -26,9 +26,6 @@ function Home() {
 
   const [spotPricesTimestamp, setSpotPricesTimestamp] = useState<string>(''); // TODO: simply spot price state
 
-  const [isSpotPricesLoading, setIsSpotPricesLoading] = useState<boolean>(true);
-  const [spotPricesError, setSpotPricesError] = useState<string>('');
-
   const [isMutating, setIsMutating] = useState<boolean>(false);
 
   const [editingHoldingId, setEditingHoldingId] = useState<string | null>(null);
@@ -45,13 +42,10 @@ function Home() {
   useEffect(() => {
     async function getSpotPrices() {
       try {
-        setIsSpotPricesLoading(true);
         const fetchedSpotPrices = await fetchSpotPrices();
         setSpotPricesTimestamp(fetchedSpotPrices.timestamp);
       } catch {
-        setSpotPricesError('Could not load spot prices. Reload the page and try again.');
-      } finally {
-        setIsSpotPricesLoading(false);
+        alert('Could not load spot prices. Reload the page and try again.');
       }
     }
 
@@ -121,9 +115,9 @@ function Home() {
   if (holdingsQuery.isPending) {
     stackValueText = 'Loading...';
   } else if (!holdingsQuery.isError) {
-    if (holdingsQuery.data.length > 0 && isSpotPricesLoading) {
+    if (holdingsQuery.data.length > 0 && spotPricesQuery.isPending) {
       stackValueText = 'Loading...';
-    } else if (stackValue !== undefined && (holdingsQuery.data.length === 0 || !spotPricesError)) {
+    } else if (stackValue !== undefined && (holdingsQuery.data.length === 0 || !spotPricesQuery.isError)) {
       stackValueText = formatUsd(stackValue);
     }
   }
@@ -167,8 +161,8 @@ function Home() {
                       <HoldingCard
                         holding={holding}
                         isBusy={isBusy}
-                        isSpotPricesLoading={isSpotPricesLoading}
-                        spotPricesError={spotPricesError}
+                        isSpotPricesLoading={spotPricesQuery.isPending}
+                        spotPricesError={spotPricesQuery.error?.message ?? ''}
                         spotPrice={spotPrice}
                         spotPricesTimestamp={spotPricesTimestamp}
                         onDelete={onDeleteHolding}
