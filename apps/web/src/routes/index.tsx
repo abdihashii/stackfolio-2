@@ -57,7 +57,7 @@ function Home() {
     },
   });
 
-  const onSubmit: SubmitHandler<FormValues> = async (data) => {
+  const onCreateHolding: SubmitHandler<FormValues> = async (data) => {
     if (createHoldingMutation.isPending || holdingsQuery.isPending) return;
     try {
       await createHoldingMutation.mutateAsync(data);
@@ -174,7 +174,7 @@ function Home() {
 
         <Form
           form={form}
-          onSubmit={onSubmit}
+          onSubmit={onCreateHolding}
           creatingHoldingError={createHoldingMutation.error?.message ?? ''}
           isBusy={isBusy}
         />
