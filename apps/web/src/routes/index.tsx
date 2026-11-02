@@ -122,7 +122,6 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  // TODO: add ReactHookForm
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [isHoldingsLoading, setIsHoldingsLoading] = useState<boolean>(true);
   const [holdingsError, setHoldingsError] = useState<string>('');
