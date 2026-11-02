@@ -81,7 +81,6 @@ function Home() {
       await editHoldingMutation.mutateAsync({ id, data });
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Could not update holding.');
-      return;
     }
   };
 
