@@ -1,15 +1,16 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 
-import type { CreateHoldingInput, Holding } from '@/types/holdings.types';
+import type { Holding } from '@/types/holdings.types';
 
 import { Form } from '@/components/form';
 import { H2 } from '@/components/h2';
 import { HoldingCard } from '@/components/holding-card';
 import { UpdateForm } from '@/components/update-form';
 import { useCreateHolding } from '@/hooks/use-create-holding';
+import { useDeleteHolding } from '@/hooks/use-delete-holding';
 import { useUpdateHolding } from '@/hooks/use-update-holding';
-import { fetchAllHoldings, fetchSpotPrices, deleteHolding } from '@/lib/apis';
+import { fetchAllHoldings, fetchSpotPrices } from '@/lib/apis';
 import { calculateStackValue, formatUsd } from '@/lib/utils';
 
 export const Route = createFileRoute('/')({
@@ -17,28 +18,16 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  const queryClient = useQueryClient();
-
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings });
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
-
   const { form, createHoldingMutation, onCreateHolding } = useCreateHolding(holdingsQuery.isPending);
   const { updatingHoldingId, setUpdatingHoldingId, updateForm, onUpdateHolding } = useUpdateHolding();
-
-  // TODO: move these to their own hook files
-  const deleteHoldingMutation = useMutation({
-    mutationFn: deleteHolding,
-    onSuccess: async () => await queryClient.invalidateQueries({ queryKey: ['holdings'] }),
-  });
-
-  const onDeleteHolding = async (id: string) => {
-    if (isBusy) return;
-    try {
-      await deleteHoldingMutation.mutateAsync(id);
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Could not delete holding.');
-    }
-  };
+  const { deleteHoldingMutation, onDeleteHolding } = useDeleteHolding(
+    form.formState.isSubmitting ||
+      updateForm.formState.isSubmitting ||
+      createHoldingMutation.isPending ||
+      holdingsQuery.isPending,
+  );
 
   const onStartEdit = (holding: Holding) => {
     const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
