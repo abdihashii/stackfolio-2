@@ -49,7 +49,7 @@ History reflects the current corrected records, not an immutable audit trail. Re
 
 - [x] Add, view, update, and delete holdings; changes persist after reload.
 - [x] Save a holding with or without an acquisition date, and correct that date later.
-- [ ] Automatically record when each holding is first added. Keep that timestamp unchanged through updates, and use its UTC date as the historical start date whenever no acquisition date is provided.
+- [x] Automatically record when each holding is first added. Keep that timestamp unchanged through updates, and use its UTC date as the historical start date whenever no acquisition date is provided.
 
 #### 2. Calculate historical values
 
