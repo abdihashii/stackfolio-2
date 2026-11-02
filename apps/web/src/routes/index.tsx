@@ -31,13 +31,13 @@ function Home() {
   const queryClient = useQueryClient();
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings }); // TODO: move to its own hook file
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices }); // TODO: move to its own hook file
-  const formSubmitMutation = useMutation({ mutationFn: createHolding });
+  const createHoldingMutation = useMutation({ mutationFn: createHolding });
 
   // TODO: convert to a react query mutation
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    if (formSubmitMutation.isPending || holdingsQuery.isPending) return;
+    if (createHoldingMutation.isPending || holdingsQuery.isPending) return;
     try {
-      await formSubmitMutation.mutateAsync(data);
+      await createHoldingMutation.mutateAsync(data);
       await queryClient.invalidateQueries({ queryKey: ['holdings'] });
       form.reset();
     } catch (error) {
@@ -107,7 +107,7 @@ function Home() {
     form.formState.isSubmitting ||
     editForm.formState.isSubmitting ||
     isMutating ||
-    formSubmitMutation.isPending ||
+    createHoldingMutation.isPending ||
     holdingsQuery.isPending;
 
   return (
