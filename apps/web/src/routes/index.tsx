@@ -8,7 +8,7 @@ const metals = ['gold', 'silver'] as const;
 // type Metal = (typeof metals)[number];
 
 const weightUnits = ['ozt', 'gram'] as const;
-// type WeightUnits = (typeof weightUnits)[number];
+type WeightUnit = (typeof weightUnits)[number];
 
 const holdingTypes = ['coin', 'bar', 'round', 'jewelry'] as const;
 type HoldingType = (typeof holdingTypes)[number];
@@ -16,7 +16,7 @@ type HoldingType = (typeof holdingTypes)[number];
 // TODO: move to types file
 interface CreateHoldingInput {
   metal: 'gold' | 'silver';
-  weight_unit: 'gram' | 'ozt';
+  weight_unit: WeightUnit;
   weight: number;
   purity: number;
   quantity: number;
