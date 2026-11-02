@@ -166,6 +166,15 @@ export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps
         </p>
       </div>
 
+      <div className="flex flex-col gap-1">
+        <label htmlFor="acquisition-date">Acquisition date:</label>
+        <input
+          id="acquisition-date"
+          type="date"
+          {...register('acquisition_date', { setValueAs: (value) => (value === '' ? null : value) })}
+        />
+      </div>
+
       <button
         type="submit"
         className="rounded-md bg-gray-900 px-4 py-2 font-semibold text-white hover:bg-gray-800 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
