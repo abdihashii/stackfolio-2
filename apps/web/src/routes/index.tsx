@@ -159,14 +159,14 @@ function Home() {
       </div>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        {isHoldingsLoading ? (
+        {holdingsQuery.isPending ? (
           <p>loading...</p>
-        ) : holdingsError ? (
-          <p>{holdingsError}</p>
+        ) : holdingsQuery.isError ? (
+          <p>{holdingsQuery.error.message}</p>
         ) : (
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-            {holdings.length > 0 ? (
-              holdings.map((holding) => {
+            {holdingsQuery.data.length > 0 ? (
+              holdingsQuery.data.map((holding) => {
                 const spotPrice = holding.metal === 'gold' ? goldSpotPrice : silverSpotPrice;
 
                 return (
