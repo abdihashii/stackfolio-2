@@ -125,7 +125,6 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   // TODO: add ReactHookForm
-  const [holdingType, setHoldingType] = useState<HoldingType | ''>('');
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [isHoldingsLoading, setIsHoldingsLoading] = useState<boolean>(true);
   const [holdingsError, setHoldingsError] = useState<string>('');
@@ -150,6 +149,7 @@ function Home() {
   const weight = watch('weight');
   const purity = watch('purity');
   const quantity = watch('quantity');
+  const holdinType = watch('holding_type');
 
   // TODo: move to custom hook file
   useEffect(() => {
@@ -394,15 +394,9 @@ function Home() {
           <div className="flex flex-col gap-1">
             <label htmlFor="holding-type">Holding type:</label>
             <select
-              name="holding_type"
+              {...register('holding_type', { setValueAs: (value) => (value === '' ? null : value) })}
               id="holding-type"
               disabled={isCreatingHoldingLoading}
-              value={holdingType}
-              onChange={(e) => {
-                const value = e.target.value;
-                const selected = holdingTypes.find((type) => type === value);
-                setHoldingType(selected ?? '');
-              }}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
             >
               <option value="">None selected</option>
