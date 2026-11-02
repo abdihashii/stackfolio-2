@@ -1,7 +1,7 @@
 import type { SubmitHandler } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -41,6 +41,8 @@ function Home() {
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
   const editForm = useForm<FormValues>({ resolver: zodResolver(schema) });
+
+  const queryClient = useQueryClient();
 
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings });
 
@@ -82,8 +84,8 @@ function Home() {
     if (isMutating) return;
     try {
       setCreatingHoldingError('');
-      const savedHolding = await createHolding(data);
-      setHoldings((currentHoldings) => [...currentHoldings, savedHolding]);
+      await createHolding(data);
+      await queryClient.invalidateQueries({ queryKey: ['holdings'] });
       form.reset();
     } catch {
       setCreatingHoldingError('Could not create holding. Please try again');
@@ -94,7 +96,7 @@ function Home() {
     try {
       setIsMutating(true);
       await deleteHolding(id);
-      setHoldings((currentHoldings) => currentHoldings.filter((holding) => holding.id !== id));
+      await queryClient.invalidateQueries({ queryKey: ['holdings'] });
     } catch (error) {
       alert(error);
     } finally {
@@ -112,7 +114,7 @@ function Home() {
     }
 
     try {
-      setHoldings(await fetchAllHoldings());
+      await queryClient.invalidateQueries({ queryKey: ['holdings'] }, { throwOnError: true });
     } catch {
       alert('Holding saved, but could not refresh. Reload the page.');
     }
