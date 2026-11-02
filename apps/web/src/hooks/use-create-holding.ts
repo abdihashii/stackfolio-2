@@ -12,7 +12,7 @@ import { schema } from '@/types/form.schema';
 export const useCreateHolding = (holdingsIsPending: boolean) => {
   const queryClient = useQueryClient();
 
-  const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
+  const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1, acquisition_date: null } });
 
   const createHoldingMutation = useMutation({
     mutationFn: createHolding,
