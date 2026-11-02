@@ -23,7 +23,7 @@ export const HoldingCard = ({
   onDelete,
   onStartUpdate,
 }: HoldingCardProps) => {
-  const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
+  const { id, metal, weight_unit, weight, purity, quantity, holding_type, acquisition_date } = holding;
 
   return (
     <>
@@ -36,7 +36,8 @@ export const HoldingCard = ({
       <p>
         Total weight: {weight * quantity} {weight_unit}
       </p>
-      {holding_type && <p>{holding_type}</p>}
+      {holding_type && <p>Holding type: {holding_type}</p>}
+      {acquisition_date && <p>Acquisition date: {acquisition_date}</p>}
       {isSpotPricesLoading ? (
         <p>Holding value: loading...</p>
       ) : spotPricesError ? (
