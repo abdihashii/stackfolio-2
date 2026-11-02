@@ -140,7 +140,7 @@ function Home() {
     register,
     handleSubmit,
     resetField,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     watch,
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
@@ -299,7 +299,7 @@ function Home() {
 
         {/* TODO: move to its own component */}
         <form
-          aria-disabled={isCreatingHoldingLoading}
+          aria-disabled={isSubmitting}
           className="flex flex-col gap-4 text-xl"
           onSubmit={handleSubmit(onSubmit)}
         >
@@ -312,7 +312,7 @@ function Home() {
                 onChange: () => resetField('purity'),
               })}
               id="metal"
-              disabled={isCreatingHoldingLoading}
+              disabled={isSubmitting}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
               aria-invalid={!!errors.metal}
               aria-describedby={errors.metal ? 'metal-error' : undefined}
@@ -331,7 +331,7 @@ function Home() {
             <select
               {...register('weight_unit')}
               id="weight-unit"
-              disabled={isCreatingHoldingLoading}
+              disabled={isSubmitting}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
               aria-invalid={!!errors.weight_unit}
               aria-describedby={errors.weight_unit ? 'weight-unit-error' : undefined}
@@ -353,7 +353,7 @@ function Home() {
               type="number"
               placeholder="Enter weight"
               step="any"
-              disabled={isCreatingHoldingLoading}
+              disabled={isSubmitting}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
               aria-invalid={!!errors.weight}
               aria-describedby={errors.weight ? 'weight-error' : undefined}
@@ -368,7 +368,7 @@ function Home() {
             <select
               {...register('purity', { valueAsNumber: true })}
               id="purity"
-              disabled={!metal || isCreatingHoldingLoading}
+              disabled={!metal || isSubmitting}
               autoComplete="off"
               className="w-full rounded-md border border-gray-300 px-3 py-2"
               aria-invalid={!!errors.purity}
@@ -421,7 +421,7 @@ function Home() {
             <select
               {...register('holding_type', { setValueAs: (value) => (value === '' ? null : value) })}
               id="holding-type"
-              disabled={isCreatingHoldingLoading}
+              disabled={isSubmitting}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
               aria-invalid={!!errors.holding_type}
               aria-describedby={errors.holding_type ? 'holding-type-error' : undefined}
@@ -441,9 +441,9 @@ function Home() {
           <button
             type="submit"
             className="rounded-md bg-gray-900 px-4 py-2 font-semibold text-white hover:bg-gray-800 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={isCreatingHoldingLoading}
+            disabled={isSubmitting}
           >
-            {isCreatingHoldingLoading ? 'Adding...' : 'Add'}
+            {isSubmitting ? 'Adding...' : 'Add'}
           </button>
 
           <p role="alert" aria-atomic="true">
