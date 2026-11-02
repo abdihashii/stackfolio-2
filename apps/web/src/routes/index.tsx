@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute } from '@tanstack/react-router';
 import type { SubmitEventHandler } from 'react';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 const metals = ['gold', 'silver'] as const;
@@ -142,7 +142,11 @@ function Home() {
   const [spotPricesError, setSpotPricesError] = useState<string>('');
   const [spotPricesTimestamp, setSpotPricesTimestamp] = useState<string>(''); // TODO: simply spot price state
 
-  const form = useForm<FormValues>({ resolver: zodResolver(schema) });
+  const {
+    register,
+    handleSubmit,
+    formState: {errors}
+  } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   // TODo: move to custom hook file
   useEffect(() => {
@@ -177,6 +181,10 @@ function Home() {
 
     // TODO: add effect cleanup to ignore results after unmount.
   }, []);
+
+  const onSubmit: SubmitHandler<FormValues> = (data) => {
+    alert(data);
+  }
 
   const onAddSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
@@ -287,7 +295,11 @@ function Home() {
         )}
 
         {/* TODO: move to its own component */}
-        <form aria-disabled={isCreatingHoldingLoading} className="flex flex-col gap-4 text-xl" onSubmit={onAddSubmit}>
+        <form
+          aria-disabled={isCreatingHoldingLoading}
+          className="flex flex-col gap-4 text-xl"
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <h2 className="font-bold text-xl">Add holding</h2>
 
           <div className="flex flex-col gap-1">
