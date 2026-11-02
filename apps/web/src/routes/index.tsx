@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute } from '@tanstack/react-router';
-import type { SubmitEventHandler } from 'react';
 import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -128,7 +127,6 @@ function Home() {
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [isHoldingsLoading, setIsHoldingsLoading] = useState<boolean>(true);
   const [holdingsError, setHoldingsError] = useState<string>('');
-  const [isCreatingHoldingLoading, setIsCreatingHoldingLoading] = useState<boolean>(false);
   const [creatingHoldingError, setCreatingHoldingError] = useState<string>('');
   const [goldSpotPrice, setGoldSpotPrice] = useState<number | undefined>(undefined);
   const [silverSpotPrice, setSilverSpotPrice] = useState<number | undefined>(undefined);
@@ -145,11 +143,6 @@ function Home() {
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const metal = watch('metal');
-  const weightUnit = watch('weight_unit');
-  const weight = watch('weight');
-  const purity = watch('purity');
-  const quantity = watch('quantity');
-  const holdingType = watch('holding_type');
 
   // TODo: move to custom hook file
   useEffect(() => {
@@ -185,39 +178,13 @@ function Home() {
     // TODO: add effect cleanup to ignore results after unmount.
   }, []);
 
-  const onSubmit: SubmitHandler<FormValues> = (data) => {
-    alert(data);
-  };
-
-  const onAddSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
-    event.preventDefault();
-
-    if (!metal || !weightUnit) return;
-
-    const parsedWeight = Number(weight);
-    if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) {
-      setCreatingHoldingError('Weight must be greater than zero.');
-      return;
-    }
-
-    const payload: CreateHoldingInput = {
-      metal,
-      weight: parsedWeight,
-      weight_unit: weightUnit,
-      purity: Number(purity),
-      quantity: Number(quantity),
-      holding_type: holdingType || null,
-    };
-
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
       setCreatingHoldingError('');
-      setIsCreatingHoldingLoading(true);
-      const savedHolding = await createHolding(payload);
+      const savedHolding = await createHolding(data);
       setHoldings((currentHoldings) => [...currentHoldings, savedHolding]);
     } catch {
       setCreatingHoldingError('Could not create holding. Please try again');
-    } finally {
-      setIsCreatingHoldingLoading(false);
     }
   };
 
@@ -298,11 +265,7 @@ function Home() {
         )}
 
         {/* TODO: move to its own component */}
-        <form
-          aria-disabled={isSubmitting}
-          className="flex flex-col gap-4 text-xl"
-          onSubmit={handleSubmit(onSubmit)}
-        >
+        <form aria-disabled={isSubmitting} className="flex flex-col gap-4 text-xl" onSubmit={handleSubmit(onSubmit)}>
           <h2 className="font-bold text-xl">Add holding</h2>
 
           <div className="flex flex-col gap-1">
@@ -406,7 +369,7 @@ function Home() {
               type="number"
               min="1"
               step="1"
-              disabled={isCreatingHoldingLoading}
+              disabled={isSubmitting}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
               aria-invalid={!!errors.quantity}
               aria-describedby={errors.quantity ? 'quantity-error' : undefined}
