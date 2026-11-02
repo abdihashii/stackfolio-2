@@ -371,6 +371,8 @@ function Home() {
               disabled={!metal || isCreatingHoldingLoading}
               autoComplete="off"
               className="w-full rounded-md border border-gray-300 px-3 py-2"
+              aria-invalid={!!errors.purity}
+              aria-describedby={errors.purity ? 'purity-error' : undefined}
             >
               <option value="">Choose purity</option>
 
@@ -391,6 +393,9 @@ function Home() {
                 </>
               )}
             </select>
+            <p id="purity-error" role="alert" className="text-sm text-red-500">
+              {errors.purity?.message}
+            </p>
           </div>
 
           <div className="flex flex-col gap-1">
