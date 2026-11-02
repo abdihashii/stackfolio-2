@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 
 import { EditForm } from '../components/edit-form';
 import { Form } from '../components/form';
+import { H2 } from '../components/h2';
 import { fetchAllHoldings, fetchSpotPrices, createHolding, deleteHolding } from '../lib/apis';
 import { calculateStackValue, formatUsd, calculateHoldingValue } from '../lib/utils';
 import type { FormValues } from '../types/form.schema';
@@ -104,7 +105,7 @@ function Home() {
       <h1 className="font-bold text-4xl">StackFolio 2</h1>
 
       <div className="flex w-full max-w-md flex-col gap-1 rounded-md border border-gray-300 p-4">
-        <h2 className="font-bold text-2xl">Total Stack Value: {stackValueText}</h2>
+        <H2>Total Stack Value: {stackValueText}</H2>
         <p className="text-gray-500">
           Based on weight, purity, quantity, and spot price. Actual resale value may differ.
         </p>
@@ -136,7 +137,7 @@ function Home() {
                       </>
                     ) : (
                       <>
-                        <h2 className="text-lg font-semibold capitalize">{metal}</h2>
+                        <h3 className="text-lg font-semibold capitalize">{metal}</h3>
                         <p>
                           Weight: {weight} {weight_unit}
                         </p>

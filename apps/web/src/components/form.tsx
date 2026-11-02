@@ -2,6 +2,7 @@ import type { SubmitHandler, UseFormReturn } from 'react-hook-form';
 
 import type { CreateHoldingInput } from '../types/holdings.types';
 import { holdingTypes } from '../types/holdings.types';
+import { H2 } from './h2';
 
 type FormProps = {
   form: UseFormReturn<CreateHoldingInput>;
@@ -28,7 +29,7 @@ export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps
       className="flex flex-col gap-4"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <h2 className="font-bold text-xl">Add holding</h2>
+      <H2>Add holding</H2>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="metal">Metal:</label>
