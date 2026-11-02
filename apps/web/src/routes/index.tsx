@@ -1,3 +1,5 @@
+import { error } from 'console';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute } from '@tanstack/react-router';
 import type { SubmitEventHandler } from 'react';
@@ -322,7 +324,7 @@ function Home() {
               <option value="silver">Silver</option>
             </select>
             <p id="metal-error" role="alert" className="text-sm text-red-500">
-              {errors.metal && errors.metal?.message}
+              {errors.metal?.message}
             </p>
           </div>
 
@@ -333,11 +335,16 @@ function Home() {
               id="weight-unit"
               disabled={isCreatingHoldingLoading}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
+              aria-invalid={!!errors.weight_unit}
+              aria-describedby={errors.weight_unit ? 'weight-unit-error' : undefined}
             >
               <option value="">Choose unit</option>
               <option value="gram">gram</option>
               <option value="ozt">troy ounce</option>
             </select>
+            <p id="weight-unit-error" role="alert" className="text-sm text-red-500">
+              {errors.weight_unit?.message}
+            </p>
           </div>
 
           <div className="flex flex-col gap-1">
