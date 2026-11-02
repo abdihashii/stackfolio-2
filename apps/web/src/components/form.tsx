@@ -1,7 +1,9 @@
 import type { SubmitHandler, UseFormReturn } from 'react-hook-form';
 
-import type { CreateHoldingInput } from '../types/holdings.types';
-import { holdingTypes } from '../types/holdings.types';
+import type { CreateHoldingInput } from '@/types/holdings.types';
+
+import { holdingTypes } from '@/types/holdings.types';
+
 import { H2 } from './h2';
 
 type FormProps = {

@@ -1,7 +1,8 @@
 import type { UseFormReturn } from 'react-hook-form';
 
-import { holdingTypes } from '../types/holdings.types';
-import type { CreateHoldingInput } from '../types/holdings.types';
+import type { CreateHoldingInput } from '@/types/holdings.types';
+
+import { holdingTypes } from '@/types/holdings.types';
 
 type EditFormProps = {
   editForm: UseFormReturn<CreateHoldingInput>;

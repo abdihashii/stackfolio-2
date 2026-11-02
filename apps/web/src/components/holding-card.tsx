@@ -1,5 +1,6 @@
-import { formatUsd, calculateHoldingValue } from '../lib/utils';
-import type { Holding } from '../types/holdings.types';
+import type { Holding } from '@/types/holdings.types';
+
+import { formatUsd, calculateHoldingValue } from '@/lib/utils';
 
 type HoldingCardProps = {
   holding: Holding;
