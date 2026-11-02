@@ -3,7 +3,22 @@
   "ignorePatterns": [],
   "printWidth": 120,
   "singleQuote": true,
-  "sortImports": true,
+  "sortImports": {
+    "groups": [
+      "type-builtin",
+      "builtin",
+      "type-external",
+      "external",
+      ["type-internal", "type-subpath"],
+      ["internal", "subpath"],
+      ["type-parent", "type-sibling", "type-index"],
+      ["parent", "sibling", "index"],
+      "style",
+      "unknown"
+    ],
+    "newlinesBetween": true,
+    "order": "asc"
+  },
   "sortPackageJson": true,
   "trailingComma": "all",
   "semi": true
