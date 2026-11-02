@@ -5,7 +5,7 @@ import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
 import { Form } from '../components/form';
-import { fetchAllHoldings, fetchSpotPrices, createHolding } from '../lib/apis';
+import { fetchAllHoldings, fetchSpotPrices, createHolding, deleteHolding } from '../lib/apis';
 import { calculateStackValue, formatUsd, calculateHoldingValue } from '../lib/utils';
 import type { FormValues } from '../types/form.schema';
 import { schema } from '../types/form.schema';
@@ -143,6 +143,20 @@ function Home() {
                     ) : (
                       <p className="mt-3 font-semibold">Holding value: Unavailable</p>
                     )}
+                    <button
+                      className="text-red-500 hover:cursor-pointer hover:underline"
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await deleteHolding(id);
+                          setHoldings((currentHoldings) => currentHoldings.filter((holding) => holding.id !== id));
+                        } catch (error) {
+                          alert(error);
+                        }
+                      }}
+                    >
+                      delete
+                    </button>
                   </div>
                 );
               })
