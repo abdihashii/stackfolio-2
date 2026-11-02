@@ -24,7 +24,6 @@ export const Route = createFileRoute('/')({
 function Home() {
   const [creatingHoldingError, setCreatingHoldingError] = useState<string>('');
 
-  const [goldSpotPrice, setGoldSpotPrice] = useState<number | undefined>(undefined);
   const [silverSpotPrice, setSilverSpotPrice] = useState<number | undefined>(undefined);
   const [spotPricesTimestamp, setSpotPricesTimestamp] = useState<string>(''); // TODO: simply spot price state
 
@@ -41,6 +40,7 @@ function Home() {
   const queryClient = useQueryClient();
 
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings });
+  const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
 
   // TODo: move to use react query
   useEffect(() => {
@@ -48,7 +48,6 @@ function Home() {
       try {
         setIsSpotPricesLoading(true);
         const fetchedSpotPrices = await fetchSpotPrices();
-        setGoldSpotPrice(fetchedSpotPrices.prices.gold);
         setSilverSpotPrice(fetchedSpotPrices.prices.silver);
         setSpotPricesTimestamp(fetchedSpotPrices.timestamp);
       } catch {
@@ -117,7 +116,7 @@ function Home() {
   };
 
   const stackValue = calculateStackValue(holdingsQuery.data, {
-    gold: goldSpotPrice,
+    gold: spotPricesQuery.data?.prices.gold,
     silver: silverSpotPrice,
   });
   let stackValueText = 'Unavailable';
@@ -152,7 +151,7 @@ function Home() {
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
             {holdingsQuery.data.length > 0 ? (
               holdingsQuery.data.map((holding) => {
-                const spotPrice = holding.metal === 'gold' ? goldSpotPrice : silverSpotPrice;
+                const spotPrice = holding.metal === 'gold' ? spotPricesQuery.data?.prices.gold : silverSpotPrice;
 
                 return (
                   <div key={holding.id} className="rounded-md border border-gray-300 p-4">
