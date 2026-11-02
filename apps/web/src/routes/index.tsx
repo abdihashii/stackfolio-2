@@ -158,7 +158,17 @@ function Home() {
                           <button
                             className="text-blue-500 hover:cursor-pointer hover:underline"
                             type="button"
-                            onClick={() => setEditingHoldingId(id)}
+                            onClick={() => {
+                              editForm.reset({
+                                metal,
+                                weight_unit,
+                                weight,
+                                purity,
+                                quantity,
+                                holding_type,
+                              });
+                              setEditingHoldingId(id);
+                            }}
                             disabled={isBusy}
                           >
                             edit
