@@ -28,6 +28,7 @@ History reflects the current corrected records, not an immutable audit trail. Re
 
 - Show total Stack Value in USD, using Stage 1's weight, purity, and quantity calculation with historical spot prices.
 - Provide **1W · 1M · 3M · 1Y · All** range filters.
+- Historical prices are available from 2017-01-02 for gold and silver. This is the earliest supported chart date. **All** starts at the later of 2017-01-02 or the earliest current holding's effective date (acquisition date, otherwise added date in UTC), using the first weekday on or after that date, and runs through today.
 - Show one point per UTC weekday, Monday through Friday. Omit weekends.
 - Include only holdings whose acquisition date, or added date when unknown, is on or before the chart date.
 - Use the last available spot-price snapshot for each UTC weekday. Today's point uses the latest available snapshot.
@@ -68,6 +69,5 @@ History reflects the current corrected records, not an immutable audit trail. Re
 
 ### Open Before Implementation
 
-- Confirm historical price coverage and define the chart's earliest supported date and **All** range.
 - Define acquisition-date validation, default range, and empty-chart behavior.
 - Define models, API contracts, and measurable latency and freshness requirements. Start by evaluating calculation on request before introducing stored stack totals.
