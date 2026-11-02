@@ -4,12 +4,11 @@ import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import * as z from 'zod';
 
+// TODO: move to types file
 const metals = ['gold', 'silver'] as const;
 type Metal = (typeof metals)[number];
-
 const weightUnits = ['ozt', 'gram'] as const;
 type WeightUnit = (typeof weightUnits)[number];
-
 const holdingTypes = ['coin', 'bar', 'round', 'jewelry'] as const;
 type HoldingType = (typeof holdingTypes)[number];
 
