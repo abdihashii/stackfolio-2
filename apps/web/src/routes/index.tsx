@@ -149,7 +149,7 @@ function Home() {
   const weight = watch('weight');
   const purity = watch('purity');
   const quantity = watch('quantity');
-  const holdinType = watch('holding_type');
+  const holdingType = watch('holding_type');
 
   // TODo: move to custom hook file
   useEffect(() => {
