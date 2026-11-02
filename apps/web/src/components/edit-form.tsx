@@ -1,4 +1,4 @@
-import { UseFormReturn } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
 
 import { updateHolding, fetchAllHoldings } from '../lib/apis';
 import { holdingTypes } from '../types/holdings.types';
