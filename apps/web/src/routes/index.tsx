@@ -23,7 +23,6 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   const [creatingHoldingError] = useState<string>('');
-  const [isMutating] = useState<boolean>(false);
   const [editingHoldingId, setEditingHoldingId] = useState<string | null>(null);
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
@@ -115,7 +114,6 @@ function Home() {
   const isBusy =
     form.formState.isSubmitting ||
     editForm.formState.isSubmitting ||
-    isMutating ||
     createHoldingMutation.isPending ||
     deleteHoldingMutation.isPending ||
     holdingsQuery.isPending;
