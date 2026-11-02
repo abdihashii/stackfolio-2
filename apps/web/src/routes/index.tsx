@@ -20,12 +20,12 @@ function Home() {
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
   const { form, createHoldingMutation, onCreateHolding } = useCreateHolding(holdingsQuery.isPending);
   const { updatingHoldingId, setUpdatingHoldingId, updateForm, onUpdateHolding, onStartUpdate } = useUpdateHolding();
-  const { deleteHoldingMutation, onDeleteHolding } = useDeleteHolding(
+  const isBusyWithoutDelete =
     form.formState.isSubmitting ||
-      updateForm.formState.isSubmitting ||
-      createHoldingMutation.isPending ||
-      holdingsQuery.isPending,
-  );
+    updateForm.formState.isSubmitting ||
+    createHoldingMutation.isPending ||
+    holdingsQuery.isPending;
+  const { deleteHoldingMutation, onDeleteHolding } = useDeleteHolding(isBusyWithoutDelete);
 
   const stackValue = calculateStackValue(holdingsQuery.data, {
     gold: spotPricesQuery.data?.prices.gold,
@@ -41,12 +41,7 @@ function Home() {
       stackValueText = formatUsd(stackValue);
     }
   }
-  const isBusy =
-    form.formState.isSubmitting ||
-    updateForm.formState.isSubmitting ||
-    createHoldingMutation.isPending ||
-    deleteHoldingMutation.isPending ||
-    holdingsQuery.isPending;
+  const isBusy = isBusyWithoutDelete || deleteHoldingMutation.isPending;
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
