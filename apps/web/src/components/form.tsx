@@ -172,7 +172,14 @@ export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps
           id="acquisition-date"
           type="date"
           {...register('acquisition_date', { setValueAs: (value) => (value === '' ? null : value) })}
+          disabled={isSubmitting}
+          className="w-full rounded-md border border-gray-300 px-3 py-2"
+          aria-invalid={!!errors.acquisition_date}
+          aria-describedby={errors.acquisition_date ? 'acquisition-date-error' : undefined}
         />
+        <p id="acquisition-date-error" role="alert" className='text-sm text-red-500'>
+          {errors.acquisition_date?.message}
+        </p>
       </div>
 
       <button
