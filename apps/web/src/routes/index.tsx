@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 
-import type { Holding } from '@/types/holdings.types';
-
 import { Form } from '@/components/form';
 import { H2 } from '@/components/h2';
 import { HoldingCard } from '@/components/holding-card';
