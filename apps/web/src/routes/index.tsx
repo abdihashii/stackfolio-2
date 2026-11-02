@@ -30,8 +30,8 @@ function Home() {
   const queryClient = useQueryClient();
 
   // TODO: move these to their own hook files
-  const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings }); // TODO: move to its own hook file
-  const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices }); // TODO: move to its own hook file
+  const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings });
+  const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
 
   // TODO: move these to their own hook files
   const createHoldingMutation = useMutation({
