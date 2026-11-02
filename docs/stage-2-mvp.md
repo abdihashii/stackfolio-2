@@ -48,7 +48,7 @@ History reflects the current corrected records, not an immutable audit trail. Re
 #### 1. Manage holdings and acquisition dates
 
 - [x] Add, view, update, and delete holdings; changes persist after reload.
-- [ ] Save a holding with or without an acquisition date, and correct that date later.
+- [x] Save a holding with or without an acquisition date, and correct that date later.
 - [ ] Preserve the original added date through updates so holdings without an acquisition date retain their historical start date.
 
 #### 2. Calculate historical values
