@@ -22,4 +22,7 @@ export class Holding {
 
   @Column({ type: 'text', nullable: true })
   holding_type: string | null;
+
+  @Column({ type: 'date', nullable: true })
+  acquisition_date: string | null;
 }
