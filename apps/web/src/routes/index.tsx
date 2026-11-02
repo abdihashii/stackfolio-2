@@ -5,11 +5,11 @@ import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
 import { Form } from '../components/form';
-import { fetchAllHoldings, fetchSpotPrices, createHolding, deleteHolding } from '../lib/apis';
+import { fetchAllHoldings, fetchSpotPrices, createHolding, deleteHolding, updateHolding } from '../lib/apis';
 import { calculateStackValue, formatUsd, calculateHoldingValue } from '../lib/utils';
 import type { FormValues } from '../types/form.schema';
 import { schema } from '../types/form.schema';
-import type { Holding } from '../types/holdings.types';
+import type { CreateHoldingInput, Holding } from '../types/holdings.types';
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -28,6 +28,8 @@ function Home() {
 
   const [isSpotPricesLoading, setIsSpotPricesLoading] = useState<boolean>(true);
   const [spotPricesError, setSpotPricesError] = useState<string>('');
+
+  const [isMutating, setIsMutating] = useState<boolean>(false);
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
 
@@ -143,20 +145,61 @@ function Home() {
                     ) : (
                       <p className="mt-3 font-semibold">Holding value: Unavailable</p>
                     )}
-                    <button
-                      className="text-red-500 hover:cursor-pointer hover:underline"
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          await deleteHolding(id);
-                          setHoldings((currentHoldings) => currentHoldings.filter((holding) => holding.id !== id));
-                        } catch (error) {
-                          alert(error);
-                        }
-                      }}
-                    >
-                      delete
-                    </button>
+
+                    <div className="w-full flex justify-between">
+                      <button
+                        className="text-blue-500 hover:cursor-pointer hover:underline"
+                        type="button"
+                        onClick={async () => {
+                          setIsMutating(true);
+                          try {
+                            try {
+                              const newPayload: CreateHoldingInput = {
+                                metal: 'gold',
+                                weight_unit,
+                                weight,
+                                purity,
+                                quantity,
+                                holding_type,
+                              };
+                              await updateHolding(id, newPayload);
+                            } catch (error) {
+                              alert(error);
+                              return;
+                            }
+
+                            try {
+                              setHoldings(await fetchAllHoldings());
+                            } catch {
+                              alert('Holding saved, but could not refresh. Reload the page.');
+                            }
+                          } finally {
+                            setIsMutating(false);
+                          }
+                        }}
+                        disabled={isMutating}
+                      >
+                        edit
+                      </button>
+                      <button
+                        className="text-red-500 hover:cursor-pointer hover:underline"
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            setIsMutating(true);
+                            await deleteHolding(id);
+                            setHoldings((currentHoldings) => currentHoldings.filter((holding) => holding.id !== id));
+                          } catch (error) {
+                            alert(error);
+                          } finally {
+                            setIsMutating(false);
+                          }
+                        }}
+                        disabled={isMutating}
+                      >
+                        delete
+                      </button>
+                    </div>
                   </div>
                 );
               })
