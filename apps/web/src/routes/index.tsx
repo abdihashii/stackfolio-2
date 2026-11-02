@@ -355,7 +355,12 @@ function Home() {
               step="any"
               disabled={isCreatingHoldingLoading}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
+              aria-invalid={!!errors.weight}
+              aria-describedby={errors.weight ? 'weight-error' : undefined}
             />
+            <p id="weight-error" role="alert" className="text-sm text-red-500">
+              {errors.weight?.message}
+            </p>
           </div>
 
           <div className="flex flex-col gap-1">
