@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import * as z from 'zod';
 
+import { calculateStackValue, formatUsd, calculateHoldingValue } from '../lib/utils';
 import type { Holding, CreateHoldingInput } from '../types/holdings.types';
 import { metals, weightUnits, holdingTypes } from '../types/holdings.types';
 
@@ -20,42 +21,6 @@ type FormValues = z.infer<typeof schema>;
 
 // TODO: move to lib
 const backendUrlPath = import.meta.env.VITE_API_URL;
-
-// TODO: move to lib
-const gramsToTroyOunces = (gramWeightUnit: number) => {
-  // 1 troy ounce = 31.1034768 grams
-  return gramWeightUnit / 31.1034768;
-};
-
-// TODO: move to lib
-const formatUsd = (value: number) => {
-  return Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(value);
-};
-
-// TODO: move to lib
-const calculateHoldingValue = ({ weight_unit, weight, purity, quantity }: Holding, spotPrice: number): number => {
-  const weightOzt = weight_unit === 'gram' ? gramsToTroyOunces(weight) : weight;
-
-  return weightOzt * purity * quantity * spotPrice;
-};
-
-// TODO: move to lib
-const calculateStackValue = (
-  holdings: Holding[],
-  spotPrices: Record<'gold' | 'silver', number | undefined>,
-): number | undefined => {
-  let stackValue = 0;
-  for (const holding of holdings) {
-    const spotPrice = spotPrices[holding.metal];
-    if (spotPrice === undefined) return undefined;
-    stackValue += calculateHoldingValue(holding, spotPrice);
-  }
-
-  return stackValue;
-};
 
 // TODO: move to lib
 const fetchSpotPrices = async () => {
