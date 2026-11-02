@@ -314,11 +314,16 @@ function Home() {
               id="metal"
               disabled={isCreatingHoldingLoading}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
+              aria-invalid={!!errors.metal}
+              aria-describedby={errors.metal ? 'metal-error' : undefined}
             >
               <option value="">Choose a metal</option>
               <option value="gold">Gold</option>
               <option value="silver">Silver</option>
             </select>
+            <p id="metal-error" role="alert" className="text-sm text-red-500">
+              {errors.metal && 'error'}
+            </p>
           </div>
 
           <div className="flex flex-col gap-1">
