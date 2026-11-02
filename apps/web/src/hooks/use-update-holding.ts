@@ -39,7 +39,7 @@ export const useUpdateHolding = () => {
   };
 
   const onStartUpdate = (holding: Holding) => {
-    const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
+    const { id, metal, weight_unit, weight, purity, quantity, holding_type, acquisition_date } = holding;
     updateForm.reset({
       metal,
       weight_unit,
@@ -47,6 +47,7 @@ export const useUpdateHolding = () => {
       purity,
       quantity,
       holding_type,
+      acquisition_date,
     });
     setUpdatingHoldingId(id);
   };

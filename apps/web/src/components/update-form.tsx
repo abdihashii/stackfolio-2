@@ -129,7 +129,7 @@ export const UpdateForm = ({ updateForm, id, setUpdateingHoldingId, isBusy, onUp
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="update-holding-type">Holding type:</label>
+        <label htmlFor="update-holding-type">Holding type (optional):</label>
         <select
           {...updateForm.register('holding_type', {
             setValueAs: (value) => (value === '' ? null : value),
@@ -149,6 +149,22 @@ export const UpdateForm = ({ updateForm, id, setUpdateingHoldingId, isBusy, onUp
         </select>
         <p id="update-holding-type-error" role="alert" className="text-sm text-red-500">
           {updateForm.formState.errors.holding_type?.message}
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label htmlFor="update-acquisition-date">Acquisition date (optional):</label>
+        <input
+          id="update-acquisition-date"
+          type="date"
+          {...updateForm.register('acquisition_date', { setValueAs: (value) => (value === '' ? null : value) })}
+          disabled={updateForm.formState.isSubmitting}
+          className="w-full rounded-md border border-gray-300 px-3 py-2"
+          aria-invalid={!!updateForm.formState.errors.acquisition_date}
+          aria-describedby={updateForm.formState.errors.acquisition_date ? 'update-acquisition-date-error' : undefined}
+        />
+        <p id="update-acquisition-date-error" role="alert" className="text-sm text-red-500">
+          {updateForm.formState.errors.acquisition_date?.message}
         </p>
       </div>
 
