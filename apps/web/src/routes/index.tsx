@@ -7,11 +7,12 @@ import { useForm } from 'react-hook-form';
 import { EditForm } from '../components/edit-form';
 import { Form } from '../components/form';
 import { H2 } from '../components/h2';
-import { fetchAllHoldings, fetchSpotPrices, createHolding, deleteHolding } from '../lib/apis';
-import { calculateStackValue, formatUsd, calculateHoldingValue } from '../lib/utils';
+import { HoldingCard } from '../components/holding-card';
+import { fetchAllHoldings, fetchSpotPrices, createHolding, deleteHolding, updateHolding } from '../lib/apis';
+import { calculateStackValue, formatUsd } from '../lib/utils';
 import type { FormValues } from '../types/form.schema';
 import { schema } from '../types/form.schema';
-import type { Holding } from '../types/holdings.types';
+import type { CreateHoldingInput, Holding } from '../types/holdings.types';
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -84,6 +85,47 @@ function Home() {
     }
   };
 
+  const onDeleteHolding = async (id: string) => {
+    try {
+      setIsMutating(true);
+      await deleteHolding(id);
+      setHoldings((currentHoldings) => currentHoldings.filter((holding) => holding.id !== id));
+    } catch (error) {
+      alert(error);
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const onEditHolding = async (id: string, data: CreateHoldingInput) => {
+    try {
+      await updateHolding(id, data);
+      setEditingHoldingId(null);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Could not update holding.');
+      return;
+    }
+
+    try {
+      setHoldings(await fetchAllHoldings());
+    } catch {
+      alert('Holding saved, but could not refresh. Reload the page.');
+    }
+  };
+
+  const onStartEdit = (holding: Holding) => {
+    const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
+    editForm.reset({
+      metal,
+      weight_unit,
+      weight,
+      purity,
+      quantity,
+      holding_type,
+    });
+    setEditingHoldingId(id);
+  };
+
   const stackValue = calculateStackValue(holdings, {
     gold: goldSpotPrice,
     silver: silverSpotPrice,
@@ -120,92 +162,31 @@ function Home() {
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
             {holdings.length > 0 ? (
               holdings.map((holding) => {
-                const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
-                const spotPrice = metal === 'gold' ? goldSpotPrice : silverSpotPrice;
+                const spotPrice = holding.metal === 'gold' ? goldSpotPrice : silverSpotPrice;
 
                 return (
-                  <div key={id} className="rounded-md border border-gray-300 p-4">
-                    {editingHoldingId === id ? (
+                  <div key={holding.id} className="rounded-md border border-gray-300 p-4">
+                    {editingHoldingId === holding.id ? (
                       <>
                         <EditForm
                           editForm={editForm}
-                          id={id}
+                          id={holding.id}
                           setEditingHoldingId={setEditingHoldingId}
-                          setHoldings={setHoldings}
                           isBusy={isBusy}
+                          onEdit={onEditHolding}
                         />
                       </>
                     ) : (
-                      <>
-                        <h3 className="text-lg font-semibold capitalize">{metal}</h3>
-                        <p>
-                          Weight: {weight} {weight_unit}
-                        </p>
-                        <p>Purity: {purity}</p>
-                        <p>Quantity: {quantity}</p>
-                        <p>
-                          Total weight: {weight * quantity} {weight_unit}
-                        </p>
-                        {holding_type && <p>{holding_type}</p>}
-                        {isSpotPricesLoading ? (
-                          <p>Holding value: loading...</p>
-                        ) : spotPricesError ? (
-                          <p>{spotPricesError}</p>
-                        ) : spotPrice !== undefined ? (
-                          <>
-                            <p className="mt-2 text-sm text-gray-500 wrap-break-word">
-                              Price snapshot: {new Date(spotPricesTimestamp).toISOString()}
-                            </p>
-
-                            <p className="mt-3 font-semibold">
-                              Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}
-                            </p>
-                          </>
-                        ) : (
-                          <p className="mt-3 font-semibold">Holding value: Unavailable</p>
-                        )}
-
-                        <div className="w-full flex justify-between">
-                          <button
-                            className="text-blue-500 hover:cursor-pointer hover:underline"
-                            type="button"
-                            onClick={() => {
-                              editForm.reset({
-                                metal,
-                                weight_unit,
-                                weight,
-                                purity,
-                                quantity,
-                                holding_type,
-                              });
-                              setEditingHoldingId(id);
-                            }}
-                            disabled={isBusy}
-                          >
-                            edit
-                          </button>
-                          <button
-                            className="text-red-500 hover:cursor-pointer hover:underline"
-                            type="button"
-                            onClick={async () => {
-                              try {
-                                setIsMutating(true);
-                                await deleteHolding(id);
-                                setHoldings((currentHoldings) =>
-                                  currentHoldings.filter((holding) => holding.id !== id),
-                                );
-                              } catch (error) {
-                                alert(error);
-                              } finally {
-                                setIsMutating(false);
-                              }
-                            }}
-                            disabled={isBusy}
-                          >
-                            delete
-                          </button>
-                        </div>
-                      </>
+                      <HoldingCard
+                        holding={holding}
+                        isBusy={isBusy}
+                        isSpotPricesLoading={isSpotPricesLoading}
+                        spotPricesError={spotPricesError}
+                        spotPrice={spotPrice}
+                        spotPricesTimestamp={spotPricesTimestamp}
+                        onDelete={onDeleteHolding}
+                        onStartEdit={onStartEdit}
+                      />
                     )}
                   </div>
                 );

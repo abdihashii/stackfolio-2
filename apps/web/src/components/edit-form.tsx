@@ -1,41 +1,22 @@
 import type { UseFormReturn } from 'react-hook-form';
 
-import { updateHolding, fetchAllHoldings } from '../lib/apis';
 import { holdingTypes } from '../types/holdings.types';
-import type { Holding, CreateHoldingInput } from '../types/holdings.types';
+import type { CreateHoldingInput } from '../types/holdings.types';
 
 type EditFormProps = {
   editForm: UseFormReturn<CreateHoldingInput>;
   id: string;
   setEditingHoldingId: React.Dispatch<React.SetStateAction<string | null>>;
-  setHoldings: React.Dispatch<React.SetStateAction<Holding[]>>;
   isBusy: boolean;
+  onEdit: (id: string, payload: CreateHoldingInput) => Promise<void>;
 };
 
-export const EditForm = ({ editForm, id, setEditingHoldingId, setHoldings, isBusy }: EditFormProps) => {
+export const EditForm = ({ editForm, id, setEditingHoldingId, isBusy, onEdit }: EditFormProps) => {
   const { watch } = editForm;
   const editingMetal = watch('metal');
 
   return (
-    <form
-      noValidate
-      autoComplete="off"
-      onSubmit={editForm.handleSubmit(async (data) => {
-        try {
-          await updateHolding(id, data);
-          setEditingHoldingId(null);
-        } catch (error) {
-          alert(error instanceof Error ? error.message : 'Could not update holding.');
-          return;
-        }
-
-        try {
-          setHoldings(await fetchAllHoldings());
-        } catch {
-          alert('Holding saved, but could not refresh. Reload the page.');
-        }
-      })}
-    >
+    <form noValidate autoComplete="off" onSubmit={editForm.handleSubmit((data) => onEdit(id, data))}>
       <div className="flex flex-col">
         <label htmlFor="edit-metal">Metal:</label>
         <select
