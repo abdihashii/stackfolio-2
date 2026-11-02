@@ -169,7 +169,12 @@ function Home() {
         )}
 
         {/* TODO: move to its own component */}
-        <form aria-disabled={isSubmitting} className="flex flex-col gap-4 text-xl" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          noValidate
+          aria-disabled={isSubmitting}
+          className="flex flex-col gap-4 text-xl"
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <h2 className="font-bold text-xl">Add holding</h2>
 
           <div className="flex flex-col gap-1">
