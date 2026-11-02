@@ -44,7 +44,15 @@ function Home() {
   });
   const editHoldingMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: CreateHoldingInput }) => updateHolding(id, data),
-    onSuccess: async () => setEditingHoldingId(null),
+    onSuccess: async () => {
+      setEditingHoldingId(null);
+
+      try {
+        await queryClient.invalidateQueries({ queryKey: ['holdings'] }, { throwOnError: true });
+      } catch {
+        alert('Holding saved, but could not refresh. Reload the page.');
+      }
+    },
   });
 
   // TODO: convert to a react query mutation
@@ -74,12 +82,6 @@ function Home() {
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Could not update holding.');
       return;
-    }
-
-    try {
-      await queryClient.invalidateQueries({ queryKey: ['holdings'] }, { throwOnError: true });
-    } catch {
-      alert('Holding saved, but could not refresh. Reload the page.');
     }
   };
 
