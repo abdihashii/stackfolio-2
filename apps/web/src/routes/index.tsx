@@ -24,7 +24,6 @@ export const Route = createFileRoute('/')({
 function Home() {
   const [creatingHoldingError, setCreatingHoldingError] = useState<string>('');
 
-  const [silverSpotPrice, setSilverSpotPrice] = useState<number | undefined>(undefined);
   const [spotPricesTimestamp, setSpotPricesTimestamp] = useState<string>(''); // TODO: simply spot price state
 
   const [isSpotPricesLoading, setIsSpotPricesLoading] = useState<boolean>(true);
@@ -48,7 +47,6 @@ function Home() {
       try {
         setIsSpotPricesLoading(true);
         const fetchedSpotPrices = await fetchSpotPrices();
-        setSilverSpotPrice(fetchedSpotPrices.prices.silver);
         setSpotPricesTimestamp(fetchedSpotPrices.timestamp);
       } catch {
         setSpotPricesError('Could not load spot prices. Reload the page and try again.');
@@ -117,7 +115,7 @@ function Home() {
 
   const stackValue = calculateStackValue(holdingsQuery.data, {
     gold: spotPricesQuery.data?.prices.gold,
-    silver: silverSpotPrice,
+    silver: spotPricesQuery.data?.prices.silver,
   });
   let stackValueText = 'Unavailable';
   if (holdingsQuery.isPending) {
@@ -151,7 +149,8 @@ function Home() {
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
             {holdingsQuery.data.length > 0 ? (
               holdingsQuery.data.map((holding) => {
-                const spotPrice = holding.metal === 'gold' ? spotPricesQuery.data?.prices.gold : silverSpotPrice;
+                const spotPrice =
+                  holding.metal === 'gold' ? spotPricesQuery.data?.prices.gold : spotPricesQuery.data?.prices.silver;
 
                 return (
                   <div key={holding.id} className="rounded-md border border-gray-300 p-4">
