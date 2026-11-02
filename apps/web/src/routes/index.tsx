@@ -149,8 +149,7 @@ function Home() {
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
             {holdingsQuery.data.length > 0 ? (
               holdingsQuery.data.map((holding) => {
-                const spotPrice =
-                  holding.metal === 'gold' ? spotPricesQuery.data?.prices.gold : spotPricesQuery.data?.prices.silver;
+                const spotPrice = spotPricesQuery.data?.prices[holding.metal];
 
                 return (
                   <div key={holding.id} className="rounded-md border border-gray-300 p-4">
