@@ -26,9 +26,14 @@ function Home() {
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
   const editForm = useForm<FormValues>({ resolver: zodResolver(schema) });
+
   const queryClient = useQueryClient();
+
+  // TODO: move these to their own hook files
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings }); // TODO: move to its own hook file
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices }); // TODO: move to its own hook file
+
+  // TODO: move these to their own hook files
   const createHoldingMutation = useMutation({
     mutationFn: createHolding,
     onSuccess: async () => {
@@ -53,7 +58,6 @@ function Home() {
     },
   });
 
-  // TODO: convert to a react query mutation
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     if (createHoldingMutation.isPending || holdingsQuery.isPending) return;
     try {
@@ -63,7 +67,6 @@ function Home() {
     }
   };
 
-  // TODO: convert to a react query mutation
   const onDeleteHolding = async (id: string) => {
     if (isBusy) return;
     try {
@@ -73,7 +76,6 @@ function Home() {
     }
   };
 
-  // TODO: convert to a react query mutation
   const onEditHolding = async (id: string, data: CreateHoldingInput) => {
     try {
       await editHoldingMutation.mutateAsync({ id, data });
@@ -82,7 +84,6 @@ function Home() {
     }
   };
 
-  // TODO: convert to a react query mutation
   const onStartEdit = (holding: Holding) => {
     const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
     editForm.reset({
