@@ -7,9 +7,10 @@ type FormProps = {
   form: UseFormReturn<CreateHoldingInput>;
   onSubmit: SubmitHandler<CreateHoldingInput>;
   creatingHoldingError: string;
+  isBusy: boolean
 };
 
-export const Form = ({ form, onSubmit, creatingHoldingError }: FormProps) => {
+export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps) => {
   const {
     handleSubmit,
     register,
@@ -165,7 +166,7 @@ export const Form = ({ form, onSubmit, creatingHoldingError }: FormProps) => {
       <button
         type="submit"
         className="rounded-md bg-gray-900 px-4 py-2 font-semibold text-white hover:bg-gray-800 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={isSubmitting}
+        disabled={isBusy}
       >
         {isSubmitting ? 'Adding...' : 'Add'}
       </button>

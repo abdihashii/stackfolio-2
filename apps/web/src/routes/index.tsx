@@ -68,6 +68,7 @@ function Home() {
   }, []);
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    if (isMutating) return;
     try {
       setCreatingHoldingError('');
       const savedHolding = await createHolding(data);
@@ -92,6 +93,7 @@ function Home() {
       stackValueText = formatUsd(stackValue);
     }
   }
+  const isBusy = form.formState.isSubmitting || isMutating;
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
@@ -177,7 +179,7 @@ function Home() {
                             setIsMutating(false);
                           }
                         }}
-                        disabled={isMutating}
+                        disabled={isBusy}
                       >
                         edit
                       </button>
@@ -195,7 +197,7 @@ function Home() {
                             setIsMutating(false);
                           }
                         }}
-                        disabled={isMutating}
+                        disabled={isBusy}
                       >
                         delete
                       </button>
@@ -209,7 +211,7 @@ function Home() {
           </div>
         )}
 
-        <Form form={form} onSubmit={onSubmit} creatingHoldingError={creatingHoldingError} />
+        <Form form={form} onSubmit={onSubmit} creatingHoldingError={creatingHoldingError} isBusy={isBusy} />
       </div>
     </main>
   );
