@@ -125,7 +125,6 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   // TODO: add ReactHookForm
-  const [metal, setMetal] = useState<CreateHoldingInput['metal'] | ''>('');
   const [weightUnit, setWeightUnit] = useState<CreateHoldingInput['weight_unit'] | ''>('');
   const [weight, setWeight] = useState<string>('');
   const [purity, setPurity] = useState<string>('');
@@ -147,7 +146,10 @@ function Home() {
     handleSubmit,
     resetField,
     formState: { errors },
+    watch,
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
+
+  const metal = watch('metal');
 
   // TODo: move to custom hook file
   useEffect(() => {
