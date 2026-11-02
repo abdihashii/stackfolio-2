@@ -3,7 +3,7 @@ import type { SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import type { FormValues } from '@/types/form.schema';
@@ -23,36 +23,14 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   const [creatingHoldingError, setCreatingHoldingError] = useState<string>('');
-
-  const [spotPricesTimestamp, setSpotPricesTimestamp] = useState<string>(''); // TODO: simply spot price state
-
   const [isMutating, setIsMutating] = useState<boolean>(false);
-
   const [editingHoldingId, setEditingHoldingId] = useState<string | null>(null);
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
   const editForm = useForm<FormValues>({ resolver: zodResolver(schema) });
-
   const queryClient = useQueryClient();
-
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings });
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
-
-  // TODo: move to use react query
-  useEffect(() => {
-    async function getSpotPrices() {
-      try {
-        const fetchedSpotPrices = await fetchSpotPrices();
-        setSpotPricesTimestamp(fetchedSpotPrices.timestamp);
-      } catch {
-        alert('Could not load spot prices. Reload the page and try again.');
-      }
-    }
-
-    getSpotPrices();
-
-    // TODO: add effect cleanup to ignore results after unmount.
-  }, []);
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     if (isMutating) return;
@@ -164,7 +142,7 @@ function Home() {
                         isSpotPricesLoading={spotPricesQuery.isPending}
                         spotPricesError={spotPricesQuery.error?.message ?? ''}
                         spotPrice={spotPrice}
-                        spotPricesTimestamp={spotPricesTimestamp}
+                        spotPricesTimestamp={spotPricesQuery.data?.timestamp ?? ''}
                         onDelete={onDeleteHolding}
                         onStartEdit={onStartEdit}
                       />
