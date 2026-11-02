@@ -1,10 +1,18 @@
+import { UseFormReturn } from 'react-hook-form';
+
 import { updateHolding, fetchAllHoldings } from '../lib/apis';
 import { holdingTypes } from '../types/holdings.types';
+import type { Holding, CreateHoldingInput } from '../types/holdings.types';
 
-// TODO: type the props
-type EditFormProps = {}
+type EditFormProps = {
+  editForm: UseFormReturn<CreateHoldingInput>;
+  id: string;
+  setEditingHoldingId: React.Dispatch<React.SetStateAction<string | null>>;
+  setHoldings: React.Dispatch<React.SetStateAction<Holding[]>>;
+  isBusy: boolean;
+};
 
-export const EditForm = ({ editForm, id, setEditingHoldingId, setHoldings, isBusy }) => {
+export const EditForm = ({ editForm, id, setEditingHoldingId, setHoldings, isBusy }: EditFormProps) => {
   const { watch } = editForm;
   const editingMetal = watch('metal');
 
