@@ -125,7 +125,6 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   // TODO: add ReactHookForm
-  const [purity, setPurity] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('1');
   const [holdingType, setHoldingType] = useState<HoldingType | ''>('');
   const [holdings, setHoldings] = useState<Holding[]>([]);
@@ -148,8 +147,9 @@ function Home() {
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const metal = watch('metal');
-  const weight = watch('weight');
   const weightUnit = watch('weight_unit');
+  const weight = watch('weight');
+  const purity = watch('purity');
 
   // TODo: move to custom hook file
   useEffect(() => {
@@ -324,7 +324,7 @@ function Home() {
           <div className="flex flex-col gap-1">
             <label htmlFor="weight-unit">Weight unit:</label>
             <select
-              {...register("weight_unit")}
+              {...register('weight_unit')}
               id="weight-unit"
               disabled={isCreatingHoldingLoading}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
@@ -351,15 +351,9 @@ function Home() {
           <div className="flex flex-col gap-1">
             <label htmlFor="purity">Purity:</label>
             <select
-              required
-              name="purity"
+              {...register('purity', { valueAsNumber: true })}
               id="purity"
-              value={purity}
-              onChange={(e) => {
-                const value = e.target.value;
-                setPurity(value);
-              }}
-              disabled={metal === '' || isCreatingHoldingLoading}
+              disabled={!metal || isCreatingHoldingLoading}
               autoComplete="off"
               className="w-full rounded-md border border-gray-300 px-3 py-2"
             >
