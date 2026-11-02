@@ -1,9 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router';
 import type { SubmitEventHandler } from 'react';
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
-// TODO: move to lib
-const backendUrlPath = import.meta.env.VITE_API_URL;
+const metals = ['gold', 'silver'] as const;
+// type Metal = (typeof metals)[number];
+
+const weightUnits = ['ozt', 'gram'] as const;
+// type WeightUnits = (typeof weightUnits)[number];
 
 const holdingTypes = ['coin', 'bar', 'round', 'jewelry'] as const;
 type HoldingType = (typeof holdingTypes)[number];
@@ -22,6 +27,20 @@ interface CreateHoldingInput {
 interface Holding extends CreateHoldingInput {
   id: string;
 }
+
+const schema = z.object({
+  metal: z.enum(metals),
+  weight_unit: z.enum(weightUnits),
+  weight: z.number().positive(),
+  purity: z.number().positive().max(1),
+  quantity: z.number().int().positive(),
+  holding_type: z.enum(holdingTypes).nullable(),
+});
+
+type FormValues = z.infer<typeof schema>;
+
+// TODO: move to lib
+const backendUrlPath = import.meta.env.VITE_API_URL;
 
 // TODO: move to lib
 const gramsToTroyOunces = (gramWeightUnit: number) => {
