@@ -3,24 +3,13 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
-import * as z from 'zod';
 
 import { Form } from '../components/form';
 import { fetchAllHoldings, fetchSpotPrices, createHolding } from '../lib/apis';
 import { calculateStackValue, formatUsd, calculateHoldingValue } from '../lib/utils';
+import type { FormValues } from '../types/form.schema';
+import { schema } from '../types/form.schema';
 import type { Holding } from '../types/holdings.types';
-import { metals, weightUnits, holdingTypes } from '../types/holdings.types';
-
-// TODO: move to types
-const schema = z.object({
-  metal: z.enum(metals),
-  weight_unit: z.enum(weightUnits),
-  weight: z.number().positive(),
-  purity: z.number().positive().max(1),
-  quantity: z.number().int().positive(),
-  holding_type: z.enum(holdingTypes).nullable(),
-});
-type FormValues = z.infer<typeof schema>;
 
 export const Route = createFileRoute('/')({
   component: Home,
