@@ -1,5 +1,3 @@
-import type { SubmitHandler } from 'react-hook-form';
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
@@ -13,7 +11,8 @@ import { EditForm } from '@/components/edit-form';
 import { Form } from '@/components/form';
 import { H2 } from '@/components/h2';
 import { HoldingCard } from '@/components/holding-card';
-import { fetchAllHoldings, fetchSpotPrices, createHolding, deleteHolding, updateHolding } from '@/lib/apis';
+import { useCreateHolding } from '@/hooks/use-create-holding';
+import { fetchAllHoldings, fetchSpotPrices, deleteHolding, updateHolding } from '@/lib/apis';
 import { calculateStackValue, formatUsd } from '@/lib/utils';
 import { schema } from '@/types/form.schema';
 
@@ -24,22 +23,15 @@ export const Route = createFileRoute('/')({
 function Home() {
   const [editingHoldingId, setEditingHoldingId] = useState<string | null>(null);
 
-  const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
-  const editForm = useForm<FormValues>({ resolver: zodResolver(schema) });
-
   const queryClient = useQueryClient();
 
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings });
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
 
+  const { form, createHoldingMutation, onCreateHolding } = useCreateHolding(holdingsQuery.isPending);
+  const editForm = useForm<FormValues>({ resolver: zodResolver(schema) });
+
   // TODO: move these to their own hook files
-  const createHoldingMutation = useMutation({
-    mutationFn: createHolding,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['holdings'] });
-      form.reset();
-    },
-  });
   const deleteHoldingMutation = useMutation({
     mutationFn: deleteHolding,
     onSuccess: async () => await queryClient.invalidateQueries({ queryKey: ['holdings'] }),
@@ -56,15 +48,6 @@ function Home() {
       }
     },
   });
-
-  const onCreateHolding: SubmitHandler<FormValues> = async (data) => {
-    if (createHoldingMutation.isPending || holdingsQuery.isPending) return;
-    try {
-      await createHoldingMutation.mutateAsync(data);
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Could not create holding.');
-    }
-  };
 
   const onDeleteHolding = async (id: string) => {
     if (isBusy) return;
