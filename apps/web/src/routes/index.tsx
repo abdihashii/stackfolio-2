@@ -9,7 +9,7 @@ import { fetchAllHoldings, fetchSpotPrices, createHolding, deleteHolding, update
 import { calculateStackValue, formatUsd, calculateHoldingValue } from '../lib/utils';
 import type { FormValues } from '../types/form.schema';
 import { schema } from '../types/form.schema';
-import type { CreateHoldingInput, Holding } from '../types/holdings.types';
+import type { Holding } from '../types/holdings.types';
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -30,6 +30,8 @@ function Home() {
   const [spotPricesError, setSpotPricesError] = useState<string>('');
 
   const [isMutating, setIsMutating] = useState<boolean>(false);
+
+  const [editingHoldingId, setEditingHoldingId] = useState<string | null>(null);
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
 
@@ -120,88 +122,70 @@ function Home() {
 
                 return (
                   <div key={id} className="rounded-md border border-gray-300 p-4">
-                    <h2 className="text-lg font-semibold capitalize">{metal}</h2>
-                    <p>
-                      Weight: {weight} {weight_unit}
-                    </p>
-                    <p>Purity: {purity}</p>
-                    <p>Quantity: {quantity}</p>
-                    <p>
-                      Total weight: {weight * quantity} {weight_unit}
-                    </p>
-                    {holding_type && <p>{holding_type}</p>}
-                    {isSpotPricesLoading ? (
-                      <p>Holding value: loading...</p>
-                    ) : spotPricesError ? (
-                      <p>{spotPricesError}</p>
-                    ) : spotPrice !== undefined ? (
-                      <>
-                        <p className="mt-2 text-sm text-gray-500 wrap-break-word">
-                          Price snapshot: {new Date(spotPricesTimestamp).toISOString()}
-                        </p>
-
-                        <p className="mt-3 font-semibold">
-                          Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}
-                        </p>
-                      </>
+                    {editingHoldingId === id ? (
+                      <p>EDIT MODE</p>
                     ) : (
-                      <p className="mt-3 font-semibold">Holding value: Unavailable</p>
+                      <>
+                        <h2 className="text-lg font-semibold capitalize">{metal}</h2>
+                        <p>
+                          Weight: {weight} {weight_unit}
+                        </p>
+                        <p>Purity: {purity}</p>
+                        <p>Quantity: {quantity}</p>
+                        <p>
+                          Total weight: {weight * quantity} {weight_unit}
+                        </p>
+                        {holding_type && <p>{holding_type}</p>}
+                        {isSpotPricesLoading ? (
+                          <p>Holding value: loading...</p>
+                        ) : spotPricesError ? (
+                          <p>{spotPricesError}</p>
+                        ) : spotPrice !== undefined ? (
+                          <>
+                            <p className="mt-2 text-sm text-gray-500 wrap-break-word">
+                              Price snapshot: {new Date(spotPricesTimestamp).toISOString()}
+                            </p>
+
+                            <p className="mt-3 font-semibold">
+                              Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="mt-3 font-semibold">Holding value: Unavailable</p>
+                        )}
+
+                        <div className="w-full flex justify-between">
+                          <button
+                            className="text-blue-500 hover:cursor-pointer hover:underline"
+                            type="button"
+                            onClick={() => setEditingHoldingId(id)}
+                            disabled={isBusy}
+                          >
+                            edit
+                          </button>
+                          <button
+                            className="text-red-500 hover:cursor-pointer hover:underline"
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                setIsMutating(true);
+                                await deleteHolding(id);
+                                setHoldings((currentHoldings) =>
+                                  currentHoldings.filter((holding) => holding.id !== id),
+                                );
+                              } catch (error) {
+                                alert(error);
+                              } finally {
+                                setIsMutating(false);
+                              }
+                            }}
+                            disabled={isBusy}
+                          >
+                            delete
+                          </button>
+                        </div>
+                      </>
                     )}
-
-                    <div className="w-full flex justify-between">
-                      <button
-                        className="text-blue-500 hover:cursor-pointer hover:underline"
-                        type="button"
-                        onClick={async () => {
-                          setIsMutating(true);
-                          try {
-                            try {
-                              const newPayload: CreateHoldingInput = {
-                                metal: 'gold',
-                                weight_unit,
-                                weight,
-                                purity,
-                                quantity,
-                                holding_type,
-                              };
-                              await updateHolding(id, newPayload);
-                            } catch (error) {
-                              alert(error);
-                              return;
-                            }
-
-                            try {
-                              setHoldings(await fetchAllHoldings());
-                            } catch {
-                              alert('Holding saved, but could not refresh. Reload the page.');
-                            }
-                          } finally {
-                            setIsMutating(false);
-                          }
-                        }}
-                        disabled={isBusy}
-                      >
-                        edit
-                      </button>
-                      <button
-                        className="text-red-500 hover:cursor-pointer hover:underline"
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            setIsMutating(true);
-                            await deleteHolding(id);
-                            setHoldings((currentHoldings) => currentHoldings.filter((holding) => holding.id !== id));
-                          } catch (error) {
-                            alert(error);
-                          } finally {
-                            setIsMutating(false);
-                          }
-                        }}
-                        disabled={isBusy}
-                      >
-                        delete
-                      </button>
-                    </div>
                   </div>
                 );
               })
