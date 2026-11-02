@@ -1,4 +1,4 @@
-import type { Holding } from "../types/holdings.types";
+import type { Holding } from '../types/holdings.types';
 
 export const gramsToTroyOunces = (gramWeightUnit: number) => {
   // 1 troy ounce = 31.1034768 grams
@@ -12,7 +12,10 @@ export const formatUsd = (value: number) => {
   }).format(value);
 };
 
-export const calculateHoldingValue = ({ weight_unit, weight, purity, quantity }: Holding, spotPrice: number): number => {
+export const calculateHoldingValue = (
+  { weight_unit, weight, purity, quantity }: Holding,
+  spotPrice: number,
+): number => {
   const weightOzt = weight_unit === 'gram' ? gramsToTroyOunces(weight) : weight;
 
   return weightOzt * purity * quantity * spotPrice;
