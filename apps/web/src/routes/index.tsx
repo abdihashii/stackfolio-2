@@ -34,7 +34,7 @@ function Home() {
 
   // TODO: convert to a react query mutation
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    if (isMutating) return;
+    if (isMutating || holdingsQuery.isPending) return;
     try {
       setCreatingHoldingError('');
       await createHolding(data);
@@ -103,7 +103,8 @@ function Home() {
       stackValueText = formatUsd(stackValue);
     }
   }
-  const isBusy = form.formState.isSubmitting || editForm.formState.isSubmitting || isMutating;
+  const isBusy =
+    form.formState.isSubmitting || editForm.formState.isSubmitting || isMutating || holdingsQuery.isPending;
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
