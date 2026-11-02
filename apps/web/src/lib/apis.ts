@@ -38,3 +38,12 @@ export const createHolding = async (payload: CreateHoldingInput): Promise<Holdin
   }
   return data;
 };
+
+export const deleteHolding = async (id: string): Promise<void> => {
+  const res = await fetch(`${backendUrlPath}/holdings/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    throw new Error('Could not delete holding.');
+  }
+};
