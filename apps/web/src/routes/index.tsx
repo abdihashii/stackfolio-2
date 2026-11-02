@@ -173,6 +173,7 @@ function Home() {
         {/* TODO: move to its own component */}
         <form
           noValidate
+          autoComplete='off'
           aria-disabled={isSubmitting}
           className="flex flex-col gap-4 text-xl"
           onSubmit={handleSubmit(onSubmit)}
