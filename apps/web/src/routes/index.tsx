@@ -23,7 +23,7 @@ function Home() {
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
 
   const { form, createHoldingMutation, onCreateHolding } = useCreateHolding(holdingsQuery.isPending);
-  const { updatingHoldingId, setUpdatingHoldingId, updateForm, updateHoldingMutation } = useUpdateHolding();
+  const { updatingHoldingId, setUpdatingHoldingId, updateForm, onUpdateHolding } = useUpdateHolding();
 
   // TODO: move these to their own hook files
   const deleteHoldingMutation = useMutation({
@@ -37,14 +37,6 @@ function Home() {
       await deleteHoldingMutation.mutateAsync(id);
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Could not delete holding.');
-    }
-  };
-
-  const onEditHolding = async (id: string, data: CreateHoldingInput) => {
-    try {
-      await updateHoldingMutation.mutateAsync({ id, data });
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Could not update holding.');
     }
   };
 
@@ -113,7 +105,7 @@ function Home() {
                           id={holding.id}
                           setUpdateingHoldingId={setUpdatingHoldingId}
                           isBusy={isBusy}
-                          onUpdate={onEditHolding}
+                          onUpdate={onUpdateHolding˝}
                         />
                       </>
                     ) : (

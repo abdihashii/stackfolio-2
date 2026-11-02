@@ -29,10 +29,19 @@ export const useUpdateHolding = () => {
     },
   });
 
+  const onUpdateHolding = async (id: string, data: CreateHoldingInput) => {
+    try {
+      await updateHoldingMutation.mutateAsync({ id, data });
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Could not update holding.');
+    }
+  };
+
   return {
     updatingHoldingId,
     setUpdatingHoldingId,
     updateForm,
     updateHoldingMutation,
+    onUpdateHolding,
   };
 };
