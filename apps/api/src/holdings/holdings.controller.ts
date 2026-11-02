@@ -1,7 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
-import { HoldingsService } from './holdings.service.js';
+
 import { CreateHoldingDto } from './dto/create-holding.dto.js';
 import { UpdateHoldingDto } from './dto/update-holding.dto.js';
+import { HoldingsService } from './holdings.service.js';
 
 @Controller('holdings')
 export class HoldingsController {
