@@ -145,7 +145,7 @@ export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="holding-type">Holding type:</label>
+        <label htmlFor="holding-type">Holding type (optional):</label>
         <select
           {...register('holding_type', { setValueAs: (value) => (value === '' ? null : value) })}
           id="holding-type"
@@ -167,7 +167,7 @@ export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="acquisition-date">Acquisition date:</label>
+        <label htmlFor="acquisition-date">Acquisition date (optional):</label>
         <input
           id="acquisition-date"
           type="date"
