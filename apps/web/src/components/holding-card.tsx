@@ -60,7 +60,7 @@ export const HoldingCard = ({
           onClick={() => onStartEdit(holding)}
           disabled={isBusy}
         >
-          edit
+          update
         </button>
         <button
           className="text-red-500 hover:cursor-pointer hover:underline"
