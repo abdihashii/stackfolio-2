@@ -177,7 +177,7 @@ export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps
           aria-invalid={!!errors.acquisition_date}
           aria-describedby={errors.acquisition_date ? 'acquisition-date-error' : undefined}
         />
-        <p id="acquisition-date-error" role="alert" className='text-sm text-red-500'>
+        <p id="acquisition-date-error" role="alert" className="text-sm text-red-500">
           {errors.acquisition_date?.message}
         </p>
       </div>
