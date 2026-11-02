@@ -1,5 +1,3 @@
-import { error } from 'console';
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute } from '@tanstack/react-router';
 import type { SubmitEventHandler } from 'react';
