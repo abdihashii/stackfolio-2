@@ -34,6 +34,7 @@ function Home() {
   const [editingHoldingId, setEditingHoldingId] = useState<string | null>(null);
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
+  const editForm = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   // TODo: move to custom hook file
   useEffect(() => {
