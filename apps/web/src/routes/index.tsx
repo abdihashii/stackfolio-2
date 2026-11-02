@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import * as z from 'zod';
 
+import { fetchAllHoldings, fetchSpotPrices, createHolding } from '../lib/apis';
 import { calculateStackValue, formatUsd, calculateHoldingValue } from '../lib/utils';
-import type { Holding, CreateHoldingInput } from '../types/holdings.types';
+import type { Holding } from '../types/holdings.types';
 import { metals, weightUnits, holdingTypes } from '../types/holdings.types';
 
 const schema = z.object({
@@ -18,49 +19,6 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
-
-// TODO: move to lib
-const backendUrlPath = import.meta.env.VITE_API_URL;
-
-// TODO: move to lib
-const fetchSpotPrices = async () => {
-  const res = await fetch(`${backendUrlPath}/spot-prices`);
-  if (!res.ok) {
-    throw new Error(`Could not fetch spot prices.`);
-  }
-  const data = (await res.json()) as { timestamp: string; prices: { gold: number; silver: number } };
-  return data;
-};
-
-// TODO: move to a custom hook and API lib files
-const fetchAllHoldings = async (): Promise<Holding[]> => {
-  // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
-  const res = await fetch(`${backendUrlPath}/holdings`, { headers: { 'Content-Type': 'application/json' } });
-  const data = await res.json();
-  if (!res.ok) {
-    const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
-    throw Error(typeof message === 'string' && message.trim() ? message : 'Could not load holdings.');
-  }
-  return data;
-};
-
-// TODO: move to a custom hook and API lib files
-const createHolding = async (payload: CreateHoldingInput): Promise<Holding> => {
-  // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
-  const res = await fetch(`${backendUrlPath}/holdings`, {
-    method: 'POST',
-    headers: {
-      'Content-type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
-    throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not create holding.');
-  }
-  return data;
-};
 
 export const Route = createFileRoute('/')({
   component: Home,
