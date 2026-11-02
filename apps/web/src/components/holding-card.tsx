@@ -10,7 +10,7 @@ type HoldingCardProps = {
   spotPrice: number | undefined;
   spotPricesTimestamp: string;
   onDelete: (id: string) => Promise<void>;
-  onStartEdit: (holding: Holding) => void;
+  onStartUpdate: (holding: Holding) => void;
 };
 
 export const HoldingCard = ({
@@ -21,7 +21,7 @@ export const HoldingCard = ({
   spotPrice,
   spotPricesTimestamp,
   onDelete,
-  onStartEdit,
+  onStartUpdate,
 }: HoldingCardProps) => {
   const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
 
@@ -57,7 +57,7 @@ export const HoldingCard = ({
         <button
           className="text-blue-500 hover:cursor-pointer hover:underline"
           type="button"
-          onClick={() => onStartEdit(holding)}
+          onClick={() => onStartUpdate(holding)}
           disabled={isBusy}
         >
           update

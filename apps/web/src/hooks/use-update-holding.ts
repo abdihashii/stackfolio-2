@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import type { FormValues } from '@/types/form.schema';
+import type { Holding } from '@/types/holdings.types';
 import type { CreateHoldingInput } from '@/types/holdings.types';
 
 import { updateHolding } from '@/lib/apis';
@@ -37,11 +38,25 @@ export const useUpdateHolding = () => {
     }
   };
 
+  const onStartUpdate = (holding: Holding) => {
+    const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
+    updateForm.reset({
+      metal,
+      weight_unit,
+      weight,
+      purity,
+      quantity,
+      holding_type,
+    });
+    setUpdatingHoldingId(id);
+  };
+
   return {
     updatingHoldingId,
     setUpdatingHoldingId,
     updateForm,
     updateHoldingMutation,
     onUpdateHolding,
+    onStartUpdate,
   };
 };

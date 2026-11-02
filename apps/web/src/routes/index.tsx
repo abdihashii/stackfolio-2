@@ -21,26 +21,13 @@ function Home() {
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings });
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
   const { form, createHoldingMutation, onCreateHolding } = useCreateHolding(holdingsQuery.isPending);
-  const { updatingHoldingId, setUpdatingHoldingId, updateForm, onUpdateHolding } = useUpdateHolding();
+  const { updatingHoldingId, setUpdatingHoldingId, updateForm, onUpdateHolding, onStartUpdate } = useUpdateHolding();
   const { deleteHoldingMutation, onDeleteHolding } = useDeleteHolding(
     form.formState.isSubmitting ||
       updateForm.formState.isSubmitting ||
       createHoldingMutation.isPending ||
       holdingsQuery.isPending,
   );
-
-  const onStartEdit = (holding: Holding) => {
-    const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
-    updateForm.reset({
-      metal,
-      weight_unit,
-      weight,
-      purity,
-      quantity,
-      holding_type,
-    });
-    setUpdatingHoldingId(id);
-  };
 
   const stackValue = calculateStackValue(holdingsQuery.data, {
     gold: spotPricesQuery.data?.prices.gold,
@@ -106,7 +93,7 @@ function Home() {
                         spotPrice={spotPrice}
                         spotPricesTimestamp={spotPricesQuery.data?.timestamp ?? ''}
                         onDelete={onDeleteHolding}
-                        onStartEdit={onStartEdit}
+                        onStartUpdate={onStartUpdate}
                       />
                     )}
                   </div>
