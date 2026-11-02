@@ -4,28 +4,8 @@ import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import * as z from 'zod';
 
-// TODO: move to types file
-const metals = ['gold', 'silver'] as const;
-type Metal = (typeof metals)[number];
-const weightUnits = ['ozt', 'gram'] as const;
-type WeightUnit = (typeof weightUnits)[number];
-const holdingTypes = ['coin', 'bar', 'round', 'jewelry'] as const;
-type HoldingType = (typeof holdingTypes)[number];
-
-// TODO: move to types file
-interface CreateHoldingInput {
-  metal: Metal;
-  weight_unit: WeightUnit;
-  weight: number;
-  purity: number;
-  quantity: number;
-  holding_type: HoldingType | null;
-}
-
-// TODO: move to types file
-interface Holding extends CreateHoldingInput {
-  id: string;
-}
+import type { Holding, CreateHoldingInput } from '../types/holdings.types';
+import { metals, weightUnits, holdingTypes } from '../types/holdings.types';
 
 const schema = z.object({
   metal: z.enum(metals),
