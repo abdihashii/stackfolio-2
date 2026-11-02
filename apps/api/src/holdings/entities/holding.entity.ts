@@ -1,9 +1,12 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('holdings')
 export class Holding {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @CreateDateColumn({ type: 'timestamptz' })
+  created_at: Date;
 
   @Column()
   metal: 'gold' | 'silver';
