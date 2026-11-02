@@ -423,6 +423,8 @@ function Home() {
               id="holding-type"
               disabled={isCreatingHoldingLoading}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
+              aria-invalid={!!errors.holding_type}
+              aria-describedby={errors.holding_type ? 'holding-type-error' : undefined}
             >
               <option value="">None selected</option>
               {holdingTypes.map((type) => (
@@ -431,6 +433,9 @@ function Home() {
                 </option>
               ))}
             </select>
+            <p id="holding-type-error" role="alert" className="text-sm text-red-500">
+              {errors.holding_type?.message}
+            </p>
           </div>
 
           <button
