@@ -322,7 +322,7 @@ function Home() {
               <option value="silver">Silver</option>
             </select>
             <p id="metal-error" role="alert" className="text-sm text-red-500">
-              {errors.metal && 'error'}
+              {errors.metal && errors.metal?.message}
             </p>
           </div>
 
