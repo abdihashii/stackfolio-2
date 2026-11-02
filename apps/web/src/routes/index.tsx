@@ -125,7 +125,6 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   // TODO: add ReactHookForm
-  const [quantity, setQuantity] = useState<string>('1');
   const [holdingType, setHoldingType] = useState<HoldingType | ''>('');
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [isHoldingsLoading, setIsHoldingsLoading] = useState<boolean>(true);
@@ -150,6 +149,7 @@ function Home() {
   const weightUnit = watch('weight_unit');
   const weight = watch('weight');
   const purity = watch('purity');
+  const quantity = watch('quantity');
 
   // TODo: move to custom hook file
   useEffect(() => {
@@ -381,17 +381,11 @@ function Home() {
           <div className="flex flex-col gap-1">
             <label htmlFor="quantity">Quantity:</label>
             <input
-              required
-              name="quantity"
+              {...register('quantity', { valueAsNumber: true })}
               id="quantity"
               type="number"
               min="1"
               step="1"
-              value={quantity}
-              onChange={(e) => {
-                const value = e.target.value;
-                setQuantity(value);
-              }}
               disabled={isCreatingHoldingLoading}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
             />
