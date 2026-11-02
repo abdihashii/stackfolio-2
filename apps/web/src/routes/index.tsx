@@ -11,6 +11,7 @@ import { calculateStackValue, formatUsd, calculateHoldingValue } from '../lib/ut
 import type { Holding } from '../types/holdings.types';
 import { metals, weightUnits, holdingTypes } from '../types/holdings.types';
 
+// TODO: move to types
 const schema = z.object({
   metal: z.enum(metals),
   weight_unit: z.enum(weightUnits),
@@ -19,7 +20,6 @@ const schema = z.object({
   quantity: z.number().int().positive(),
   holding_type: z.enum(holdingTypes).nullable(),
 });
-
 type FormValues = z.infer<typeof schema>;
 
 export const Route = createFileRoute('/')({
