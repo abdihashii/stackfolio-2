@@ -23,7 +23,7 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   const [creatingHoldingError] = useState<string>('');
-  const [isMutating, setIsMutating] = useState<boolean>(false);
+  const [isMutating] = useState<boolean>(false);
   const [editingHoldingId, setEditingHoldingId] = useState<string | null>(null);
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
@@ -31,7 +31,17 @@ function Home() {
   const queryClient = useQueryClient();
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings }); // TODO: move to its own hook file
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices }); // TODO: move to its own hook file
-  const createHoldingMutation = useMutation({ mutationFn: createHolding });
+  const createHoldingMutation = useMutation({
+    mutationFn: createHolding,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['holdings'] });
+      form.reset();
+    },
+  });
+  const deleteHoldingMutation = useMutation({
+    mutationFn: deleteHolding,
+    onSuccess: async () => await queryClient.invalidateQueries({ queryKey: ['holdings'] }),
+  });
 
   // TODO: convert to a react query mutation
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
@@ -47,14 +57,11 @@ function Home() {
 
   // TODO: convert to a react query mutation
   const onDeleteHolding = async (id: string) => {
+    if (isBusy) return;
     try {
-      setIsMutating(true);
-      await deleteHolding(id);
-      await queryClient.invalidateQueries({ queryKey: ['holdings'] });
+      await deleteHoldingMutation.mutateAsync(id);
     } catch (error) {
-      alert(error);
-    } finally {
-      setIsMutating(false);
+      alert(error instanceof Error ? error.message : 'Could not delete holding.');
     }
   };
 
@@ -108,6 +115,7 @@ function Home() {
     editForm.formState.isSubmitting ||
     isMutating ||
     createHoldingMutation.isPending ||
+    deleteHoldingMutation.isPending ||
     holdingsQuery.isPending;
 
   return (
