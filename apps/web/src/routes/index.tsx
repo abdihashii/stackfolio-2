@@ -44,6 +44,7 @@ function Home() {
     resetField,
     formState: { errors, isSubmitting },
     watch,
+    reset,
   } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
 
   const metal = watch('metal');
@@ -87,6 +88,7 @@ function Home() {
       setCreatingHoldingError('');
       const savedHolding = await createHolding(data);
       setHoldings((currentHoldings) => [...currentHoldings, savedHolding]);
+      reset();
     } catch {
       setCreatingHoldingError('Could not create holding. Please try again');
     }
