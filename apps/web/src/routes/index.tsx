@@ -1,6 +1,7 @@
 import type { SubmitHandler } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -40,6 +41,8 @@ function Home() {
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
   const editForm = useForm<FormValues>({ resolver: zodResolver(schema) });
+
+  const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings });
 
   // TODo: move to custom hook file
   useEffect(() => {
