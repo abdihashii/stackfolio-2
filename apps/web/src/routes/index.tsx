@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute } from '@tanstack/react-router';
 import type { SubmitEventHandler } from 'react';
 import { useEffect, useState } from 'react';
@@ -140,6 +141,8 @@ function Home() {
   const [isSpotPricesLoading, setIsSpotPricesLoading] = useState<boolean>(true);
   const [spotPricesError, setSpotPricesError] = useState<string>('');
   const [spotPricesTimestamp, setSpotPricesTimestamp] = useState<string>(''); // TODO: simply spot price state
+
+  const form = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   // TODo: move to custom hook file
   useEffect(() => {
