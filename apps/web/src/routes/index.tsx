@@ -42,6 +42,10 @@ function Home() {
     mutationFn: deleteHolding,
     onSuccess: async () => await queryClient.invalidateQueries({ queryKey: ['holdings'] }),
   });
+  const editHoldingMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: CreateHoldingInput }) => updateHolding(id, data),
+    onSuccess: async () => setEditingHoldingId(null),
+  });
 
   // TODO: convert to a react query mutation
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
@@ -66,8 +70,7 @@ function Home() {
   // TODO: convert to a react query mutation
   const onEditHolding = async (id: string, data: CreateHoldingInput) => {
     try {
-      await updateHolding(id, data);
-      setEditingHoldingId(null);
+      await editHoldingMutation.mutateAsync({ id, data });
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Could not update holding.');
       return;
