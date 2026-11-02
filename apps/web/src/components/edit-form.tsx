@@ -1,6 +1,9 @@
 import { updateHolding, fetchAllHoldings } from '../lib/apis';
 import { holdingTypes } from '../types/holdings.types';
 
+// TODO: type the props
+type EditFormProps = {}
+
 export const EditForm = ({ editForm, id, setEditingHoldingId, setHoldings, isBusy }) => {
   const { watch } = editForm;
   const editingMetal = watch('metal');
