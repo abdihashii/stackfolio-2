@@ -19,9 +19,10 @@ export const calculateHoldingValue = ({ weight_unit, weight, purity, quantity }:
 };
 
 export const calculateStackValue = (
-  holdings: Holding[],
+  holdings: Holding[] | undefined,
   spotPrices: Record<'gold' | 'silver', number | undefined>,
 ): number | undefined => {
+  if (holdings === undefined) return undefined;
   let stackValue = 0;
   for (const holding of holdings) {
     const spotPrice = spotPrices[holding.metal];

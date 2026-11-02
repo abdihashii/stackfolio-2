@@ -22,10 +22,6 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  const [holdings] = useState<Holding[]>([]);
-  const [isHoldingsLoading] = useState<boolean>(true);
-  const [holdingsError] = useState<string>('');
-
   const [creatingHoldingError, setCreatingHoldingError] = useState<string>('');
 
   const [goldSpotPrice, setGoldSpotPrice] = useState<number | undefined>(undefined);
@@ -120,17 +116,17 @@ function Home() {
     setEditingHoldingId(id);
   };
 
-  const stackValue = calculateStackValue(holdings, {
+  const stackValue = calculateStackValue(holdingsQuery.data, {
     gold: goldSpotPrice,
     silver: silverSpotPrice,
   });
   let stackValueText = 'Unavailable';
-  if (isHoldingsLoading) {
+  if (holdingsQuery.isPending) {
     stackValueText = 'Loading...';
-  } else if (!holdingsError) {
-    if (holdings.length > 0 && isSpotPricesLoading) {
+  } else if (!holdingsQuery.isError) {
+    if (holdingsQuery.data.length > 0 && isSpotPricesLoading) {
       stackValueText = 'Loading...';
-    } else if (stackValue !== undefined && (holdings.length === 0 || !spotPricesError)) {
+    } else if (stackValue !== undefined && (holdingsQuery.data.length === 0 || !spotPricesError)) {
       stackValueText = formatUsd(stackValue);
     }
   }
