@@ -48,8 +48,6 @@ function Home() {
     if (createHoldingMutation.isPending || holdingsQuery.isPending) return;
     try {
       await createHoldingMutation.mutateAsync(data);
-      await queryClient.invalidateQueries({ queryKey: ['holdings'] });
-      form.reset();
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Could not create holding.');
     }
