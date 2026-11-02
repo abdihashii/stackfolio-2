@@ -22,9 +22,9 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  const [holdings, setHoldings] = useState<Holding[]>([]);
-  const [isHoldingsLoading, setIsHoldingsLoading] = useState<boolean>(true);
-  const [holdingsError, setHoldingsError] = useState<string>('');
+  const [holdings] = useState<Holding[]>([]);
+  const [isHoldingsLoading] = useState<boolean>(true);
+  const [holdingsError] = useState<string>('');
 
   const [creatingHoldingError, setCreatingHoldingError] = useState<string>('');
 
@@ -46,20 +46,8 @@ function Home() {
 
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings });
 
-  // TODo: move to custom hook file
+  // TODo: move to use react query
   useEffect(() => {
-    async function getAllHoldings() {
-      try {
-        setIsHoldingsLoading(true);
-        const fetchedHoldings = await fetchAllHoldings();
-        setHoldings(fetchedHoldings);
-      } catch {
-        setHoldingsError("Couldn't load your holdings. Reload the page and try again.");
-      } finally {
-        setIsHoldingsLoading(false);
-      }
-    }
-
     async function getSpotPrices() {
       try {
         setIsSpotPricesLoading(true);
@@ -74,7 +62,6 @@ function Home() {
       }
     }
 
-    getAllHoldings();
     getSpotPrices();
 
     // TODO: add effect cleanup to ignore results after unmount.
