@@ -1,7 +1,7 @@
 import type { SubmitHandler } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -22,7 +22,7 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  const [creatingHoldingError, setCreatingHoldingError] = useState<string>('');
+  const [creatingHoldingError] = useState<string>('');
   const [isMutating, setIsMutating] = useState<boolean>(false);
   const [editingHoldingId, setEditingHoldingId] = useState<string | null>(null);
 
@@ -31,17 +31,17 @@ function Home() {
   const queryClient = useQueryClient();
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings }); // TODO: move to its own hook file
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices }); // TODO: move to its own hook file
+  const formSubmitMutation = useMutation({ mutationFn: createHolding });
 
   // TODO: convert to a react query mutation
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    if (isMutating || holdingsQuery.isPending) return;
+    if (formSubmitMutation.isPending || holdingsQuery.isPending) return;
     try {
-      setCreatingHoldingError('');
-      await createHolding(data);
+      await formSubmitMutation.mutateAsync(data);
       await queryClient.invalidateQueries({ queryKey: ['holdings'] });
       form.reset();
-    } catch {
-      setCreatingHoldingError('Could not create holding. Please try again');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Could not create holding.');
     }
   };
 
@@ -104,7 +104,11 @@ function Home() {
     }
   }
   const isBusy =
-    form.formState.isSubmitting || editForm.formState.isSubmitting || isMutating || holdingsQuery.isPending;
+    form.formState.isSubmitting ||
+    editForm.formState.isSubmitting ||
+    isMutating ||
+    formSubmitMutation.isPending ||
+    holdingsQuery.isPending;
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
