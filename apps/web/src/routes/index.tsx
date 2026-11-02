@@ -145,7 +145,8 @@ function Home() {
   const {
     register,
     handleSubmit,
-    formState: {errors}
+    resetField,
+    formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   // TODo: move to custom hook file
@@ -184,7 +185,7 @@ function Home() {
 
   const onSubmit: SubmitHandler<FormValues> = (data) => {
     alert(data);
-  }
+  };
 
   const onAddSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
@@ -305,17 +306,10 @@ function Home() {
           <div className="flex flex-col gap-1">
             <label htmlFor="metal">Metal:</label>
             <select
-              required
-              name="metal"
+              {...register('metal', {
+                onChange: () => resetField('purity'),
+              })}
               id="metal"
-              value={metal}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value == '' || value === 'gold' || value === 'silver') {
-                  setPurity('');
-                  setMetal(value);
-                }
-              }}
               disabled={isCreatingHoldingLoading}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
             >
