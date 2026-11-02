@@ -1,52 +1,34 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
 
-import type { FormValues } from '@/types/form.schema';
 import type { CreateHoldingInput, Holding } from '@/types/holdings.types';
 
-import { EditForm } from '@/components/edit-form';
 import { Form } from '@/components/form';
 import { H2 } from '@/components/h2';
 import { HoldingCard } from '@/components/holding-card';
+import { UpdateForm } from '@/components/update-form';
 import { useCreateHolding } from '@/hooks/use-create-holding';
-import { fetchAllHoldings, fetchSpotPrices, deleteHolding, updateHolding } from '@/lib/apis';
+import { useUpdateHolding } from '@/hooks/use-update-holding';
+import { fetchAllHoldings, fetchSpotPrices, deleteHolding } from '@/lib/apis';
 import { calculateStackValue, formatUsd } from '@/lib/utils';
-import { schema } from '@/types/form.schema';
 
 export const Route = createFileRoute('/')({
   component: Home,
 });
 
 function Home() {
-  const [editingHoldingId, setEditingHoldingId] = useState<string | null>(null);
-
   const queryClient = useQueryClient();
 
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings });
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
 
   const { form, createHoldingMutation, onCreateHolding } = useCreateHolding(holdingsQuery.isPending);
-  const editForm = useForm<FormValues>({ resolver: zodResolver(schema) });
+  const { updatingHoldingId, setUpdatingHoldingId, updateForm, updateHoldingMutation } = useUpdateHolding();
 
   // TODO: move these to their own hook files
   const deleteHoldingMutation = useMutation({
     mutationFn: deleteHolding,
     onSuccess: async () => await queryClient.invalidateQueries({ queryKey: ['holdings'] }),
-  });
-  const editHoldingMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: CreateHoldingInput }) => updateHolding(id, data),
-    onSuccess: async () => {
-      setEditingHoldingId(null);
-
-      try {
-        await queryClient.invalidateQueries({ queryKey: ['holdings'] }, { throwOnError: true });
-      } catch {
-        alert('Holding saved, but could not refresh. Reload the page.');
-      }
-    },
   });
 
   const onDeleteHolding = async (id: string) => {
@@ -60,7 +42,7 @@ function Home() {
 
   const onEditHolding = async (id: string, data: CreateHoldingInput) => {
     try {
-      await editHoldingMutation.mutateAsync({ id, data });
+      await updateHoldingMutation.mutateAsync({ id, data });
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Could not update holding.');
     }
@@ -68,7 +50,7 @@ function Home() {
 
   const onStartEdit = (holding: Holding) => {
     const { id, metal, weight_unit, weight, purity, quantity, holding_type } = holding;
-    editForm.reset({
+    updateForm.reset({
       metal,
       weight_unit,
       weight,
@@ -76,7 +58,7 @@ function Home() {
       quantity,
       holding_type,
     });
-    setEditingHoldingId(id);
+    setUpdatingHoldingId(id);
   };
 
   const stackValue = calculateStackValue(holdingsQuery.data, {
@@ -95,7 +77,7 @@ function Home() {
   }
   const isBusy =
     form.formState.isSubmitting ||
-    editForm.formState.isSubmitting ||
+    updateForm.formState.isSubmitting ||
     createHoldingMutation.isPending ||
     deleteHoldingMutation.isPending ||
     holdingsQuery.isPending;
@@ -124,14 +106,14 @@ function Home() {
 
                 return (
                   <div key={holding.id} className="rounded-md border border-gray-300 p-4">
-                    {editingHoldingId === holding.id ? (
+                    {updatingHoldingId === holding.id ? (
                       <>
-                        <EditForm
-                          editForm={editForm}
+                        <UpdateForm
+                          updateForm={updateForm}
                           id={holding.id}
-                          setEditingHoldingId={setEditingHoldingId}
+                          setUpdateingHoldingId={setUpdatingHoldingId}
                           isBusy={isBusy}
-                          onEdit={onEditHolding}
+                          onUpdate={onEditHolding}
                         />
                       </>
                     ) : (
