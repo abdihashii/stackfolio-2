@@ -192,7 +192,7 @@ function Home() {
   const onAddSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
 
-    if (metal === '' || weightUnit === '') return;
+    if (!metal || !weightUnit) return;
 
     const parsedWeight = Number(weight);
     if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) {
