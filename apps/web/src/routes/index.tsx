@@ -29,7 +29,6 @@ function Home() {
 
   const queryClient = useQueryClient();
 
-  // TODO: move these to their own hook files
   const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings });
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
 
