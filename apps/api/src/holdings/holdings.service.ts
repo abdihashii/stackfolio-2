@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -25,8 +26,12 @@ export class HoldingsService {
     return this.holdingsRepository.findOneBy({ id });
   }
 
-  update(id: string, updateHoldingDto: UpdateHoldingDto) {
-    return this.holdingsRepository.update(id, updateHoldingDto);
+  async update(id: string, updateHoldingDto: UpdateHoldingDto) {
+    const res = await this.holdingsRepository.update(id, updateHoldingDto);
+    if (res.affected === 0) {
+      throw new NotFoundException('Holding not found.');
+    }
+    return res;
   }
 
   async remove(id: string): Promise<void> {
