@@ -1,18 +1,20 @@
+import type { SubmitHandler } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
-import { EditForm } from '../components/edit-form';
-import { Form } from '../components/form';
-import { H2 } from '../components/h2';
-import { HoldingCard } from '../components/holding-card';
-import { fetchAllHoldings, fetchSpotPrices, createHolding, deleteHolding, updateHolding } from '../lib/apis';
-import { calculateStackValue, formatUsd } from '../lib/utils';
-import type { FormValues } from '../types/form.schema';
-import { schema } from '../types/form.schema';
-import type { CreateHoldingInput, Holding } from '../types/holdings.types';
+import type { FormValues } from '@/types/form.schema';
+import type { CreateHoldingInput, Holding } from '@/types/holdings.types';
+
+import { EditForm } from '@/components/edit-form';
+import { Form } from '@/components/form';
+import { H2 } from '@/components/h2';
+import { HoldingCard } from '@/components/holding-card';
+import { fetchAllHoldings, fetchSpotPrices, createHolding, deleteHolding, updateHolding } from '@/lib/apis';
+import { calculateStackValue, formatUsd } from '@/lib/utils';
+import { schema } from '@/types/form.schema';
 
 export const Route = createFileRoute('/')({
   component: Home,
