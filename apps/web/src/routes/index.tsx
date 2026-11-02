@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 const metals = ['gold', 'silver'] as const;
-// type Metal = (typeof metals)[number];
+type Metal = (typeof metals)[number];
 
 const weightUnits = ['ozt', 'gram'] as const;
 type WeightUnit = (typeof weightUnits)[number];
@@ -15,7 +15,7 @@ type HoldingType = (typeof holdingTypes)[number];
 
 // TODO: move to types file
 interface CreateHoldingInput {
-  metal: 'gold' | 'silver';
+  metal: Metal;
   weight_unit: WeightUnit;
   weight: number;
   purity: number;
