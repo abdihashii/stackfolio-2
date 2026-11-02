@@ -105,7 +105,7 @@ function Home() {
                           id={holding.id}
                           setUpdateingHoldingId={setUpdatingHoldingId}
                           isBusy={isBusy}
-                          onUpdate={onUpdateHolding˝}
+                          onUpdate={onUpdateHolding}
                         />
                       </>
                     ) : (
