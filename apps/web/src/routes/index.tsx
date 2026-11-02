@@ -408,7 +408,12 @@ function Home() {
               step="1"
               disabled={isCreatingHoldingLoading}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
+              aria-invalid={!!errors.quantity}
+              aria-describedby={errors.quantity ? 'quantity-error' : undefined}
             />
+            <p id="quantity-error" role="alert" className="text-sm text-red-500">
+              {errors.quantity?.message}
+            </p>
           </div>
 
           <div className="flex flex-col gap-1">
