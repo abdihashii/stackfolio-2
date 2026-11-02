@@ -140,7 +140,7 @@ function Home() {
     resetField,
     formState: { errors, isSubmitting },
     watch,
-  } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
 
   const metal = watch('metal');
 
