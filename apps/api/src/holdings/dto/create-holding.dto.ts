@@ -1,4 +1,4 @@
-import { IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, Max } from 'class-validator';
+import { IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, Max, Matches, IsDateString } from 'class-validator';
 
 export class CreateHoldingDto {
   @IsIn(['gold', 'silver'], { message: 'Metal must be either gold or silver.' })
@@ -23,5 +23,10 @@ export class CreateHoldingDto {
 
   @IsOptional()
   @IsString()
-  holding_type?: string | null
+  holding_type?: string | null;
+
+  @IsOptional()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  @IsDateString({ strict: true })
+  acquisition_date?: string | null;
 }
