@@ -28,12 +28,15 @@ function Home() {
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [isHoldingsLoading, setIsHoldingsLoading] = useState<boolean>(true);
   const [holdingsError, setHoldingsError] = useState<string>('');
+
   const [creatingHoldingError, setCreatingHoldingError] = useState<string>('');
+
   const [goldSpotPrice, setGoldSpotPrice] = useState<number | undefined>(undefined);
   const [silverSpotPrice, setSilverSpotPrice] = useState<number | undefined>(undefined);
+  const [spotPricesTimestamp, setSpotPricesTimestamp] = useState<string>(''); // TODO: simply spot price state
+
   const [isSpotPricesLoading, setIsSpotPricesLoading] = useState<boolean>(true);
   const [spotPricesError, setSpotPricesError] = useState<string>('');
-  const [spotPricesTimestamp, setSpotPricesTimestamp] = useState<string>(''); // TODO: simply spot price state
 
   const {
     register,
