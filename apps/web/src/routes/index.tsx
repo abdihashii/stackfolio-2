@@ -10,6 +10,7 @@ import { calculateStackValue, formatUsd, calculateHoldingValue } from '../lib/ut
 import type { FormValues } from '../types/form.schema';
 import { schema } from '../types/form.schema';
 import type { Holding } from '../types/holdings.types';
+import { holdingTypes } from '../types/holdings.types';
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -35,6 +36,7 @@ function Home() {
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { quantity: 1 } });
   const editForm = useForm<FormValues>({ resolver: zodResolver(schema) });
+  const editingMetal = editForm.watch('metal');
 
   // TODo: move to custom hook file
   useEffect(() => {
@@ -124,7 +126,107 @@ function Home() {
                 return (
                   <div key={id} className="rounded-md border border-gray-300 p-4">
                     {editingHoldingId === id ? (
-                      <p>EDIT MODE</p>
+                      <>
+                        {/* Move this to its own component */}
+                        <form>
+                          <div className="flex flex-col">
+                            <label htmlFor="edit-metal">Metal:</label>
+                            <select
+                              {...editForm.register('metal', {
+                                onChange: () => editForm.setValue('purity', NaN, { shouldDirty: true }),
+                              })}
+                              id="edit-metal"
+                            >
+                              <option value="">Choose a metal</option>
+                              <option value="gold">Gold</option>
+                              <option value="silver">Silver</option>
+                            </select>
+                          </div>
+
+                          <div className="flex flex-col">
+                            <label htmlFor="edit-weight-unit">Weight unit:</label>
+                            <select {...editForm.register('weight_unit')} id="edit-weight-unit">
+                              <option value="">Choose unit</option>
+                              <option value="gram">gram</option>
+                              <option value="ozt">troy ounce</option>
+                            </select>
+                          </div>
+
+                          <div className="flex flex-col">
+                            <label htmlFor="edit-weight">Weight per item:</label>
+                            <input
+                              {...editForm.register('weight', { valueAsNumber: true })}
+                              id="edit-weight"
+                              type="number"
+                              step="any"
+                            />
+                          </div>
+
+                          <div className="flex flex-col">
+                            <label htmlFor="edit-purity">Purity:</label>
+                            <select
+                              {...editForm.register('purity', { valueAsNumber: true })}
+                              id="edit-purity"
+                              disabled={!editingMetal}
+                            >
+                              <option value="">Choose purity</option>
+
+                              {editingMetal === 'gold' ? (
+                                <>
+                                  <option value={9 / 24}>9K</option>
+                                  <option value={14 / 24}>14K</option>
+                                  <option value={18 / 24}>18K</option>
+                                  <option value={24 / 24}>24K (100%, nominal)</option>
+                                  <option value={0.999}>Fine gold (.999)</option>
+                                  <option value={0.9999}>Fine gold (.9999)</option>
+                                </>
+                              ) : (
+                                <>
+                                  <option value="0.925">Sterling silver (.925)</option>
+                                  <option value="0.999">Fine silver (.999)</option>
+                                  <option value="0.9999">Fine silver (.9999)</option>
+                                </>
+                              )}
+                            </select>
+                          </div>
+
+                          <div className="flex flex-col">
+                            <label htmlFor="edit-quantity">Quantity:</label>
+                            <input
+                              {...editForm.register('quantity', { valueAsNumber: true })}
+                              id="edit-quantity"
+                              type="number"
+                              min="1"
+                              step="1"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <label htmlFor="edit-holding-type">Holding type:</label>
+                            <select
+                              {...editForm.register('holding_type', {
+                                setValueAs: (value) => (value === '' ? null : value),
+                              })}
+                              id="edit-holding-type"
+                            >
+                              <option value="">None selected</option>
+                              {holdingTypes.map((type) => (
+                                <option key={type} value={type}>
+                                  {type[0].toUpperCase() + type.substring(1)}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </form>
+
+                        <button
+                          type="button"
+                          onClick={() => setEditingHoldingId(null)}
+                          className="hover:underline hover:cursor-pointer text-blue-500"
+                        >
+                          cancel
+                        </button>
+                      </>
                     ) : (
                       <>
                         <h2 className="text-lg font-semibold capitalize">{metal}</h2>
