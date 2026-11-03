@@ -14,25 +14,24 @@ export class InventoryService {
   constructor(
     @InjectRepository(Item)
     private itemsRepository: Repository<Item>,
-    @InjectRepository(ItemType)
-    private itemTypeRepository: Repository<ItemType>,
     private dataSource: DataSource,
   ) {}
 
   async create(recordBuyDto: RecordBuyDto): Promise<Item> {
-    const itemType = await this.itemTypeRepository.findOneBy({ id: recordBuyDto.item_type_id });
-    if (!itemType) {
-      throw new NotFoundException(`Item type id ${recordBuyDto.item_type_id} not found.`);
-    }
-
-    const recordBuyDtoWithItemType = {
-      ...recordBuyDto,
-      item_type: itemType,
-    };
-
     return await this.dataSource.transaction(async (manager) => {
       const itemRepository = manager.getRepository(Item);
+      const itemTypeRepository = manager.getRepository(ItemType);
       const transactionRepository = manager.getRepository(Transaction);
+
+      const itemType = await itemTypeRepository.findOneBy({ id: recordBuyDto.item_type_id });
+      if (!itemType) {
+        throw new NotFoundException(`Item type id ${recordBuyDto.item_type_id} not found.`);
+      }
+
+      const recordBuyDtoWithItemType = {
+        ...recordBuyDto,
+        item_type: itemType,
+      };
 
       // Look for an existing item before creating one
       let item = await itemRepository.findOneBy({ item_type: { id: itemType.id } });
