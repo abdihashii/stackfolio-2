@@ -23,7 +23,10 @@ export class InventoryService {
       const itemTypeRepository = manager.getRepository(ItemType);
       const transactionRepository = manager.getRepository(Transaction);
 
-      const itemType = await itemTypeRepository.findOneBy({ id: recordBuyDto.item_type_id });
+      const itemType = await itemTypeRepository.findOne({
+        where: { id: recordBuyDto.item_type_id },
+        lock: { mode: 'pessimistic_write' },
+      });
       if (!itemType) {
         throw new NotFoundException(`Item type id ${recordBuyDto.item_type_id} not found.`);
       }
