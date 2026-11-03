@@ -10,4 +10,4 @@ import { InventoryService } from './inventory.service.js';
   controllers: [InventoryController],
   providers: [InventoryService],
 })
-export class HoldingsModule {}
+export class InventoryModule {}
