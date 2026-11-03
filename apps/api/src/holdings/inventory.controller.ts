@@ -4,8 +4,8 @@ import { CreateItemDto } from './dto/create-item.dto.js';
 import { UpdateItemDto } from './dto/update-item.dto.js';
 import { HoldingsService } from './holdings.service.js';
 
-@Controller('holdings')
-export class HoldingsController {
+@Controller('inventory')
+export class InventoryController {
   constructor(private readonly holdingsService: HoldingsService) {}
 
   @Post()
