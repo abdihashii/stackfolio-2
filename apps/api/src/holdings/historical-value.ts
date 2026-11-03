@@ -1,23 +1,23 @@
-import type { Holding } from './entities/holding.entity.js';
+import type { Item } from './entities/item.entity.js';
 
 export function calculateHistoricalValue(
-  holdings: Holding[],
+  inventory: Item[],
   date: string,
   prices: Partial<Record<'gold' | 'silver', number>>,
 ): number | null {
   let total = 0;
 
-  for (const holding of holdings) {
-    const startDate = holding.acquisition_date ?? holding.created_at.toISOString().slice(0, 10);
+  for (const item of inventory) {
+    const startDate = item.acquisition_date ?? item.created_at.toISOString().slice(0, 10);
 
     if (startDate > date) continue;
 
-    const spotPrice = prices[holding.metal];
+    const spotPrice = prices[item.metal];
     if (spotPrice === undefined) return null;
 
-    const weightOzt = holding.weight_unit === 'gram' ? holding.weight / 31.1034768 : holding.weight;
+    const weightOzt = item.weight_unit === 'gram' ? item.weight / 31.1034768 : item.weight;
 
-    total += weightOzt * holding.purity * holding.quantity * spotPrice;
+    total += weightOzt * item.purity * item.quantity * spotPrice;
   }
 
   return total;

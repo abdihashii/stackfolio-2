@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('holdings')
-export class Holding {
+@Entity('items')
+export class Item {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -24,7 +24,7 @@ export class Holding {
   quantity: number;
 
   @Column({ type: 'text', nullable: true })
-  holding_type: string | null;
+  item_type: string | null;
 
   @Column({ type: 'date', nullable: true })
   acquisition_date: string | null;

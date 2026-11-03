@@ -5,24 +5,24 @@ import { Repository } from 'typeorm';
 
 import { CreateHoldingDto } from './dto/create-holding.dto.js';
 import { UpdateHoldingDto } from './dto/update-holding.dto.js';
-import { Holding } from './entities/holding.entity.js';
+import { Item } from './entities/item.entity.js';
 
 @Injectable()
 export class HoldingsService {
   constructor(
-    @InjectRepository(Holding)
-    private holdingsRepository: Repository<Holding>,
+    @InjectRepository(Item)
+    private holdingsRepository: Repository<Item>,
   ) {}
 
-  create(createHoldingDto: CreateHoldingDto): Promise<Holding> {
+  create(createHoldingDto: CreateHoldingDto): Promise<Item> {
     return this.holdingsRepository.save(createHoldingDto);
   }
 
-  findAll(): Promise<Holding[]> {
+  findAll(): Promise<Item[]> {
     return this.holdingsRepository.find();
   }
 
-  findOne(id: string): Promise<Holding | null> {
+  findOne(id: string): Promise<Item | null> {
     return this.holdingsRepository.findOneBy({ id });
   }
 

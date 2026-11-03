@@ -4,7 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
-import { Holding } from './holdings/entities/holding.entity.js';
+import { Item } from './holdings/entities/item.entity.js';
 import { HoldingsModule } from './holdings/holdings.module.js';
 import { SpotPricesModule } from './spot-prices/spot-prices.module.js';
 
@@ -17,7 +17,7 @@ import { SpotPricesModule } from './spot-prices/spot-prices.module.js';
       username: 'stackfolio_user',
       password: 'stackfolio_password',
       database: 'stackfolio_db',
-      entities: [Holding],
+      entities: [Item],
       synchronize: true,
     }),
     HoldingsModule,
