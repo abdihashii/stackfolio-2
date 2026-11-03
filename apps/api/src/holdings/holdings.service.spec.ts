@@ -2,17 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
 import { Item } from './entities/item.entity.js';
-import { HoldingsService } from './holdings.service.js';
+import { InventoryService } from './inventory.service.js';
 
-describe('HoldingsService', () => {
-  let service: HoldingsService;
+describe('InventoryService', () => {
+  let service: InventoryService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [HoldingsService, { provide: getRepositoryToken(Item), useValue: {} }],
+      providers: [InventoryService, { provide: getRepositoryToken(Item), useValue: {} }],
     }).compile();
 
-    service = module.get<HoldingsService>(HoldingsService);
+    service = module.get<InventoryService>(InventoryService);
   });
 
   it('should be defined', () => {

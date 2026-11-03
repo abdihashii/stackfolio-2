@@ -8,7 +8,7 @@ import { UpdateItemDto } from './dto/update-item.dto.js';
 import { Item } from './entities/item.entity.js';
 
 @Injectable()
-export class HoldingsService {
+export class InventoryService {
   constructor(
     @InjectRepository(Item)
     private holdingsRepository: Repository<Item>,

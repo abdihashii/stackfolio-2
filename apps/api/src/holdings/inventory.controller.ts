@@ -2,34 +2,34 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from
 
 import { CreateItemDto } from './dto/create-item.dto.js';
 import { UpdateItemDto } from './dto/update-item.dto.js';
-import { HoldingsService } from './holdings.service.js';
+import { InventoryService } from './inventory.service.js';
 
 @Controller('inventory')
 export class InventoryController {
-  constructor(private readonly holdingsService: HoldingsService) {}
+  constructor(private readonly inventoryService: InventoryService) {}
 
   @Post()
   create(@Body() createItemDto: CreateItemDto) {
-    return this.holdingsService.create(createItemDto);
+    return this.inventoryService.create(createItemDto);
   }
 
   @Get()
   findAll() {
-    return this.holdingsService.findAll();
+    return this.inventoryService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.holdingsService.findOne(id);
+    return this.inventoryService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateHoldingDto: UpdateItemDto) {
-    return this.holdingsService.update(id, updateHoldingDto);
+    return this.inventoryService.update(id, updateHoldingDto);
   }
 
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.holdingsService.remove(id);
+    return this.inventoryService.remove(id);
   }
 }
