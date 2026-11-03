@@ -1,4 +1,4 @@
-import { PrimaryGeneratedColumn, Entity, ManyToOne } from 'typeorm';
+import { PrimaryGeneratedColumn, Entity, ManyToOne, Column } from 'typeorm';
 
 import { Item } from './item.entity.js';
 
@@ -9,4 +9,7 @@ export class Transaction {
 
   @ManyToOne(() => Item, { nullable: false })
   item: Item;
+
+  @Column()
+  type: 'buy' | 'sell';
 }
