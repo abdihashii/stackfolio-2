@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { ItemType } from './inventory/entities/item-type.entity.js';
 import { Item } from './inventory/entities/item.entity.js';
 import { InventoryModule } from './inventory/inventory.module.js';
 import { SpotPricesModule } from './spot-prices/spot-prices.module.js';
@@ -17,7 +18,7 @@ import { SpotPricesModule } from './spot-prices/spot-prices.module.js';
       username: 'stackfolio_user',
       password: 'stackfolio_password',
       database: 'stackfolio_db',
-      entities: [Item],
+      entities: [Item, ItemType],
       synchronize: true,
     }),
     InventoryModule,
