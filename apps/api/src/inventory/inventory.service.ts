@@ -11,30 +11,30 @@ import { Item } from './entities/item.entity.js';
 export class InventoryService {
   constructor(
     @InjectRepository(Item)
-    private holdingsRepository: Repository<Item>,
+    private itemsRepository: Repository<Item>,
   ) {}
 
-  create(createHoldingDto: CreateItemDto): Promise<Item> {
-    return this.holdingsRepository.save(createHoldingDto);
+  create(createItemDto: CreateItemDto): Promise<Item> {
+    return this.itemsRepository.save(createItemDto);
   }
 
   findAll(): Promise<Item[]> {
-    return this.holdingsRepository.find();
+    return this.itemsRepository.find();
   }
 
   findOne(id: string): Promise<Item | null> {
-    return this.holdingsRepository.findOneBy({ id });
+    return this.itemsRepository.findOneBy({ id });
   }
 
   async update(id: string, updateItemDto: UpdateItemDto) {
-    const res = await this.holdingsRepository.update(id, updateItemDto);
+    const res = await this.itemsRepository.update(id, updateItemDto);
     if (res.affected === 0) {
-      throw new NotFoundException('Holding not found.');
+      throw new NotFoundException('Item not found.');
     }
     return res;
   }
 
   async remove(id: string): Promise<void> {
-    await this.holdingsRepository.delete(id);
+    await this.itemsRepository.delete(id);
   }
 }

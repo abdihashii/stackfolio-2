@@ -24,8 +24,8 @@ export class InventoryController {
   }
 
   @Patch(':id')
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateHoldingDto: UpdateItemDto) {
-    return this.inventoryService.update(id, updateHoldingDto);
+  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateItemDto: UpdateItemDto) {
+    return this.inventoryService.update(id, updateItemDto);
   }
 
   @Delete(':id')

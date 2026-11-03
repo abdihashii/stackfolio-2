@@ -3,8 +3,8 @@ import type { Item } from './entities/item.entity.js';
 import { calculateHistoricalValue } from './historical-value.js';
 
 describe('calculateHistoricalValue', () => {
-  it('includes a holding from its acquisition date onward', () => {
-    const holding: Item = {
+  it('includes a item from its acquisition date onward', () => {
+    const item: Item = {
       id: 'test-gold',
       created_at: new Date('2026-01-05T12:00:00Z'),
       metal: 'gold',
@@ -16,12 +16,12 @@ describe('calculateHistoricalValue', () => {
       acquisition_date: '2026-01-02',
     };
 
-    expect(calculateHistoricalValue([holding], '2026-01-01', { gold: 3000 })).toBe(0);
-    expect(calculateHistoricalValue([holding], '2026-01-02', { gold: 3000 })).toBe(3000);
+    expect(calculateHistoricalValue([item], '2026-01-01', { gold: 3000 })).toBe(0);
+    expect(calculateHistoricalValue([item], '2026-01-02', { gold: 3000 })).toBe(3000);
   });
 
   it('uses the UTC added date when the acquisition date is missing', () => {
-    const holding: Item = {
+    const item: Item = {
       id: 'test-gold',
       created_at: new Date('2026-01-04T23:30:00-06:00'),
       metal: 'gold',
@@ -33,11 +33,11 @@ describe('calculateHistoricalValue', () => {
       acquisition_date: null,
     };
 
-    expect(calculateHistoricalValue([holding], '2026-01-04', { gold: 3000 })).toBe(0);
-    expect(calculateHistoricalValue([holding], '2026-01-05', { gold: 3000 })).toBe(3000);
+    expect(calculateHistoricalValue([item], '2026-01-04', { gold: 3000 })).toBe(0);
+    expect(calculateHistoricalValue([item], '2026-01-05', { gold: 3000 })).toBe(3000);
   });
 
-  it('returns no partial total when an eligible holding has no price', () => {
+  it('returns no partial total when an eligible item has no price', () => {
     const gold: Item = {
       id: 'test-gold',
       created_at: new Date('2026-01-02T00:00:00Z'),
@@ -57,7 +57,7 @@ describe('calculateHistoricalValue', () => {
   });
 
   it('converts grams and applies purity and quantity', () => {
-    const holding: Item = {
+    const item: Item = {
       id: 'test-gold',
       created_at: new Date('2026-01-02T00:00:00Z'),
       metal: 'gold',
@@ -70,6 +70,6 @@ describe('calculateHistoricalValue', () => {
     };
 
     // Two troy ounces × 75% purity × three items × $3,000.
-    expect(calculateHistoricalValue([holding], '2026-01-02', { gold: 3000 })).toBeCloseTo(13500, 2);
+    expect(calculateHistoricalValue([item], '2026-01-02', { gold: 3000 })).toBeCloseTo(13500, 2);
   });
 });
