@@ -4,8 +4,8 @@ import { ConfigModule } from '@nestjs/config';
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
-import { Item } from './holdings/entities/item.entity.js';
-import { InventoryModule } from './holdings/inventory.module.js';
+import { Item } from './inventory/entities/item.entity.js';
+import { InventoryModule } from './inventory/inventory.module.js';
 import { SpotPricesModule } from './spot-prices/spot-prices.module.js';
 
 @Module({
