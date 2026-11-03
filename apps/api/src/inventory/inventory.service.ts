@@ -17,8 +17,16 @@ export class InventoryService {
     private itemTypeRepository: Repository<ItemType>,
   ) {}
 
-  create(createItemDto: CreateItemDto): Promise<Item> {
-    return this.itemsRepository.save(createItemDto);
+  async create(createItemDto: CreateItemDto): Promise<Item> {
+    const itemType = await this.itemTypeRepository.findOneBy({ id: createItemDto.item_type_id });
+    if (!itemType) {
+      throw new NotFoundException(`Item type id ${createItemDto.item_type_id} not found.`);
+    }
+    const createItemDtoWithItemType = {
+      ...createItemDto,
+      item_type: itemType,
+    };
+    return this.itemsRepository.save(createItemDtoWithItemType);
   }
 
   findAll(): Promise<Item[]> {
