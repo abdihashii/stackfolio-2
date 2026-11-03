@@ -48,17 +48,16 @@ The first buy creates the inventory item and transaction together; later buys ad
 
 ### Slices
 
-#### 1. Inventory and dates: completed groundwork
+#### 1. Inventory and dates: completed
 
-- [x] Inventory CRUD, optional acquisition dates, and stable recorded timestamps.
+- [x] Create, view, edit, and delete inventory items with optional acquisition dates; recorded timestamps remain unchanged through edits.
 
 #### 2. Acquisitions and current ownership
 
-- [x] Agree on item/transaction grouping, naming, and the preset-only buy flow.
-- [ ] Define and verify the nine presets’ metal content.
-- [ ] Convert existing inventory without losing quantities, known dates, or recorded timestamps, or inventing purchase history.
-- [ ] Record and view buys through the app and API; derive current quantities and spot value from transactions.
-- [ ] Replace direct quantity edits with transaction-based behavior.
+- [ ] Record and view buys for the nine presets through the app and API; repeated buys appear under one item with separate transactions.
+- [ ] Show current quantities derived from transactions and correct spot values for every preset’s fine-metal content.
+- [ ] Existing inventory retains its quantities, known dates, and recorded timestamps after conversion, without invented purchase history.
+- [ ] Quantity cannot be edited directly through the app or API.
 
 **Verify:** Buy one Silver Eagle in January and another in March. After reload, one item shows quantity two and both buys; ownership in February is one. Converted data retains its quantities and known dates.
 
@@ -74,7 +73,7 @@ The first buy creates the inventory item and transaction together; later buys ad
 
 - [ ] Edit a buy or sell’s quantity or effective date while preserving its identity and recorded timestamp.
 - [ ] Reject corrections that invalidate later sales.
-- [ ] Define safe removal of erroneous records with dependent transactions.
+- [ ] Remove erroneous transactions without leaving invalid dependent records or negative ownership; rejected removals leave records unchanged.
 
 **Verify:** Buy three, sell one, then correct the buy to four: three remain after reload. Reducing that buy below the sold quantity is rejected without changes.
 
