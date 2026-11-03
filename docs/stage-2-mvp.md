@@ -1,22 +1,50 @@
 # StackFolio 2: Stage 2 MVP
 
-## Buys, Sells, and Corrections
+## Items, Buys, Sells, and Corrections
 
 **The question:** _What do I own, and how have my buys and sells changed my stack?_
 
-Record ownership changes, correct mistakes, and show current quantities. Historical valuation and charts move to Stage 3.
+Record ownership changes and show current quantities and spot value. This scope replaces Stage 1’s manual item-entry flow. Historical valuation and charts belong to Stage 3.
 
-### Rules
+### Product Model
 
-- **Buy:** increases quantity from its effective date onward.
-- **Sell:** decreases quantity from its effective date onward; earlier ownership stays unchanged.
-- **Correct:** edits an existing buy or sell, not a separate transaction type. Recalculate ownership from the affected date, or the earlier of the old/new dates if the date changes.
-- Derive quantities from transactions. Direct quantity edits must not bypass them.
+- **Item:** the product being tracked, such as a 1 oz American Silver Eagle. Use “item” consistently in the UI, API, code, and database.
+- **Inventory:** the collection of items.
+- **Transaction:** a buy or sell belonging to an item. Repeated purchases of the same preset belong to one item, with separate transactions.
+- **Quantity owned:** derived from transactions, never edited directly. Items and their history remain after quantity reaches zero.
+
+Named coin products remain separate. Generic bars and rounds group by metal, weight, and purity, regardless of brand or dealer. Mint years are not tracked.
+
+### Preset Catalog
+
+Only preset items can be selected; no custom-item creation.
+
+| Silver                           | Gold                           |
+| -------------------------------- | ------------------------------ |
+| American Silver Eagle, 1 oz      | American Gold Eagle, 1 oz      |
+| Canadian Silver Maple Leaf, 1 oz | American Gold Buffalo, 1 oz    |
+| Generic silver round, 1 oz       | Canadian Gold Maple Leaf, 1 oz |
+| Generic silver bar, 1 oz         | Generic gold bar, 1 oz         |
+| Generic silver bar, 10 oz        |                                |
+
+All ounces are troy ounces. Presets supply metal, weight, and purity. Verify fine-metal content before implementation: advertised bullion weight can mean fine-metal weight rather than gross alloy weight, especially for Gold Eagles. Do not apply purity twice.
+
+### Buy Flow
+
+Select a preset → enter quantity and acquisition date → save.
+
+The first buy creates the inventory item and transaction together; later buys add transactions to that same item. Users do not separately create or manage item definitions. Show current inventory quantities and the acquisitions behind them.
+
+**Example:** Buy three Silver Eagles in January and two in March. Show one item with quantity five and two buys; February ownership is three.
+
+### Transaction Rules
+
+- A buy increases ownership from its effective date; a sell decreases it without changing earlier ownership.
+- A correction edits an existing buy or sell, not a separate transaction type. Recalculate from the affected date, or the earlier of the old/new dates when changing a date.
 - Reject changes that cause negative ownership at any point, including later transactions. Failed changes leave records unchanged.
-- Use UTC date-only effective dates. Unknown acquisition dates fall back to the UTC recorded date. Preserve the separate server-managed recorded timestamp through corrections.
-- Fully sold items retain their transactions. Deleting a record is not a sale.
-
-**Example:** Buy three coins in November, sell one today: three before today, two afterward. Correct the original buy to two: ownership changes back to November, leaving one after the sale.
+- Effective dates are UTC date-only values. Unknown acquisition dates fall back to the UTC recorded date; keep the separate server-managed recorded timestamp unchanged through corrections.
+- Deleting a record is not a sale. Fully sold items retain their transactions.
+- Current spot value uses derived quantity and fine-metal content. Stage 1’s spot-price and unavailable-value behavior still applies.
 
 ### Slices
 
@@ -26,43 +54,43 @@ Record ownership changes, correct mistakes, and show current quantities. Histori
 
 #### 2. Acquisitions and current ownership
 
-- [ ] Define how items and transactions relate.
-- [ ] Convert existing inventory without losing quantities or known dates, or inventing purchase history.
-- [ ] Record and view acquisitions through the app and API; derive current quantities and spot value from them.
+- [x] Agree on item/transaction grouping, naming, and the preset-only buy flow.
+- [ ] Define and verify the nine presets’ metal content.
+- [ ] Convert existing inventory without losing quantities, known dates, or recorded timestamps, or inventing purchase history.
+- [ ] Record and view buys through the app and API; derive current quantities and spot value from transactions.
 - [ ] Replace direct quantity edits with transaction-based behavior.
 
-**Verify:** Buy one coin in January and another in March. After reload, both buys remain and current quantity is two; ownership in February is one.
+**Verify:** Buy one Silver Eagle in January and another in March. After reload, one item shows quantity two and both buys; ownership in February is one. Converted data retains its quantities and known dates.
 
 #### 3. Full and partial sales
 
 - [ ] Record sales through the app and API; update current quantity and spot value.
 - [ ] Reject overselling, including backdated or concurrent changes that would create negative ownership.
-- [ ] Keep fully sold items’ records accessible; prevent deletion from substituting for a sale.
+- [ ] Keep fully sold items and their history accessible.
 
 **Verify:** Buy three, sell one, reload to see two. Sell the remaining two and retain the records. An excess sale is rejected without changes.
 
 #### 4. Corrections
 
-- [ ] Edit a buy or sell's quantity or effective date while preserving its identity and recorded timestamp.
-- [ ] Recalculate affected ownership; reject corrections that invalidate later sales.
+- [ ] Edit a buy or sell’s quantity or effective date while preserving its identity and recorded timestamp.
+- [ ] Reject corrections that invalidate later sales.
 - [ ] Define safe removal of erroneous records with dependent transactions.
 
-**Verify:** Buy three, sell one, then correct the buy to four: three remain after reload. Reducing that buy below the sold quantity is rejected.
+**Verify:** Buy three, sell one, then correct the buy to four: three remain after reload. Reducing that buy below the sold quantity is rejected without changes.
 
-**Stage gate:** Demonstrate these flows in the app; verify data conversion; pass workspace typecheck, lint, and available tests. Commit slices only after sign-off.
+**Stage gate:** Demonstrate the flows in the app; verify data conversion; pass workspace typecheck, lint, and available tests. Commit slices only after sign-off.
+
+### Open Decisions
+
+- How existing items map to presets, including items outside the catalog. Backfilled timestamps are not original purchase dates.
+- Whether sales identify only the item or also an acquisition batch. Item-only sales are recommended, not yet explicitly settled.
+- Same-day ordering, future-date rules, and how unknown acquisition dates appear in the form and history.
+- How to correct an incorrectly selected preset or remove erroneous records with dependent sales.
 
 ### Outside Stage 2
 
-- Historical price selection, stack-value history APIs, charts, and range filters: Stage 3.
+- Custom items, mint years, brand/dealer tracking, and collectible distinctions.
 - Purchase costs, sale proceeds, fees, cash balances, profit/loss, investment returns, and tax accounting.
 - Liquidation estimates and premiums.
 - Immutable edit audit trails or a separate correction transaction type.
-
-Existing historical-price fetching and valuation work remains Stage 3 groundwork. Price selection is still a stub with intentionally failing tests; resolve or isolate that work before claiming a green stage gate.
-
-### Decide Before Implementation
-
-- How acquisitions are grouped into items and which item a sale reduces.
-- Same-day ordering, future-date rules, and unknown acquisition-date handling.
-- How to correct item details or remove erroneous records with dependent sales.
-- Safe conversion and rollout for existing data; backfilled timestamps are not original purchase dates.
+- Historical price selection, stack-value history APIs, charts, and range filters: Stage 3. Existing historical-price fetching and valuation code remains groundwork for that stage.
