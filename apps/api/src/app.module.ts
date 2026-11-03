@@ -6,6 +6,7 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { ItemType } from './inventory/entities/item-type.entity.js';
 import { Item } from './inventory/entities/item.entity.js';
+import { Transaction } from './inventory/entities/transaction.entity.js';
 import { InventoryModule } from './inventory/inventory.module.js';
 import { SpotPricesModule } from './spot-prices/spot-prices.module.js';
 
@@ -18,7 +19,7 @@ import { SpotPricesModule } from './spot-prices/spot-prices.module.js';
       username: 'stackfolio_user',
       password: 'stackfolio_password',
       database: 'stackfolio_db',
-      entities: [Item, ItemType],
+      entities: [Item, ItemType, Transaction],
       synchronize: true,
     }),
     InventoryModule,
