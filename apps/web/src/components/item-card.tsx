@@ -1,20 +1,20 @@
-import type { Holding } from '@/types/holdings.types';
+import type { Item } from '@/types/inventory.types';
 
-import { formatUsd, calculateHoldingValue } from '@/lib/utils';
+import { formatUsd, calculateItemValue } from '@/lib/utils';
 
-type HoldingCardProps = {
-  holding: Holding;
+type ItemCardProps = {
+  item: Item;
   isBusy: boolean;
   isSpotPricesLoading: boolean;
   spotPricesError: string;
   spotPrice: number | undefined;
   spotPricesTimestamp: string;
   onDelete: (id: string) => Promise<void>;
-  onStartUpdate: (holding: Holding) => void;
+  onStartUpdate: (item: Item) => void;
 };
 
-export const HoldingCard = ({
-  holding,
+export const ItemCard = ({
+  item,
   isBusy,
   isSpotPricesLoading,
   spotPricesError,
@@ -22,8 +22,8 @@ export const HoldingCard = ({
   spotPricesTimestamp,
   onDelete,
   onStartUpdate,
-}: HoldingCardProps) => {
-  const { id, metal, weight_unit, weight, purity, quantity, holding_type, acquisition_date } = holding;
+}: ItemCardProps) => {
+  const { id, metal, weight_unit, weight, purity, quantity, item_type, acquisition_date } = item;
 
   return (
     <>
@@ -36,10 +36,10 @@ export const HoldingCard = ({
       <p>
         Total weight: {weight * quantity} {weight_unit}
       </p>
-      {holding_type && <p>Holding type: {holding_type}</p>}
+      {item_type && <p>Item type: {item_type}</p>}
       {acquisition_date && <p>Acquisition date: {acquisition_date}</p>}
       {isSpotPricesLoading ? (
-        <p>Holding value: loading...</p>
+        <p>Item value: loading...</p>
       ) : spotPricesError ? (
         <p>{spotPricesError}</p>
       ) : spotPrice !== undefined ? (
@@ -48,17 +48,17 @@ export const HoldingCard = ({
             Price snapshot: {new Date(spotPricesTimestamp).toISOString()}
           </p>
 
-          <p className="mt-3 font-semibold">Holding value: {formatUsd(calculateHoldingValue(holding, spotPrice))}</p>
+          <p className="mt-3 font-semibold">Item value: {formatUsd(calculateItemValue(item, spotPrice))}</p>
         </>
       ) : (
-        <p className="mt-3 font-semibold">Holding value: Unavailable</p>
+        <p className="mt-3 font-semibold">Item value: Unavailable</p>
       )}
 
       <div className="w-full flex justify-between">
         <button
           className="text-blue-500 hover:cursor-pointer hover:underline"
           type="button"
-          onClick={() => onStartUpdate(holding)}
+          onClick={() => onStartUpdate(item)}
           disabled={isBusy}
         >
           update

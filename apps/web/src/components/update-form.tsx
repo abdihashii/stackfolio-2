@@ -1,20 +1,20 @@
 import type { UseFormReturn } from 'react-hook-form';
 
-import type { CreateHoldingInput } from '@/types/holdings.types';
+import type { CreateItemInput } from '@/types/inventory.types';
 
-import { holdingTypes } from '@/types/holdings.types';
+import { itemTypes } from '@/types/inventory.types';
 
 type UpdateFormProps = {
-  updateForm: UseFormReturn<CreateHoldingInput>;
+  updateForm: UseFormReturn<CreateItemInput>;
   id: string;
-  setUpdateingHoldingId: React.Dispatch<React.SetStateAction<string | null>>;
+  setUpdatingItemId: React.Dispatch<React.SetStateAction<string | null>>;
   isBusy: boolean;
-  onUpdate: (id: string, payload: CreateHoldingInput) => Promise<void>;
+  onUpdate: (id: string, payload: CreateItemInput) => Promise<void>;
 };
 
-export const UpdateForm = ({ updateForm, id, setUpdateingHoldingId, isBusy, onUpdate }: UpdateFormProps) => {
+export const UpdateForm = ({ updateForm, id, setUpdatingItemId, isBusy, onUpdate }: UpdateFormProps) => {
   const { watch } = updateForm;
-  const updateingMetal = watch('metal');
+  const updatingMetal = watch('metal');
 
   return (
     <form noValidate autoComplete="off" onSubmit={updateForm.handleSubmit((data) => onUpdate(id, data))}>
@@ -80,7 +80,7 @@ export const UpdateForm = ({ updateForm, id, setUpdateingHoldingId, isBusy, onUp
         <select
           {...updateForm.register('purity', { valueAsNumber: true })}
           id="update-purity"
-          disabled={!updateingMetal || updateForm.formState.isSubmitting}
+          disabled={!updatingMetal || updateForm.formState.isSubmitting}
           autoComplete="off"
           className="w-full rounded-md border border-gray-300 px-3 py-2"
           aria-invalid={!!updateForm.formState.errors.purity}
@@ -88,7 +88,7 @@ export const UpdateForm = ({ updateForm, id, setUpdateingHoldingId, isBusy, onUp
         >
           <option value="">Choose purity</option>
 
-          {updateingMetal === 'gold' ? (
+          {updatingMetal === 'gold' ? (
             <>
               <option value={9 / 24}>9K</option>
               <option value={14 / 24}>14K</option>
@@ -129,26 +129,26 @@ export const UpdateForm = ({ updateForm, id, setUpdateingHoldingId, isBusy, onUp
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="update-holding-type">Holding type (optional):</label>
+        <label htmlFor="update-item-type">Item type (optional):</label>
         <select
-          {...updateForm.register('holding_type', {
+          {...updateForm.register('item_type', {
             setValueAs: (value) => (value === '' ? null : value),
           })}
-          id="update-holding-type"
+          id="update-item-type"
           disabled={updateForm.formState.isSubmitting}
           className="w-full rounded-md border border-gray-300 px-3 py-2"
-          aria-invalid={!!updateForm.formState.errors.holding_type}
-          aria-describedby={updateForm.formState.errors.holding_type ? 'update-holding-type-error' : undefined}
+          aria-invalid={!!updateForm.formState.errors.item_type}
+          aria-describedby={updateForm.formState.errors.item_type ? 'update-item-type-error' : undefined}
         >
           <option value="">None selected</option>
-          {holdingTypes.map((type) => (
+          {itemTypes.map((type) => (
             <option key={type} value={type}>
               {type[0].toUpperCase() + type.substring(1)}
             </option>
           ))}
         </select>
-        <p id="update-holding-type-error" role="alert" className="text-sm text-red-500">
-          {updateForm.formState.errors.holding_type?.message}
+        <p id="update-item-type-error" role="alert" className="text-sm text-red-500">
+          {updateForm.formState.errors.item_type?.message}
         </p>
       </div>
 
@@ -171,7 +171,7 @@ export const UpdateForm = ({ updateForm, id, setUpdateingHoldingId, isBusy, onUp
       <div className="flex justify-between">
         <button
           type="button"
-          onClick={() => setUpdateingHoldingId(null)}
+          onClick={() => setUpdatingItemId(null)}
           className="hover:underline hover:cursor-pointer text-red-500"
           disabled={isBusy}
         >

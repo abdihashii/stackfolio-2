@@ -3,12 +3,12 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { Form } from '@/components/form';
 import { H2 } from '@/components/h2';
-import { HoldingCard } from '@/components/holding-card';
+import { ItemCard } from '@/components/item-card';
 import { UpdateForm } from '@/components/update-form';
-import { useCreateHolding } from '@/hooks/use-create-holding';
-import { useDeleteHolding } from '@/hooks/use-delete-holding';
-import { useUpdateHolding } from '@/hooks/use-update-holding';
-import { fetchAllHoldings, fetchSpotPrices } from '@/lib/apis';
+import { useCreateItem } from '@/hooks/use-create-item';
+import { useDeleteItem } from '@/hooks/use-delete-item';
+import { useUpdateItem } from '@/hooks/use-update-item';
+import { fetchInventory, fetchSpotPrices } from '@/lib/apis';
 import { calculateStackValue, formatUsd } from '@/lib/utils';
 
 export const Route = createFileRoute('/')({
@@ -16,32 +16,32 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  const holdingsQuery = useQuery({ queryKey: ['holdings'], queryFn: fetchAllHoldings });
+  const inventoryQuery = useQuery({ queryKey: ['inventory'], queryFn: fetchInventory });
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
-  const { form, createHoldingMutation, onCreateHolding } = useCreateHolding(holdingsQuery.isPending);
-  const { updatingHoldingId, setUpdatingHoldingId, updateForm, onUpdateHolding, onStartUpdate } = useUpdateHolding();
+  const { form, createItemMutation, onCreateItem } = useCreateItem(inventoryQuery.isPending);
+  const { updatingItemId, setUpdatingItemId, updateForm, onUpdateItem, onStartUpdate } = useUpdateItem();
   const isBusyWithoutDelete =
     form.formState.isSubmitting ||
     updateForm.formState.isSubmitting ||
-    createHoldingMutation.isPending ||
-    holdingsQuery.isPending;
-  const { deleteHoldingMutation, onDeleteHolding } = useDeleteHolding(isBusyWithoutDelete);
+    createItemMutation.isPending ||
+    inventoryQuery.isPending;
+  const { deleteItemMutation, onDeleteItem } = useDeleteItem(isBusyWithoutDelete);
 
-  const stackValue = calculateStackValue(holdingsQuery.data, {
+  const stackValue = calculateStackValue(inventoryQuery.data, {
     gold: spotPricesQuery.data?.prices.gold,
     silver: spotPricesQuery.data?.prices.silver,
   });
   let stackValueText = 'Unavailable';
-  if (holdingsQuery.isPending) {
+  if (inventoryQuery.isPending) {
     stackValueText = 'Loading...';
-  } else if (!holdingsQuery.isError) {
-    if (holdingsQuery.data.length > 0 && spotPricesQuery.isPending) {
+  } else if (!inventoryQuery.isError) {
+    if (inventoryQuery.data.length > 0 && spotPricesQuery.isPending) {
       stackValueText = 'Loading...';
-    } else if (stackValue !== undefined && (holdingsQuery.data.length === 0 || !spotPricesQuery.isError)) {
+    } else if (stackValue !== undefined && (inventoryQuery.data.length === 0 || !spotPricesQuery.isError)) {
       stackValueText = formatUsd(stackValue);
     }
   }
-  const isBusy = isBusyWithoutDelete || deleteHoldingMutation.isPending;
+  const isBusy = isBusyWithoutDelete || deleteItemMutation.isPending;
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
@@ -55,37 +55,37 @@ function Home() {
       </div>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        {holdingsQuery.isPending ? (
+        {inventoryQuery.isPending ? (
           <p>loading...</p>
-        ) : holdingsQuery.isError ? (
-          <p>{holdingsQuery.error.message}</p>
+        ) : inventoryQuery.isError ? (
+          <p>{inventoryQuery.error.message}</p>
         ) : (
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-            {holdingsQuery.data.length > 0 ? (
-              holdingsQuery.data.map((holding) => {
-                const spotPrice = spotPricesQuery.data?.prices[holding.metal];
+            {inventoryQuery.data.length > 0 ? (
+              inventoryQuery.data.map((item) => {
+                const spotPrice = spotPricesQuery.data?.prices[item.metal];
 
                 return (
-                  <div key={holding.id} className="rounded-md border border-gray-300 p-4">
-                    {updatingHoldingId === holding.id ? (
+                  <div key={item.id} className="rounded-md border border-gray-300 p-4">
+                    {updatingItemId === item.id ? (
                       <>
                         <UpdateForm
                           updateForm={updateForm}
-                          id={holding.id}
-                          setUpdateingHoldingId={setUpdatingHoldingId}
+                          id={item.id}
+                          setUpdatingItemId={setUpdatingItemId}
                           isBusy={isBusy}
-                          onUpdate={onUpdateHolding}
+                          onUpdate={onUpdateItem}
                         />
                       </>
                     ) : (
-                      <HoldingCard
-                        holding={holding}
+                      <ItemCard
+                        item={item}
                         isBusy={isBusy}
                         isSpotPricesLoading={spotPricesQuery.isPending}
                         spotPricesError={spotPricesQuery.error?.message ?? ''}
                         spotPrice={spotPrice}
                         spotPricesTimestamp={spotPricesQuery.data?.timestamp ?? ''}
-                        onDelete={onDeleteHolding}
+                        onDelete={onDeleteItem}
                         onStartUpdate={onStartUpdate}
                       />
                     )}
@@ -93,15 +93,15 @@ function Home() {
                 );
               })
             ) : (
-              <p>No holdings yet. Add your first holding below.</p>
+              <p>No inventory yet. Add your first item below.</p>
             )}
           </div>
         )}
 
         <Form
           form={form}
-          onSubmit={onCreateHolding}
-          creatingHoldingError={createHoldingMutation.error?.message ?? ''}
+          onSubmit={onCreateItem}
+          creatingItemError={createItemMutation.error?.message ?? ''}
           isBusy={isBusy}
         />
       </div>

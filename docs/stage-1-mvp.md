@@ -12,11 +12,11 @@
 | ---------- | --------------------------------------------- |
 | Add        | Record metal, weight, purity, and quantity    |
 | Value      | Calculate current spot-based metal value      |
-| View       | See total Stack Value and individual holdings |
+| View       | See total Stack Value and individual items |
 
-### Holding Entry
+### Item Entry
 
-Use one manual add flow for gold and silver holdings. No product catalog is required.
+Use one manual add flow for gold and silver items. No product catalog is required.
 
 | Field           | Requirement                                                                             |
 | --------------- | --------------------------------------------------------------------------------------- |
@@ -25,15 +25,15 @@ Use one manual add flow for gold and silver holdings. No product catalog is requ
 | Weight unit     | Required: grams or troy ounces                                                          |
 | Purity          | Required: select from predefined options for the metal                                  |
 | Quantity        | Required: positive whole number; defaults to 1                                          |
-| Holding type    | Optional: select from predefined options                                                |
+| Item type    | Optional: select from predefined options                                                |
 
 Weight is the metal alloy's weight before adjusting for purity. Purity is applied once to calculate fine-metal content. Items with different weights or purities belong in separate entries.
 
 Purity options: gold uses 9K, 14K, 18K, 24K (100%, nominal), .999, and .9999; silver uses .925, .999, and .9999. Karat values are divided by 24 for calculation.
 
-Optional holding types for both metals: Coin, Bar, Round, Jewelry. Holding type is descriptive and does not change the valuation formula.
+Optional item types for both metals: Coin, Bar, Round, Jewelry. Item type is descriptive and does not change the valuation formula.
 
-**Add flow:** Select metal → enter per-item weight and unit → select purity → enter quantity → optionally select holding type → save.
+**Add flow:** Select metal → enter per-item weight and unit → select purity → enter quantity → optionally select item type → save.
 
 Show total weight automatically as weight per item × quantity. Users do not enter it separately.
 
@@ -51,8 +51,8 @@ For a single piece of jewelry, quantity is 1.
 ```text
 Total Weight = Weight per Item × Quantity
 Fine-Metal Weight = Total Weight × Purity
-Holding Value = Weight per Item × Purity × Quantity × Spot Price
-Stack Value = sum of all Holding Values
+Item Value = Weight per Item × Purity × Quantity × Spot Price
+Stack Value = sum of all Item Values
 ```
 
 Purity is a fraction in the calculation, for example 75% = 0.75.
@@ -63,15 +63,15 @@ Use the latest available prices in USD per troy ounce. Fetch on page load; reloa
 
 Explain Stack Value in the interface as **“Based on weight, purity, quantity, and spot price. Actual resale value may differ.”**
 
-If a metal's price is unavailable, show affected holding values as unavailable, not zero. Do not present a partial sum as the total Stack Value.
+If a metal's price is unavailable, show affected item values as unavailable, not zero. Do not present a partial sum as the total Stack Value.
 
 ### View
 
 - Total Stack Value, with the calculation explained
-- Individual holdings with metal, per-item weight and unit, purity, quantity, calculated total weight, and current value
-- Holding type when supplied
+- Individual items with metal, per-item weight and unit, purity, quantity, calculated total weight, and current value
+- Item type when supplied
 - Timestamps for the spot prices used
-- An invitation to add a holding when the stack is empty
+- An invitation to add an item when the stack is empty
 
 ### Outside Stage 1
 
@@ -88,23 +88,23 @@ Historical Stack Value belongs to stage 2 and graphs to stage 3. Other excluded 
 
 ### Slices
 
-#### 1. Add, save, and reload holdings (completed)
+#### 1. Add, save, and reload inventory (completed)
 
-- [x] Add a holding through the form, save it, reload, and see it again.
+- [x] Add an item through the form, save it, reload, and see it again.
 - [x] Eight 0.25 ozt items display a calculated total weight of 2 ozt.
 
 #### 2. Fixed-price valuation (completed)
 
 Use fixed spot prices for gold and silver. Live prices come in a later slice.
 
-- [x] Holding value equals weight (ozt) × purity × quantity × the matching metal's spot price ($/ozt).
-- [x] Two holdings with equivalent weights, one in grams and one in ozt, have equal holding values when quantity, purity, and metal match.
-- [x] Total Stack Value equals the sum of all holding values.
+- [x] Item value equals weight (ozt) × purity × quantity × the matching metal's spot price ($/ozt).
+- [x] Two items with equivalent weights, one in grams and one in ozt, have equal item values when quantity, purity, and metal match.
+- [x] Total Stack Value equals the sum of all item values.
 
 #### 3. Latest-available spot prices (completed)
 
 Replace fixed spot prices with latest-available fetched prices.
 
-- [x] After page load, holding values and Stack Value use fetched gold/silver spot prices with confirmed currency and units.
+- [x] After page load, item values and Stack Value use fetched gold/silver spot prices with confirmed currency and units.
 - [x] Show the price timestamp so users know how recent the data is.
 - [x] While prices load, show a loading state. If a required price is unavailable, show affected values and Stack Value as unavailable.

@@ -1,19 +1,19 @@
 import type { SubmitHandler, UseFormReturn } from 'react-hook-form';
 
-import type { CreateHoldingInput } from '@/types/holdings.types';
+import type { CreateItemInput } from '@/types/inventory.types';
 
-import { holdingTypes } from '@/types/holdings.types';
+import { itemTypes } from '@/types/inventory.types';
 
 import { H2 } from './h2';
 
 type FormProps = {
-  form: UseFormReturn<CreateHoldingInput>;
-  onSubmit: SubmitHandler<CreateHoldingInput>;
-  creatingHoldingError: string;
+  form: UseFormReturn<CreateItemInput>;
+  onSubmit: SubmitHandler<CreateItemInput>;
+  creatingItemError: string;
   isBusy: boolean;
 };
 
-export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps) => {
+export const Form = ({ form, onSubmit, creatingItemError, isBusy }: FormProps) => {
   const {
     handleSubmit,
     register,
@@ -31,7 +31,7 @@ export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps
       className="flex flex-col gap-4"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <H2>Add holding</H2>
+      <H2>Add item</H2>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="metal">Metal:</label>
@@ -145,24 +145,24 @@ export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="holding-type">Holding type (optional):</label>
+        <label htmlFor="item-type">Item type (optional):</label>
         <select
-          {...register('holding_type', { setValueAs: (value) => (value === '' ? null : value) })}
-          id="holding-type"
+          {...register('item_type', { setValueAs: (value) => (value === '' ? null : value) })}
+          id="item-type"
           disabled={isSubmitting}
           className="w-full rounded-md border border-gray-300 px-3 py-2"
-          aria-invalid={!!errors.holding_type}
-          aria-describedby={errors.holding_type ? 'holding-type-error' : undefined}
+          aria-invalid={!!errors.item_type}
+          aria-describedby={errors.item_type ? 'item-type-error' : undefined}
         >
           <option value="">None selected</option>
-          {holdingTypes.map((type) => (
+          {itemTypes.map((type) => (
             <option key={type} value={type}>
               {type[0].toUpperCase() + type.substring(1)}
             </option>
           ))}
         </select>
-        <p id="holding-type-error" role="alert" className="text-sm text-red-500">
-          {errors.holding_type?.message}
+        <p id="item-type-error" role="alert" className="text-sm text-red-500">
+          {errors.item_type?.message}
         </p>
       </div>
 
@@ -191,7 +191,7 @@ export const Form = ({ form, onSubmit, creatingHoldingError, isBusy }: FormProps
       </button>
 
       <p role="alert" aria-atomic="true">
-        {creatingHoldingError}
+        {creatingItemError}
       </p>
     </form>
   );

@@ -1,4 +1,4 @@
-import type { Holding, CreateHoldingInput } from '../types/holdings.types';
+import type { Item, CreateItemInput } from '../types/inventory.types';
 
 const backendUrlPath = import.meta.env.VITE_API_URL;
 
@@ -11,20 +11,20 @@ export const fetchSpotPrices = async () => {
   return data;
 };
 
-export const fetchAllHoldings = async (): Promise<Holding[]> => {
+export const fetchInventory = async (): Promise<Item[]> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
-  const res = await fetch(`${backendUrlPath}/holdings`, { headers: { 'Content-Type': 'application/json' } });
+  const res = await fetch(`${backendUrlPath}/inventory`, { headers: { 'Content-Type': 'application/json' } });
   const data = await res.json();
   if (!res.ok) {
     const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
-    throw Error(typeof message === 'string' && message.trim() ? message : 'Could not load holdings.');
+    throw Error(typeof message === 'string' && message.trim() ? message : 'Could not load inventory.');
   }
   return data;
 };
 
-export const createHolding = async (payload: CreateHoldingInput): Promise<Holding> => {
+export const createItem = async (payload: CreateItemInput): Promise<Item> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
-  const res = await fetch(`${backendUrlPath}/holdings`, {
+  const res = await fetch(`${backendUrlPath}/inventory`, {
     method: 'POST',
     headers: {
       'Content-type': 'application/json',
@@ -34,22 +34,22 @@ export const createHolding = async (payload: CreateHoldingInput): Promise<Holdin
   const data = await res.json();
   if (!res.ok) {
     const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
-    throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not create holding.');
+    throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not create item.');
   }
   return data;
 };
 
-export const deleteHolding = async (id: string): Promise<void> => {
-  const res = await fetch(`${backendUrlPath}/holdings/${id}`, {
+export const deleteItem = async (id: string): Promise<void> => {
+  const res = await fetch(`${backendUrlPath}/inventory/${id}`, {
     method: 'DELETE',
   });
   if (!res.ok) {
-    throw new Error('Could not delete holding.');
+    throw new Error('Could not delete item.');
   }
 };
 
-export const updateHolding = async (id: string, newPayload: CreateHoldingInput): Promise<void> => {
-  const res = await fetch(`${backendUrlPath}/holdings/${id}`, {
+export const updateItem = async (id: string, newPayload: CreateItemInput): Promise<void> => {
+  const res = await fetch(`${backendUrlPath}/inventory/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-type': 'application/json',
@@ -59,6 +59,6 @@ export const updateHolding = async (id: string, newPayload: CreateHoldingInput):
   const data = await res.json();
   if (!res.ok) {
     const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
-    throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not update holding.');
+    throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not update item.');
   }
 };

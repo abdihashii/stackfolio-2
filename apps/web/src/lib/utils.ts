@@ -1,4 +1,4 @@
-import type { Holding } from '../types/holdings.types';
+import type { Item } from '../types/inventory.types';
 
 export const gramsToTroyOunces = (gramWeightUnit: number) => {
   // 1 troy ounce = 31.1034768 grams
@@ -12,25 +12,22 @@ export const formatUsd = (value: number) => {
   }).format(value);
 };
 
-export const calculateHoldingValue = (
-  { weight_unit, weight, purity, quantity }: Holding,
-  spotPrice: number,
-): number => {
+export const calculateItemValue = ({ weight_unit, weight, purity, quantity }: Item, spotPrice: number): number => {
   const weightOzt = weight_unit === 'gram' ? gramsToTroyOunces(weight) : weight;
 
   return weightOzt * purity * quantity * spotPrice;
 };
 
 export const calculateStackValue = (
-  holdings: Holding[] | undefined,
+  inventory: Item[] | undefined,
   spotPrices: Record<'gold' | 'silver', number | undefined>,
 ): number | undefined => {
-  if (holdings === undefined) return undefined;
+  if (inventory === undefined) return undefined;
   let stackValue = 0;
-  for (const holding of holdings) {
-    const spotPrice = spotPrices[holding.metal];
+  for (const item of inventory) {
+    const spotPrice = spotPrices[item.metal];
     if (spotPrice === undefined) return undefined;
-    stackValue += calculateHoldingValue(holding, spotPrice);
+    stackValue += calculateItemValue(item, spotPrice);
   }
 
   return stackValue;

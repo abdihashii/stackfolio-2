@@ -14,20 +14,20 @@ Record ownership changes, correct mistakes, and show current quantities. Histori
 - Derive quantities from transactions. Direct quantity edits must not bypass them.
 - Reject changes that cause negative ownership at any point, including later transactions. Failed changes leave records unchanged.
 - Use UTC date-only effective dates. Unknown acquisition dates fall back to the UTC recorded date. Preserve the separate server-managed recorded timestamp through corrections.
-- Fully sold holdings retain their transactions. Deleting a record is not a sale.
+- Fully sold items retain their transactions. Deleting a record is not a sale.
 
 **Example:** Buy three coins in November, sell one today: three before today, two afterward. Correct the original buy to two: ownership changes back to November, leaving one after the sale.
 
 ### Slices
 
-#### 1. Holdings and dates: completed groundwork
+#### 1. Inventory and dates: completed groundwork
 
-- [x] Holdings CRUD, optional acquisition dates, and stable recorded timestamps.
+- [x] Inventory CRUD, optional acquisition dates, and stable recorded timestamps.
 
 #### 2. Acquisitions and current ownership
 
-- [ ] Define how holdings and transactions relate.
-- [ ] Convert existing holdings without losing quantities or known dates, or inventing purchase history.
+- [ ] Define how items and transactions relate.
+- [ ] Convert existing inventory without losing quantities or known dates, or inventing purchase history.
 - [ ] Record and view acquisitions through the app and API; derive current quantities and spot value from them.
 - [ ] Replace direct quantity edits with transaction-based behavior.
 
@@ -37,7 +37,7 @@ Record ownership changes, correct mistakes, and show current quantities. Histori
 
 - [ ] Record sales through the app and API; update current quantity and spot value.
 - [ ] Reject overselling, including backdated or concurrent changes that would create negative ownership.
-- [ ] Keep fully sold holdings' records accessible; prevent deletion from substituting for a sale.
+- [ ] Keep fully sold items’ records accessible; prevent deletion from substituting for a sale.
 
 **Verify:** Buy three, sell one, reload to see two. Sell the remaining two and retain the records. An excess sale is rejected without changes.
 
@@ -62,7 +62,7 @@ Existing historical-price fetching and valuation work remains Stage 3 groundwork
 
 ### Decide Before Implementation
 
-- How acquisitions are grouped into holdings and which holding a sale reduces.
+- How acquisitions are grouped into items and which item a sale reduces.
 - Same-day ordering, future-date rules, and unknown acquisition-date handling.
-- How to correct holding details or remove erroneous records with dependent sales.
+- How to correct item details or remove erroneous records with dependent sales.
 - Safe conversion and rollout for existing data; backfilled timestamps are not original purchase dates.
