@@ -1,6 +1,6 @@
 import { IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, Max, Matches, IsDateString } from 'class-validator';
 
-export class CreateHoldingDto {
+export class CreateItemDto {
   @IsIn(['gold', 'silver'], { message: 'Metal must be either gold or silver.' })
   metal: 'gold' | 'silver';
 

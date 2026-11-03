@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreateHoldingDto } from './dto/create-holding.dto.js';
+import { CreateItemDto } from './dto/create-item.dto.js';
 import { UpdateHoldingDto } from './dto/update-holding.dto.js';
 import { Item } from './entities/item.entity.js';
 
@@ -14,7 +14,7 @@ export class HoldingsService {
     private holdingsRepository: Repository<Item>,
   ) {}
 
-  create(createHoldingDto: CreateHoldingDto): Promise<Item> {
+  create(createHoldingDto: CreateItemDto): Promise<Item> {
     return this.holdingsRepository.save(createHoldingDto);
   }
 

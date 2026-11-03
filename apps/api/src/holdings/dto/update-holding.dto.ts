@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
 
-import { CreateHoldingDto } from './create-holding.dto.js';
+import { CreateItemDto } from './create-item.dto.js';
 
-export class UpdateHoldingDto extends PartialType(CreateHoldingDto) {}
+export class UpdateHoldingDto extends PartialType(CreateItemDto) {}

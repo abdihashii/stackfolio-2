@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
 
-import { CreateHoldingDto } from './dto/create-holding.dto.js';
+import { CreateItemDto } from './dto/create-item.dto.js';
 import { UpdateHoldingDto } from './dto/update-holding.dto.js';
 import { HoldingsService } from './holdings.service.js';
 
@@ -9,8 +9,8 @@ export class HoldingsController {
   constructor(private readonly holdingsService: HoldingsService) {}
 
   @Post()
-  create(@Body() createHoldingDto: CreateHoldingDto) {
-    return this.holdingsService.create(createHoldingDto);
+  create(@Body() createItemDto: CreateItemDto) {
+    return this.holdingsService.create(createItemDto);
   }
 
   @Get()
