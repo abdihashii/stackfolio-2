@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 
 import { CreateItemDto } from './dto/create-item.dto.js';
 import { UpdateItemDto } from './dto/update-item.dto.js';
+import { ItemType } from './entities/item-type.entity.js';
 import { Item } from './entities/item.entity.js';
 
 @Injectable()
@@ -12,6 +13,8 @@ export class InventoryService {
   constructor(
     @InjectRepository(Item)
     private itemsRepository: Repository<Item>,
+    @InjectRepository(ItemType)
+    private itemTypeRepository: Repository<ItemType>,
   ) {}
 
   create(createItemDto: CreateItemDto): Promise<Item> {

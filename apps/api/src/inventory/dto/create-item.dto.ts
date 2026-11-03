@@ -1,4 +1,4 @@
-import { IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, Max, Matches, IsDateString } from 'class-validator';
+import { IsIn, IsInt, IsNumber, IsOptional, IsPositive, Max, Matches, IsDateString, IsUUID } from 'class-validator';
 
 export class CreateItemDto {
   @IsIn(['gold', 'silver'], { message: 'Metal must be either gold or silver.' })
@@ -21,9 +21,8 @@ export class CreateItemDto {
   @Max(2147483647)
   quantity: number;
 
-  @IsOptional()
-  @IsString()
-  item_type?: string | null;
+  @IsUUID()
+  item_type_id: string;
 
   @IsOptional()
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
