@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+
+import { ItemType } from './item-type.entity.js';
 
 @Entity('items')
 export class Item {
@@ -23,8 +25,8 @@ export class Item {
   @Column()
   quantity: number;
 
-  @Column({ type: 'text', nullable: true })
-  item_type: string | null;
+  @ManyToOne(() => ItemType, { nullable: false })
+  item_type: ItemType;
 
   @Column({ type: 'date', nullable: true })
   acquisition_date: string | null;
