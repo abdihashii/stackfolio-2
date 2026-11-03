@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
 
-import { CreateItemDto } from './dto/create-item.dto.js';
+import { RecordBuyDto } from './dto/record-buy.dto.js';
 import { UpdateItemDto } from './dto/update-item.dto.js';
 import { InventoryService } from './inventory.service.js';
 
@@ -9,8 +9,8 @@ export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
   @Post()
-  create(@Body() createItemDto: CreateItemDto) {
-    return this.inventoryService.create(createItemDto);
+  create(@Body() recordBuyDto: RecordBuyDto) {
+    return this.inventoryService.create(recordBuyDto);
   }
 
   @Get()

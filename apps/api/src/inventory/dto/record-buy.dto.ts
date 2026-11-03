@@ -1,6 +1,6 @@
 import { IsInt, IsOptional, IsPositive, Max, Matches, IsDateString, IsUUID } from 'class-validator';
 
-export class CreateItemDto {
+export class RecordBuyDto {
   @IsInt({ message: 'Quantity must be a whole number.' })
   @IsPositive()
   @Max(2147483647)

@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreateItemDto } from './dto/create-item.dto.js';
+import { RecordBuyDto } from './dto/record-buy.dto.js';
 import { UpdateItemDto } from './dto/update-item.dto.js';
 import { ItemType } from './entities/item-type.entity.js';
 import { Item } from './entities/item.entity.js';
@@ -20,16 +20,16 @@ export class InventoryService {
     private transactionRepository: Repository<Transaction>,
   ) {}
 
-  async create(createItemDto: CreateItemDto): Promise<Item> {
-    const itemType = await this.itemTypeRepository.findOneBy({ id: createItemDto.item_type_id });
+  async create(recordBuyDto: RecordBuyDto): Promise<Item> {
+    const itemType = await this.itemTypeRepository.findOneBy({ id: recordBuyDto.item_type_id });
     if (!itemType) {
-      throw new NotFoundException(`Item type id ${createItemDto.item_type_id} not found.`);
+      throw new NotFoundException(`Item type id ${recordBuyDto.item_type_id} not found.`);
     }
-    const createItemDtoWithItemType = {
-      ...createItemDto,
+    const recordBuyDtoWithItemType = {
+      ...recordBuyDto,
       item_type: itemType,
     };
-    return this.itemsRepository.save(createItemDtoWithItemType);
+    return this.itemsRepository.save(recordBuyDtoWithItemType);
   }
 
   findAll(): Promise<Item[]> {
