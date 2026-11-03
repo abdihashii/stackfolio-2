@@ -1,9 +1,17 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 
+const STACKFOLIO_API_URL = 'https://api.stackfolio.app/api';
+
+type HistoricalSpotPrice = {
+  ts: number;
+  gold?: number;
+  silver?: number;
+};
+
 @Injectable()
 export class SpotPricesService {
   async getSpotPrices() {
-    const res = await fetch(`https://api.stackfolio.app/api/spot-price`);
+    const res = await fetch(`${STACKFOLIO_API_URL}/spot-price`);
     if (!res.ok) {
       throw new BadGatewayException('Could not fetch spot prices.');
     }
@@ -24,5 +32,32 @@ export class SpotPricesService {
     }
 
     return data;
+  }
+
+  async getHistoricalSpotPrices(): Promise<HistoricalSpotPrice[]> {
+    const res = await fetch(`${STACKFOLIO_API_URL}/spot-price/history?range=ALL&granularity=daily`);
+    if (!res.ok) {
+      throw new BadGatewayException('Could not fetch spot price history.');
+    }
+    const data = await res.json();
+    if (data === null || !Array.isArray(data.prices)) {
+      throw new BadGatewayException('Invalid spot price history response.');
+    }
+    if (data.meta?.range !== 'ALL' || data.meta?.granularity !== 'daily') {
+      throw new BadGatewayException('Invalid spot price history metadata.');
+    }
+
+    for (const price of data.prices) {
+      if (price === null || typeof price !== 'object' || !Number.isSafeInteger(price.ts) || price.ts < 0) {
+        throw new BadGatewayException('Invalid historical price timestamp.');
+      }
+      for (const value of [price.gold, price.silver]) {
+        if (value !== undefined && (!Number.isFinite(value) || value <= 0)) {
+          throw new BadGatewayException('Invalid spot price.');
+        }
+      }
+    }
+
+    return data.prices;
   }
 }

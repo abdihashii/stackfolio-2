@@ -45,6 +45,39 @@ describe('SpotPricesService', () => {
     await expect(service.getSpotPrices()).resolves.toEqual(data);
   });
 
+  it('fetches all daily history and returns prices with missing metals preserved', async () => {
+    const prices = [
+      { ts: 1767225600, gold: 3_000, silver: 30 },
+      { ts: 1767312000, gold: 3_100 },
+      { ts: 1767571200, silver: 31 },
+    ];
+    const data = { prices, meta: { range: 'ALL', granularity: 'daily' } };
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(JSON.stringify(data), { status: 200 }));
+
+    await expect(service.getHistoricalSpotPrices()).resolves.toEqual(prices);
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+      'https://api.stackfolio.app/api/spot-price/history?range=ALL&granularity=daily',
+    );
+  });
+
+  it.each([{ gold: 0 }, { silver: -1 }, { gold: '3000' }, { silver: null }])(
+    'rejects an invalid historical price after a valid row: %j',
+    async (invalidPrice) => {
+      const data = {
+        prices: [
+          { ts: 1767225600, gold: 3_000, silver: 30 },
+          { ts: 1767312000, ...invalidPrice },
+        ],
+        meta: { range: 'ALL', granularity: 'daily' },
+      };
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(data), { status: 200 }));
+
+      await expect(service.getHistoricalSpotPrices()).rejects.toThrow('Invalid spot price.');
+    },
+  );
+
   it('rejects a null prices object', async () => {
     const data = {
       timestamp: '2026-01-01T00:00:00.000Z',
