@@ -12,4 +12,7 @@ export class Transaction {
 
   @Column()
   type: 'buy' | 'sell';
+
+  @Column()
+  quantity: number;
 }
