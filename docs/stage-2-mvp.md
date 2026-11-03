@@ -24,8 +24,6 @@ Record ownership changes, correct mistakes, and show current quantities. Histori
 
 - [x] Holdings CRUD, optional acquisition dates, and stable recorded timestamps.
 
-This predates the transaction model; existing edit/delete flows need adaptation.
-
 #### 2. Acquisitions and current ownership
 
 - [ ] Define how holdings and transactions relate.
