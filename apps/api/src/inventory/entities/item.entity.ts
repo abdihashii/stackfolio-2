@@ -11,18 +11,6 @@ export class Item {
   created_at: Date;
 
   @Column()
-  metal: 'gold' | 'silver';
-
-  @Column({ type: 'double precision' })
-  weight: number;
-
-  @Column()
-  weight_unit: 'gram' | 'ozt';
-
-  @Column({ type: 'double precision' })
-  purity: number;
-
-  @Column()
   quantity: number;
 
   @ManyToOne(() => ItemType, { nullable: false })
