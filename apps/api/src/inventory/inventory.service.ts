@@ -7,6 +7,7 @@ import { CreateItemDto } from './dto/create-item.dto.js';
 import { UpdateItemDto } from './dto/update-item.dto.js';
 import { ItemType } from './entities/item-type.entity.js';
 import { Item } from './entities/item.entity.js';
+import { Transaction } from './entities/transaction.entity.js';
 
 @Injectable()
 export class InventoryService {
@@ -15,6 +16,8 @@ export class InventoryService {
     private itemsRepository: Repository<Item>,
     @InjectRepository(ItemType)
     private itemTypeRepository: Repository<ItemType>,
+    @InjectRepository(Transaction)
+    private transactionRepository: Repository<Transaction>,
   ) {}
 
   async create(createItemDto: CreateItemDto): Promise<Item> {
