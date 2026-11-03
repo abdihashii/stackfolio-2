@@ -34,13 +34,20 @@ export class InventoryService {
       const itemRepository = manager.getRepository(Item);
       const transactionRepository = manager.getRepository(Transaction);
 
-      const item = await itemRepository.save(recordBuyDtoWithItemType);
+      // Look for an existing item before creating one
+      let item = await itemRepository.findOneBy({ item_type: { id: itemType.id } });
+
+      if (!item) {
+        item = await itemRepository.save(recordBuyDtoWithItemType);
+      }
+
       await transactionRepository.save({
         effective_date: recordBuyDto.acquisition_date ?? new Date().toISOString().slice(0, 10),
         type: 'buy',
         item,
         quantity: recordBuyDto.quantity,
       });
+
       return item;
     });
   }
