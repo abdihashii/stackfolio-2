@@ -8,16 +8,19 @@ Record ownership changes and show current quantities and spot value. This scope 
 
 ### Product Model
 
-- **Item:** the product being tracked, such as a 1 oz American Silver Eagle. Use “item” consistently in the UI, API, code, and database.
-- **Inventory:** the collection of items.
+- **ItemType:** a shared catalog definition, such as a 1 oz American Silver Eagle, with its metal, weight, and purity.
+- **Item:** an inventory entry referencing an item type. Use “item” consistently in the UI, API, code, and database.
+- **Inventory:** the collection of items; Stage 2 uses one implicit inventory.
 - **Transaction:** a buy or sell belonging to an item. Repeated purchases of the same preset belong to one item, with separate transactions.
 - **Quantity owned:** derived from transactions, never edited directly. Items and their history remain after quantity reaches zero.
 
 Named coin products remain separate. Generic bars and rounds group by metal, weight, and purity, regardless of brand or dealer. Mint years are not tracked.
 
+See [ADR 003: Inventory ownership](adr/003-inventory-ownership.md) for the model rationale and future ownership design.
+
 ### Preset Catalog
 
-Only preset items can be selected; no custom-item creation.
+Presets are stored as `ItemType` records in `item_types`. Only presets can be selected; no custom-item creation.
 
 | Silver                           | Gold                           |
 | -------------------------------- | ------------------------------ |
@@ -54,12 +57,13 @@ The first buy creates the inventory item and transaction together; later buys ad
 
 #### 2. Acquisitions and current ownership
 
+Inventory is empty and the app is not in production; no existing-data conversion is needed.
+
 - [ ] Record and view buys for the nine presets through the app and API; repeated buys appear under one item with separate transactions.
 - [ ] Show current quantities derived from transactions and correct spot values for every preset’s fine-metal content.
-- [ ] Existing inventory retains its quantities, known dates, and recorded timestamps after conversion, without invented purchase history.
 - [ ] Quantity cannot be edited directly through the app or API.
 
-**Verify:** Buy one Silver Eagle in January and another in March. After reload, one item shows quantity two and both buys; ownership in February is one. Converted data retains its quantities and known dates.
+**Verify:** Buy one Silver Eagle in January and another in March. After reload, one item shows quantity two and both buys; ownership in February is one.
 
 #### 3. Full and partial sales
 
@@ -77,17 +81,17 @@ The first buy creates the inventory item and transaction together; later buys ad
 
 **Verify:** Buy three, sell one, then correct the buy to four: three remain after reload. Reducing that buy below the sold quantity is rejected without changes.
 
-**Stage gate:** Demonstrate the flows in the app; verify data conversion; pass workspace typecheck, lint, and available tests. Commit slices only after sign-off.
+**Stage gate:** Demonstrate the flows in the app; pass workspace typecheck, lint, and available tests. Commit slices only after sign-off.
 
 ### Open Decisions
 
-- How existing items map to presets, including items outside the catalog. Backfilled timestamps are not original purchase dates.
 - Whether sales identify only the item or also an acquisition batch. Item-only sales are recommended, not yet explicitly settled.
 - Same-day ordering, future-date rules, and how unknown acquisition dates appear in the form and history.
 - How to correct an incorrectly selected preset or remove erroneous records with dependent sales.
 
 ### Outside Stage 2
 
+- Auth, the `inventories` table, ownership enforcement, and personal item metadata.
 - Custom items, mint years, brand/dealer tracking, and collectible distinctions.
 - Purchase costs, sale proceeds, fees, cash balances, profit/loss, investment returns, and tax accounting.
 - Liquidation estimates and premiums.
