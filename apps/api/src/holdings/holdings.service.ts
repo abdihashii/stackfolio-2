@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateItemDto } from './dto/create-item.dto.js';
-import { UpdateHoldingDto } from './dto/update-holding.dto.js';
+import { UpdateItemDto } from './dto/update-item.dto.js';
 import { Item } from './entities/item.entity.js';
 
 @Injectable()
@@ -26,8 +26,8 @@ export class HoldingsService {
     return this.holdingsRepository.findOneBy({ id });
   }
 
-  async update(id: string, updateHoldingDto: UpdateHoldingDto) {
-    const res = await this.holdingsRepository.update(id, updateHoldingDto);
+  async update(id: string, updateItemDto: UpdateItemDto) {
+    const res = await this.holdingsRepository.update(id, updateItemDto);
     if (res.affected === 0) {
       throw new NotFoundException('Holding not found.');
     }

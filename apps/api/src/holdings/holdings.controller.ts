@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
 
 import { CreateItemDto } from './dto/create-item.dto.js';
-import { UpdateHoldingDto } from './dto/update-holding.dto.js';
+import { UpdateItemDto } from './dto/update-item.dto.js';
 import { HoldingsService } from './holdings.service.js';
 
 @Controller('holdings')
@@ -24,7 +24,7 @@ export class HoldingsController {
   }
 
   @Patch(':id')
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateHoldingDto: UpdateHoldingDto) {
+  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateHoldingDto: UpdateItemDto) {
     return this.holdingsService.update(id, updateHoldingDto);
   }
 
