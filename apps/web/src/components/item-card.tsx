@@ -37,7 +37,6 @@ export const ItemCard = ({
       <p>
         Total weight: {weight * quantity} {weight_unit}
       </p>
-      {item_type && <p>Item type: {item_type.name}</p>}
       {acquisition_date && <p>Acquisition date: {acquisition_date}</p>}
       {isSpotPricesLoading ? (
         <p>Item value: loading...</p>
