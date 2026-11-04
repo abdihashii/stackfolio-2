@@ -8,10 +8,10 @@
 
 ### Three Capabilities
 
-| Capability | Purpose                                       |
-| ---------- | --------------------------------------------- |
-| Add        | Record metal, weight, purity, and quantity    |
-| Value      | Calculate current spot-based metal value      |
+| Capability | Purpose                                    |
+| ---------- | ------------------------------------------ |
+| Add        | Record metal, weight, purity, and quantity |
+| Value      | Calculate current spot-based metal value   |
 | View       | See total Stack Value and individual items |
 
 ### Item Entry
@@ -25,7 +25,7 @@ Use one manual add flow for gold and silver items. No product catalog is require
 | Weight unit     | Required: grams or troy ounces                                                          |
 | Purity          | Required: select from predefined options for the metal                                  |
 | Quantity        | Required: positive whole number; defaults to 1                                          |
-| Item type    | Optional: select from predefined options                                                |
+| Item type       | Optional: select from predefined options                                                |
 
 Weight is the metal alloy's weight before adjusting for purity. Purity is applied once to calculate fine-metal content. Items with different weights or purities belong in separate entries.
 
