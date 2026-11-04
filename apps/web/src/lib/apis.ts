@@ -1,4 +1,4 @@
-import type { Item, CreateItemInput } from '../types/inventory.types';
+import type { Item, CreateItemInput, ItemType } from '../types/inventory.types';
 
 const backendUrlPath = import.meta.env.VITE_API_URL;
 
@@ -63,7 +63,7 @@ export const updateItem = async (id: string, newPayload: CreateItemInput): Promi
   }
 };
 
-export const fetchItemTypes = async () => {
+export const fetchItemTypes = async (): Promise<ItemType[]> => {
   const res = await fetch(`${backendUrlPath}/item-types`, {
     headers: {
       'Content-type': 'application/json',
