@@ -7,12 +7,15 @@ describe('calculateHistoricalValue', () => {
     const item: Item = {
       id: 'test-gold',
       created_at: new Date('2026-01-05T12:00:00Z'),
-      metal: 'gold',
-      weight_unit: 'ozt',
-      weight: 1,
-      purity: 1,
       quantity: 1,
-      item_type: null,
+      item_type: {
+        id: 'test-gold-type',
+        name: 'Test gold',
+        metal: 'gold',
+        weight_unit: 'ozt',
+        weight: 1,
+        purity: 1,
+      },
       acquisition_date: '2026-01-02',
     };
 
@@ -24,12 +27,15 @@ describe('calculateHistoricalValue', () => {
     const item: Item = {
       id: 'test-gold',
       created_at: new Date('2026-01-04T23:30:00-06:00'),
-      metal: 'gold',
-      weight_unit: 'ozt',
-      weight: 1,
-      purity: 1,
       quantity: 1,
-      item_type: null,
+      item_type: {
+        id: 'test-gold-type',
+        name: 'Test gold',
+        metal: 'gold',
+        weight_unit: 'ozt',
+        weight: 1,
+        purity: 1,
+      },
       acquisition_date: null,
     };
 
@@ -41,15 +47,23 @@ describe('calculateHistoricalValue', () => {
     const gold: Item = {
       id: 'test-gold',
       created_at: new Date('2026-01-02T00:00:00Z'),
-      metal: 'gold',
-      weight_unit: 'ozt',
-      weight: 1,
-      purity: 1,
       quantity: 1,
-      item_type: null,
+      item_type: {
+        id: 'test-gold-type',
+        name: 'Test gold',
+        metal: 'gold',
+        weight_unit: 'ozt',
+        weight: 1,
+        purity: 1,
+      },
       acquisition_date: '2026-01-02',
     };
-    const silver: Item = { ...gold, id: 'test-silver', metal: 'silver', acquisition_date: '2026-01-05' };
+    const silver: Item = {
+      ...gold,
+      id: 'test-silver',
+      item_type: { ...gold.item_type, id: 'test-silver-type', name: 'Test silver', metal: 'silver' },
+      acquisition_date: '2026-01-05',
+    };
 
     expect(calculateHistoricalValue([gold, silver], '2026-01-02', { gold: 3000 })).toBe(3000);
     expect(calculateHistoricalValue([gold, silver], '2026-01-05', { gold: 3000 })).toBeNull();
@@ -60,12 +74,15 @@ describe('calculateHistoricalValue', () => {
     const item: Item = {
       id: 'test-gold',
       created_at: new Date('2026-01-02T00:00:00Z'),
-      metal: 'gold',
-      weight_unit: 'gram',
-      weight: 62.2069536,
-      purity: 0.75,
       quantity: 3,
-      item_type: null,
+      item_type: {
+        id: 'test-gold-type',
+        name: 'Test gold',
+        metal: 'gold',
+        weight_unit: 'gram',
+        weight: 62.2069536,
+        purity: 0.75,
+      },
       acquisition_date: '2026-01-02',
     };
 

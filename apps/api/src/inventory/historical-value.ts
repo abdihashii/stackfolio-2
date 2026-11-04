@@ -8,16 +8,17 @@ export function calculateHistoricalValue(
   let total = 0;
 
   for (const item of inventory) {
+    const itemType = item.item_type;
     const startDate = item.acquisition_date ?? item.created_at.toISOString().slice(0, 10);
 
     if (startDate > date) continue;
 
-    const spotPrice = prices[item.metal];
+    const spotPrice = prices[itemType.metal];
     if (spotPrice === undefined) return null;
 
-    const weightOzt = item.weight_unit === 'gram' ? item.weight / 31.1034768 : item.weight;
+    const weightOzt = itemType.weight_unit === 'gram' ? itemType.weight / 31.1034768 : itemType.weight;
 
-    total += weightOzt * item.purity * item.quantity * spotPrice;
+    total += weightOzt * itemType.purity * item.quantity * spotPrice;
   }
 
   return total;
