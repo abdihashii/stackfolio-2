@@ -20,3 +20,12 @@ export interface CreateItemInput {
 export interface Item extends CreateItemInput {
   id: string;
 }
+
+export type ItemType = {
+  id: string;
+  name: string;
+  metal: Metal;
+  weight: number;
+  weight_unit: WeightUnit;
+  purity: number;
+};
