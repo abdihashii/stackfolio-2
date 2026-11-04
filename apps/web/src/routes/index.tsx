@@ -8,7 +8,7 @@ import { UpdateForm } from '@/components/update-form';
 import { useCreateItem } from '@/hooks/use-create-item';
 import { useDeleteItem } from '@/hooks/use-delete-item';
 import { useUpdateItem } from '@/hooks/use-update-item';
-import { fetchInventory, fetchSpotPrices } from '@/lib/apis';
+import { fetchInventory, fetchItemTypes, fetchSpotPrices } from '@/lib/apis';
 import { calculateStackValue, formatUsd } from '@/lib/utils';
 
 export const Route = createFileRoute('/')({
@@ -26,6 +26,8 @@ function Home() {
     createItemMutation.isPending ||
     inventoryQuery.isPending;
   const { deleteItemMutation, onDeleteItem } = useDeleteItem(isBusyWithoutDelete);
+
+  const itemTypesQuery = useQuery({ queryKey: ['itemTypes'], queryFn: fetchItemTypes });
 
   const stackValue = calculateStackValue(inventoryQuery.data, {
     gold: spotPricesQuery.data?.prices.gold,
@@ -63,7 +65,7 @@ function Home() {
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
             {inventoryQuery.data.length > 0 ? (
               inventoryQuery.data.map((item) => {
-                const spotPrice = spotPricesQuery.data?.prices[item.metal];
+                const spotPrice = spotPricesQuery.data?.prices[item.item_type.metal];
 
                 return (
                   <div key={item.id} className="rounded-md border border-gray-300 p-4">
@@ -98,12 +100,21 @@ function Home() {
           </div>
         )}
 
-        <Form
-          form={form}
-          onSubmit={onCreateItem}
-          creatingItemError={createItemMutation.error?.message ?? ''}
-          isBusy={isBusy}
-        />
+        {itemTypesQuery.isPending ? (
+          <p>Loading item types...</p>
+        ) : itemTypesQuery.isError ? (
+          <p>{itemTypesQuery.error.message}</p>
+        ) : itemTypesQuery.data.length === 0 ? (
+          <p>Item types are empty. Please refresh.</p>
+        ) : (
+          <Form
+            form={form}
+            onSubmit={onCreateItem}
+            creatingItemError={createItemMutation.error?.message ?? ''}
+            isBusy={isBusy}
+            itemTypes={itemTypesQuery.data}
+          />
+        )}
       </div>
     </main>
   );

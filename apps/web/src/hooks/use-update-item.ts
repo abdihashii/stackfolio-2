@@ -39,14 +39,14 @@ export const useUpdateItem = () => {
   };
 
   const onStartUpdate = (item: Item) => {
-    const { id, metal, weight_unit, weight, purity, quantity, item_type, acquisition_date } = item;
+    const { id, quantity, item_type, acquisition_date } = item;
+    const { metal, weight_unit, weight, purity } = item_type
     updateForm.reset({
       metal,
       weight_unit,
       weight,
       purity,
       quantity,
-      item_type,
       acquisition_date,
     });
     setUpdatingItemId(id);

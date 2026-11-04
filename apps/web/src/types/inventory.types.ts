@@ -17,10 +17,6 @@ export interface CreateItemInput {
   acquisition_date: string | null;
 }
 
-export interface Item extends CreateItemInput {
-  id: string;
-}
-
 export type ItemType = {
   id: string;
   name: string;
@@ -29,3 +25,11 @@ export type ItemType = {
   weight_unit: WeightUnit;
   purity: number;
 };
+
+export interface Item {
+  id: string;
+  created_at: Date;
+  quantity: number;
+  item_type: ItemType;
+  acquisition_date: string | null;
+}

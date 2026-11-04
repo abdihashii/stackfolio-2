@@ -4,16 +4,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 
-import type { FormValues } from '@/types/form.schema';
+import type { BuyFormValues } from '@/types/form.schema';
 
 import { createItem } from '@/lib/apis';
-import { schema } from '@/types/form.schema';
+import { buySchema } from '@/types/form.schema';
 
 export const useCreateItem = (inventoryIsPending: boolean) => {
   const queryClient = useQueryClient();
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  const form = useForm<BuyFormValues>({
+    resolver: zodResolver(buySchema),
     defaultValues: { quantity: 1, acquisition_date: null },
   });
 
@@ -25,7 +25,7 @@ export const useCreateItem = (inventoryIsPending: boolean) => {
     },
   });
 
-  const onCreateItem: SubmitHandler<FormValues> = async (data) => {
+  const onCreateItem: SubmitHandler<BuyFormValues> = async (data) => {
     if (createItemMutation.isPending || inventoryIsPending) return;
     try {
       await createItemMutation.mutateAsync(data);

@@ -23,11 +23,12 @@ export const ItemCard = ({
   onDelete,
   onStartUpdate,
 }: ItemCardProps) => {
-  const { id, metal, weight_unit, weight, purity, quantity, item_type, acquisition_date } = item;
+  const { id, quantity, item_type, acquisition_date } = item;
+  const { name, weight_unit, weight, purity } = item_type;
 
   return (
     <>
-      <h3 className="text-lg font-semibold capitalize">{metal}</h3>
+      <h3 className="text-lg font-semibold capitalize">{name}</h3>
       <p>
         Weight: {weight} {weight_unit}
       </p>
@@ -36,7 +37,7 @@ export const ItemCard = ({
       <p>
         Total weight: {weight * quantity} {weight_unit}
       </p>
-      {item_type && <p>Item type: {item_type}</p>}
+      {item_type && <p>Item type: {item_type.name}</p>}
       {acquisition_date && <p>Acquisition date: {acquisition_date}</p>}
       {isSpotPricesLoading ? (
         <p>Item value: loading...</p>

@@ -1,3 +1,5 @@
+import { BuyFormValues } from '@/types/form.schema';
+
 import type { Item, CreateItemInput, ItemType } from '../types/inventory.types';
 
 const backendUrlPath = import.meta.env.VITE_API_URL;
@@ -22,7 +24,7 @@ export const fetchInventory = async (): Promise<Item[]> => {
   return data;
 };
 
-export const createItem = async (payload: CreateItemInput): Promise<Item> => {
+export const createItem = async (payload: BuyFormValues): Promise<Item> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
   const res = await fetch(`${backendUrlPath}/inventory`, {
     method: 'POST',

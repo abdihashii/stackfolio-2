@@ -12,10 +12,11 @@ export const formatUsd = (value: number) => {
   }).format(value);
 };
 
-export const calculateItemValue = ({ weight_unit, weight, purity, quantity }: Item, spotPrice: number): number => {
-  const weightOzt = weight_unit === 'gram' ? gramsToTroyOunces(weight) : weight;
+export const calculateItemValue = ({ item_type, quantity }: Item, spotPrice: number): number => {
+  const { weight_unit, weight } = item_type;
+  const fineMetalWeightOzt = weight_unit === 'gram' ? gramsToTroyOunces(weight) : weight;
 
-  return weightOzt * purity * quantity * spotPrice;
+  return fineMetalWeightOzt * quantity * spotPrice;
 };
 
 export const calculateStackValue = (
@@ -25,7 +26,7 @@ export const calculateStackValue = (
   if (inventory === undefined) return undefined;
   let stackValue = 0;
   for (const item of inventory) {
-    const spotPrice = spotPrices[item.metal];
+    const spotPrice = spotPrices[item.item_type.metal];
     if (spotPrice === undefined) return undefined;
     stackValue += calculateItemValue(item, spotPrice);
   }

@@ -12,3 +12,10 @@ export const schema = z.object({
   acquisition_date: z.iso.date().nullable(),
 });
 export type FormValues = z.infer<typeof schema>;
+
+export const buySchema = z.object({
+  item_type_id: z.uuid(),
+  quantity: z.number().int().positive().max(2147483647),
+  acquisition_date: z.iso.date().nullable(),
+});
+export type BuyFormValues = z.infer<typeof buySchema>;
