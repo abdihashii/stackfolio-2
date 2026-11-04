@@ -4,8 +4,8 @@ export type Metal = (typeof metals)[number];
 export const weightUnits = ['ozt', 'gram'] as const;
 export type WeightUnit = (typeof weightUnits)[number];
 
-export const itemTypes = ['coin', 'bar', 'round', 'jewelry'] as const;
-export type ItemType = (typeof itemTypes)[number];
+export const itemCategories = ['coin', 'bar', 'round', 'jewelry'] as const;
+export type ItemCategory = (typeof itemCategories)[number];
 
 export interface CreateItemInput {
   metal: Metal;
@@ -13,7 +13,7 @@ export interface CreateItemInput {
   weight: number;
   purity: number;
   quantity: number;
-  item_type: ItemType | null;
+  item_type: ItemCategory | null;
   acquisition_date: string | null;
 }
 

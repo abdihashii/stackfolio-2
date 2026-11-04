@@ -2,7 +2,7 @@ import type { SubmitHandler, UseFormReturn } from 'react-hook-form';
 
 import type { CreateItemInput } from '@/types/inventory.types';
 
-import { itemTypes } from '@/types/inventory.types';
+import { itemCategories } from '@/types/inventory.types';
 
 import { H2 } from './h2';
 
@@ -155,7 +155,7 @@ export const Form = ({ form, onSubmit, creatingItemError, isBusy }: FormProps) =
           aria-describedby={errors.item_type ? 'item-type-error' : undefined}
         >
           <option value="">None selected</option>
-          {itemTypes.map((type) => (
+          {itemCategories.map((type) => (
             <option key={type} value={type}>
               {type[0].toUpperCase() + type.substring(1)}
             </option>

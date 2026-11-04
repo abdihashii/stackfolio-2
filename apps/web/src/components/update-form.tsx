@@ -2,7 +2,7 @@ import type { UseFormReturn } from 'react-hook-form';
 
 import type { CreateItemInput } from '@/types/inventory.types';
 
-import { itemTypes } from '@/types/inventory.types';
+import { itemCategories } from '@/types/inventory.types';
 
 type UpdateFormProps = {
   updateForm: UseFormReturn<CreateItemInput>;
@@ -141,7 +141,7 @@ export const UpdateForm = ({ updateForm, id, setUpdatingItemId, isBusy, onUpdate
           aria-describedby={updateForm.formState.errors.item_type ? 'update-item-type-error' : undefined}
         >
           <option value="">None selected</option>
-          {itemTypes.map((type) => (
+          {itemCategories.map((type) => (
             <option key={type} value={type}>
               {type[0].toUpperCase() + type.substring(1)}
             </option>
