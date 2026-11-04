@@ -1,10 +1,10 @@
-import type { Item } from './entities/item.entity.js';
+import type { ItemWithQuantity } from './inventory.service.js';
 
 import { calculateHistoricalValue } from './historical-value.js';
 
 describe('calculateHistoricalValue', () => {
   it('includes a item from its acquisition date onward', () => {
-    const item: Item = {
+    const item: ItemWithQuantity = {
       id: 'test-gold',
       created_at: new Date('2026-01-05T12:00:00Z'),
       quantity: 1,
@@ -24,7 +24,7 @@ describe('calculateHistoricalValue', () => {
   });
 
   it('uses the UTC added date when the acquisition date is missing', () => {
-    const item: Item = {
+    const item: ItemWithQuantity = {
       id: 'test-gold',
       created_at: new Date('2026-01-04T23:30:00-06:00'),
       quantity: 1,
@@ -44,7 +44,7 @@ describe('calculateHistoricalValue', () => {
   });
 
   it('returns no partial total when an eligible item has no price', () => {
-    const gold: Item = {
+    const gold: ItemWithQuantity = {
       id: 'test-gold',
       created_at: new Date('2026-01-02T00:00:00Z'),
       quantity: 1,
@@ -58,7 +58,7 @@ describe('calculateHistoricalValue', () => {
       },
       acquisition_date: '2026-01-02',
     };
-    const silver: Item = {
+    const silver: ItemWithQuantity = {
       ...gold,
       id: 'test-silver',
       item_type: { ...gold.item_type, id: 'test-silver-type', name: 'Test silver', metal: 'silver' },
@@ -71,7 +71,7 @@ describe('calculateHistoricalValue', () => {
   });
 
   it('converts grams and applies purity and quantity', () => {
-    const item: Item = {
+    const item: ItemWithQuantity = {
       id: 'test-gold',
       created_at: new Date('2026-01-02T00:00:00Z'),
       quantity: 3,

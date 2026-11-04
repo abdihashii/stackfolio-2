@@ -9,7 +9,7 @@ import { ItemType } from './entities/item-type.entity.js';
 import { Item } from './entities/item.entity.js';
 import { Transaction } from './entities/transaction.entity.js';
 
-interface ItemWithQuantity extends Item {
+export interface ItemWithQuantity extends Item {
   quantity: number;
 }
 

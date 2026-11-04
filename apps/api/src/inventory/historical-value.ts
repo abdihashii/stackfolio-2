@@ -1,7 +1,7 @@
-import type { Item } from './entities/item.entity.js';
+import type { ItemWithQuantity } from './inventory.service.js';
 
 export function calculateHistoricalValue(
-  inventory: Item[],
+  inventory: ItemWithQuantity[],
   date: string,
   prices: Partial<Record<'gold' | 'silver', number>>,
 ): number | null {
