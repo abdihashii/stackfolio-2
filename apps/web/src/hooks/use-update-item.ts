@@ -40,7 +40,7 @@ export const useUpdateItem = () => {
 
   const onStartUpdate = (item: Item) => {
     const { id, quantity, item_type, acquisition_date } = item;
-    const { metal, weight_unit, weight, purity } = item_type
+    const { metal, weight_unit, weight, purity } = item_type;
     updateForm.reset({
       metal,
       weight_unit,
