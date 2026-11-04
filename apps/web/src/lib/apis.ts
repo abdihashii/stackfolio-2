@@ -1,6 +1,6 @@
 import { BuyFormValues } from '@/types/form.schema';
 
-import type { Item, CreateItemInput, ItemType } from '../types/inventory.types';
+import type { Item, ItemType } from '../types/inventory.types';
 
 const backendUrlPath = import.meta.env.VITE_API_URL;
 
@@ -50,7 +50,7 @@ export const deleteItem = async (id: string): Promise<void> => {
   }
 };
 
-export const updateItem = async (id: string, newPayload: CreateItemInput): Promise<void> => {
+export const updateItem = async (id: string, newPayload: BuyFormValues): Promise<void> => {
   const res = await fetch(`${backendUrlPath}/inventory/${id}`, {
     method: 'PATCH',
     headers: {

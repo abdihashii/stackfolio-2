@@ -3,22 +3,21 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import type { FormValues } from '@/types/form.schema';
+import type { BuyFormValues } from '@/types/form.schema';
 import type { Item } from '@/types/inventory.types';
-import type { CreateItemInput } from '@/types/inventory.types';
 
 import { updateItem } from '@/lib/apis';
-import { schema } from '@/types/form.schema';
+import { buySchema } from '@/types/form.schema';
 
 export const useUpdateItem = () => {
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
-  const updateForm = useForm<FormValues>({ resolver: zodResolver(schema) });
+  const updateForm = useForm<BuyFormValues>({ resolver: zodResolver(buySchema) });
 
   const updateItemMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: CreateItemInput }) => updateItem(id, data),
+    mutationFn: ({ id, data }: { id: string; data: BuyFormValues }) => updateItem(id, data),
     onSuccess: async () => {
       setUpdatingItemId(null);
 
@@ -30,7 +29,7 @@ export const useUpdateItem = () => {
     },
   });
 
-  const onUpdateItem = async (id: string, data: CreateItemInput) => {
+  const onUpdateItem = async (id: string, data: BuyFormValues) => {
     try {
       await updateItemMutation.mutateAsync({ id, data });
     } catch (error) {
@@ -40,12 +39,8 @@ export const useUpdateItem = () => {
 
   const onStartUpdate = (item: Item) => {
     const { id, quantity, item_type, acquisition_date } = item;
-    const { metal, weight_unit, weight, purity } = item_type;
     updateForm.reset({
-      metal,
-      weight_unit,
-      weight,
-      purity,
+      item_type_id: item_type.id,
       quantity,
       acquisition_date,
     });

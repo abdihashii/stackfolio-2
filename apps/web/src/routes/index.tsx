@@ -71,13 +71,30 @@ function Home() {
                   <div key={item.id} className="rounded-md border border-gray-300 p-4">
                     {updatingItemId === item.id ? (
                       <>
-                        <UpdateForm
-                          updateForm={updateForm}
-                          id={item.id}
-                          setUpdatingItemId={setUpdatingItemId}
-                          isBusy={isBusy}
-                          onUpdate={onUpdateItem}
-                        />
+                        {itemTypesQuery.isPending ? (
+                          <p>Loading item types...</p>
+                        ) : itemTypesQuery.isError ? (
+                          <p>{itemTypesQuery.error.message}</p>
+                        ) : itemTypesQuery.data.length === 0 ? (
+                          <p>Item types are empty. Please refresh.</p>
+                        ) : (
+                          <UpdateForm
+                            updateForm={updateForm}
+                            id={item.id}
+                            isBusy={isBusy}
+                            onUpdate={onUpdateItem}
+                            itemTypes={itemTypesQuery.data}
+                          />
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => setUpdatingItemId(null)}
+                          className="hover:underline hover:cursor-pointer text-red-500"
+                          disabled={isBusy}
+                        >
+                          cancel
+                        </button>
                       </>
                     ) : (
                       <ItemCard

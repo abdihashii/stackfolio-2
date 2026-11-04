@@ -1,41 +1,40 @@
 import type { UseFormReturn } from 'react-hook-form';
 
-import type { CreateItemInput } from '@/types/inventory.types';
-
-import { itemCategories } from '@/types/inventory.types';
+import type { BuyFormValues } from '@/types/form.schema';
+import type { ItemType } from '@/types/inventory.types';
 
 type UpdateFormProps = {
-  updateForm: UseFormReturn<CreateItemInput>;
+  updateForm: UseFormReturn<BuyFormValues>;
   id: string;
-  setUpdatingItemId: React.Dispatch<React.SetStateAction<string | null>>;
   isBusy: boolean;
-  onUpdate: (id: string, payload: CreateItemInput) => Promise<void>;
+  onUpdate: (id: string, payload: BuyFormValues) => Promise<void>;
+  itemTypes: ItemType[];
 };
 
-export const UpdateForm = ({ updateForm, id, setUpdatingItemId, isBusy, onUpdate }: UpdateFormProps) => {
+export const UpdateForm = ({ updateForm, id, isBusy, onUpdate, itemTypes }: UpdateFormProps) => {
   return (
     <form noValidate autoComplete="off" onSubmit={updateForm.handleSubmit((data) => onUpdate(id, data))}>
       <div className="flex flex-col gap-1">
         <label htmlFor="update-item-type">Item type:</label>
         <select
-          {...updateForm.register('item_type', {
+          {...updateForm.register('item_type_id', {
             setValueAs: (value) => (value === '' ? null : value),
           })}
           id="update-item-type"
           disabled={updateForm.formState.isSubmitting}
           className="w-full rounded-md border border-gray-300 px-3 py-2"
-          aria-invalid={!!updateForm.formState.errors.item_type}
-          aria-describedby={updateForm.formState.errors.item_type ? 'update-item-type-error' : undefined}
+          aria-invalid={!!updateForm.formState.errors.item_type_id?.message}
+          aria-describedby={updateForm.formState.errors.item_type_id?.message ? 'update-item-type-error' : undefined}
         >
           <option value="">None selected</option>
-          {itemCategories.map((type) => (
-            <option key={type} value={type}>
-              {type[0].toUpperCase() + type.substring(1)}
+          {itemTypes.map((type) => (
+            <option key={type.id} value={type.id}>
+              {type.name}
             </option>
           ))}
         </select>
         <p id="update-item-type-error" role="alert" className="text-sm text-red-500">
-          {updateForm.formState.errors.item_type?.message}
+          {updateForm.formState.errors.item_type_id?.message}
         </p>
       </div>
 
@@ -73,19 +72,9 @@ export const UpdateForm = ({ updateForm, id, setUpdatingItemId, isBusy, onUpdate
         </p>
       </div>
 
-      <div className="flex justify-between">
-        <button
-          type="button"
-          onClick={() => setUpdatingItemId(null)}
-          className="hover:underline hover:cursor-pointer text-red-500"
-          disabled={isBusy}
-        >
-          cancel
-        </button>
-        <button type="submit" className="hover:underline hover:cursor-pointer text-blue-500" disabled={isBusy}>
-          update
-        </button>
-      </div>
+      <button type="submit" className="hover:underline hover:cursor-pointer text-blue-500" disabled={isBusy}>
+        update
+      </button>
     </form>
   );
 };
