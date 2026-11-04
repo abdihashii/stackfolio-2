@@ -22,13 +22,21 @@ See [ADR 003: Inventory ownership](adr/003-inventory-ownership.md) for the model
 
 Presets are stored as `ItemType` records in `item_types`. Only presets can be selected; no custom-item creation.
 
-| Silver                           | Gold                           |
-| -------------------------------- | ------------------------------ |
-| American Silver Eagle, 1 oz      | American Gold Eagle, 1 oz      |
-| Canadian Silver Maple Leaf, 1 oz | American Gold Buffalo, 1 oz    |
-| Generic silver round, 1 oz       | Canadian Gold Maple Leaf, 1 oz |
-| Generic silver bar, 1 oz         | Generic gold bar, 1 oz         |
-| Generic silver bar, 10 oz        |                                |
+| Preset                          | Fine-metal weight | Purity | Source                                                                                                               |
+| ------------------------------- | ----------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
+| American Silver Eagle           | 1 ozt             | .999   | [U.S. Mint](https://www.usmint.gov/coins-precious-metal-coins/bullion-coin-programs/)                                |
+| Canadian Silver Maple Leaf      | 1 ozt             | .9999  | [Royal Canadian Mint](https://www.mint.ca/en/shop/coins/2026/2026-sml-1-oz-9999-pure-silver-coin-bullion)            |
+| Generic silver round, .999      | 1 ozt             | .999   | [APMEX](https://www.apmex.com/product/23/1-oz-silver-round-secondary-market)                                         |
+| Generic silver bar, .999        | 1 ozt             | .999   | [APMEX](https://www.apmex.com/product/22/1-oz-silver-bar-secondary-market)                                           |
+| Generic silver bar, .999        | 10 ozt            | .999   | [APMEX](https://www.apmex.com/product/21/10-oz-silver-bar-secondary-market)                                          |
+| American Gold Eagle             | 1 ozt             | .9167  | [U.S. Mint](https://www.usmint.gov/coins-precious-metal-coins/bullion-coin-programs/)                                |
+| American Gold Buffalo           | 1 ozt             | .9999  | [U.S. Mint](https://www.usmint.gov/american-buffalo-2024-one-ounce-gold-proof-coin-24EL.html)                        |
+| Canadian Gold Maple Leaf, .9999 | 1 ozt             | .9999  | [Royal Canadian Mint](https://www.mint.ca/en-us/shopping/archives/2024/2023-50-1-oz-9999-pure-gold-coin-gml-bullion) |
+| Generic gold bar, .9999         | 1 ozt             | .9999  | [APMEX](https://www.apmex.com/product/6894/1-oz-gold-bar-secondary-market)                                           |
+
+Generic presets require matching metal, fine-metal weight, and stated purity; brand and dealer may vary. These purity values define catalog membership, not every generic product: [gold bars can have .999 or .9999 fineness](https://www.apmex.com/category/19420/1-oz-gold-bars-rounds).
+
+The Gold Maple Leaf preset accepts .9999 coins only. [Early issues were .999, with a transition during 1982](https://gerrardsbullion.com/learn/designs-gold-maple-leaf-coin/); those .999 coins are outside this preset. Mint years remain untracked.
 
 All ounces are troy ounces. For every preset, `weight` and `weight_unit` describe fine-metal content, not gross alloy weight. Purity remains a product fact; do not multiply it into fine-metal weight. Current spot value is fine-metal weight converted to troy ounces × quantity × spot price. Verify each preset's fine-metal content before seeding.
 
