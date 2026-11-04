@@ -62,3 +62,15 @@ export const updateItem = async (id: string, newPayload: CreateItemInput): Promi
     throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not update item.');
   }
 };
+
+export const fetchItemTypes = async () => {
+  const res = await fetch(`${backendUrlPath}/item-types`, {
+    headers: {
+      'Content-type': 'application/json',
+    },
+  });
+  if (!res.ok) {
+    throw new Error('Could not fetch item types.');
+  }
+  return await res.json();
+};
