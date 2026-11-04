@@ -38,7 +38,6 @@ export class InventoryService {
 
       // Look for an existing item before creating one
       let item = await itemRepository.findOneBy({ item_type: { id: itemType.id } });
-
       if (!item) {
         item = await itemRepository.save(recordBuyDtoWithItemType);
       }
