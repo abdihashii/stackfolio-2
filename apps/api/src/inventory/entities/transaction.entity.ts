@@ -1,4 +1,4 @@
-import { PrimaryGeneratedColumn, Entity, ManyToOne, Column, CreateDateColumn } from 'typeorm';
+import { PrimaryGeneratedColumn, Entity, ManyToOne, Column, CreateDateColumn, JoinColumn } from 'typeorm';
 
 import { Item } from './item.entity.js';
 
@@ -14,6 +14,7 @@ export class Transaction {
   effective_date: string;
 
   @ManyToOne(() => Item, { nullable: false })
+  @JoinColumn({ name: 'item_id' })
   item: Item;
 
   @Column()
