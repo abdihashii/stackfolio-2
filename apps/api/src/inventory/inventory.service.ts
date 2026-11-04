@@ -9,6 +9,10 @@ import { ItemType } from './entities/item-type.entity.js';
 import { Item } from './entities/item.entity.js';
 import { Transaction } from './entities/transaction.entity.js';
 
+interface ItemWithQuantity extends Item {
+  quantity: number;
+}
+
 @Injectable()
 export class InventoryService {
   constructor(
@@ -53,7 +57,7 @@ export class InventoryService {
     });
   }
 
-  async findAll(): Promise<Item[]> {
+  async findAll(): Promise<ItemWithQuantity[]> {
     return await this.dataSource.transaction(async (manager) => {
       const itemsRepository = manager.getRepository(Item);
 

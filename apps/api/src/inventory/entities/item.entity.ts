@@ -10,9 +10,6 @@ export class Item {
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
-  @Column()
-  quantity: number;
-
   @OneToOne(() => ItemType, { nullable: false })
   @JoinColumn({ name: 'item_type_id' })
   item_type: ItemType;
