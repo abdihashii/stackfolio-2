@@ -53,8 +53,17 @@ export class InventoryService {
     });
   }
 
-  findAll(): Promise<Item[]> {
-    return this.itemsRepository.find();
+  async findAll(): Promise<{ item_id: string; quantity: string }[]> {
+    return await this.dataSource.transaction(async (manager) => {
+      const itemQuantities = await manager
+        .createQueryBuilder(Transaction, 'transaction')
+        .select('SUM(transaction.quantity)', 'quantity') // sum quantities
+        .addSelect('transaction.item_id', 'item_id') // select the item ID
+        .groupBy('item_id') // and group by it
+        .getRawMany(); // execute the aggregate query
+
+      return itemQuantities;
+    });
   }
 
   findOne(id: string): Promise<Item | null> {
