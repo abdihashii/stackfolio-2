@@ -30,7 +30,9 @@ Presets are stored as `ItemType` records in `item_types`. Only presets can be se
 | Generic silver bar, 1 oz         | Generic gold bar, 1 oz         |
 | Generic silver bar, 10 oz        |                                |
 
-All ounces are troy ounces. Presets supply metal, weight, and purity. Verify fine-metal content before implementation: advertised bullion weight can mean fine-metal weight rather than gross alloy weight, especially for Gold Eagles. Do not apply purity twice.
+All ounces are troy ounces. For every preset, `weight` and `weight_unit` describe fine-metal content, not gross alloy weight. Purity remains a product fact; do not multiply it into fine-metal weight. Current spot value is fine-metal weight converted to troy ounces × quantity × spot price. Verify each preset's fine-metal content before seeding.
+
+**Example:** The 1 oz American Gold Eagle contains 1 troy oz of fine gold at .9167 purity; its gross coin weight is 33.931 g (1.0909 troy oz). Store its fine-metal weight as 1 ozt, so one coin's gold spot value equals the price of one troy ounce of gold. The published gross weight and purity are rounded. Sources: [U.S. Mint specifications](https://www.usmint.gov/coins-precious-metal-coins/bullion-coin-programs/) and [APMEX random-year listing](https://www.apmex.com/product/1/1-oz-american-gold-eagle-coin-bu-random-year).
 
 ### Buy Flow
 
