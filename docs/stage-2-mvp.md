@@ -69,9 +69,9 @@ The first buy creates the inventory item and transaction together; later buys ad
 
 Inventory is empty and the app is not in production; no existing-data conversion is needed.
 
-- [ ] Record and view buys for the nine presets through the app and API; repeated buys appear under one item with separate transactions.
-- [ ] Show current quantities derived from transactions and correct spot values for every preset’s fine-metal content.
-- [ ] Quantity cannot be edited directly through the app or API.
+- [x] Record and view buys for the nine presets through the app and API; repeated buys appear under one item with separate transactions.
+- [x] Show current quantities derived from transactions and correct spot values for every preset’s fine-metal content.
+- [x] Quantity cannot be edited directly through the app or API.
 
 **Verify:** Buy one Silver Eagle in January and another in March. After reload, one item shows quantity two and both buys; ownership in February is one.
 
