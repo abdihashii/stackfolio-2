@@ -17,6 +17,8 @@ export class InventoryService {
   constructor(
     @InjectRepository(Item)
     private itemsRepository: Repository<Item>,
+    @InjectRepository(Transaction)
+    private transactionRepository: Repository<Transaction>,
     private dataSource: DataSource,
   ) {}
 
@@ -81,6 +83,10 @@ export class InventoryService {
 
   findOne(id: string): Promise<Item | null> {
     return this.itemsRepository.findOneBy({ id });
+  }
+
+  findTransactions(id: string): Promise<Transaction[]> {
+    return this.transactionRepository.findBy({ item: { id } });
   }
 
   async update(id: string, updateItemDto: UpdateItemDto) {

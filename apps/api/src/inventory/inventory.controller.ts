@@ -23,6 +23,11 @@ export class InventoryController {
     return this.inventoryService.findOne(id);
   }
 
+  @Get(':id/transactions')
+  findTransactions(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.inventoryService.findTransactions(id);
+  }
+
   @Patch(':id')
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateItemDto: UpdateItemDto) {
     return this.inventoryService.update(id, updateItemDto);
