@@ -140,7 +140,11 @@ export const ItemCard = ({
                       className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
                     <div className="flex gap-3">
-                      <button type="submit" disabled={isTransactionBusy} className="text-blue-500 hover:underline">
+                      <button
+                        type="submit"
+                        disabled={isTransactionBusy}
+                        className="text-blue-500 hover:cursor-pointer hover:underline"
+                      >
                         {updateTransactionMutation.isPending ? 'Saving...' : 'Save'}
                       </button>
                       <button
@@ -150,7 +154,7 @@ export const ItemCard = ({
                           setEditingTransactionId(null);
                           updateTransactionMutation.reset();
                         }}
-                        className="text-red-500 hover:underline"
+                        className="text-red-500 hover:cursor-pointer hover:underline"
                       >
                         Cancel edit
                       </button>
