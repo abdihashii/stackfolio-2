@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import type { Item } from '@/types/inventory.types';
 
-import { fetchTransactions } from '@/lib/apis';
+import { fetchTransactions, updateTransaction } from '@/lib/apis';
 import { calculateItemValue, formatUsd } from '@/lib/utils';
 
 type ItemCardProps = {
@@ -25,18 +25,36 @@ export const ItemCard = ({
   spotPrice,
   spotPricesTimestamp,
   onDelete,
-  onStartUpdate,
 }: ItemCardProps) => {
   const { id, quantity, item_type, acquisition_date } = item;
   const { name, weight_unit, weight, purity } = item_type;
 
   const [manageSectionState, setManageSectionState] = useState<'closed' | 'manage' | 'transactions'>('closed');
+  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
 
+  const queryClient = useQueryClient();
+  const updateTransactionMutation = useMutation({
+    mutationFn: ({ transactionId, quantity }: { transactionId: string; quantity: number }) =>
+      updateTransaction(id, transactionId, quantity),
+    onSuccess: async () => {
+      setEditingTransactionId(null);
+      try {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['itemTransactions', id] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
+        ]);
+      } catch {
+        alert('Transaction saved, but could not refresh. Reload the page.');
+      }
+    },
+  });
   const itemTransactionsQuery = useQuery({
     queryKey: ['itemTransactions', id],
     queryFn: () => fetchTransactions(id),
     enabled: manageSectionState === 'transactions',
   });
+
+  const isTransactionBusy = isBusy || updateTransactionMutation.isPending;
 
   return (
     <>
@@ -78,7 +96,7 @@ export const ItemCard = ({
             className="text-red-500 hover:cursor-pointer hover:underline"
             type="button"
             onClick={() => onDelete(id)}
-            disabled={isBusy}
+            disabled={isTransactionBusy}
           >
             delete item
           </button>
@@ -94,17 +112,74 @@ export const ItemCard = ({
           ) : itemTransactionsQuery.data.length > 0 ? (
             itemTransactionsQuery.data.map((transaction) => (
               <div key={transaction.id}>
-                <p>Type: {transaction.type}</p>
-                <p>Quantity: {transaction.quantity}</p>
-                <p>Effective date: {transaction.effective_date}</p>
-                {transaction.type === 'buy' && (
-                  <button
-                    type="button"
-                    className="text-blue-500 hover:cursor-pointer hover:underline"
-                    onClick={() => alert('yur')}
+                {editingTransactionId === transaction.id ? (
+                  <form
+                    className="flex flex-col gap-2"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      if (isTransactionBusy) return;
+                      const data = new FormData(event.currentTarget);
+                      updateTransactionMutation.mutate({
+                        transactionId: transaction.id,
+                        quantity: Number(data.get('quantity')),
+                      });
+                    }}
                   >
-                    edit
-                  </button>
+                    <p>Buy on {transaction.effective_date}</p>
+                    <label htmlFor={`quantity-${transaction.id}`}>Quantity:</label>
+                    <input
+                      id={`quantity-${transaction.id}`}
+                      name="quantity"
+                      type="number"
+                      defaultValue={transaction.quantity}
+                      min="1"
+                      max="2147483647"
+                      step="1"
+                      required
+                      disabled={isTransactionBusy}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2"
+                    />
+                    <div className="flex gap-3">
+                      <button type="submit" disabled={isTransactionBusy} className="text-blue-500 hover:underline">
+                        {updateTransactionMutation.isPending ? 'Saving...' : 'Save'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isTransactionBusy}
+                        onClick={() => {
+                          setEditingTransactionId(null);
+                          updateTransactionMutation.reset();
+                        }}
+                        className="text-red-500 hover:underline"
+                      >
+                        Cancel edit
+                      </button>
+                    </div>
+                    {updateTransactionMutation.isError && (
+                      <p role="alert" className="text-red-500">
+                        {updateTransactionMutation.error.message}
+                      </p>
+                    )}
+                  </form>
+                ) : (
+                  <>
+                    <p>Type: {transaction.type}</p>
+                    <p>Quantity: {transaction.quantity}</p>
+                    <p>Effective date: {transaction.effective_date}</p>
+                    {transaction.type === 'buy' && (
+                      <button
+                        type="button"
+                        disabled={isTransactionBusy}
+                        className="text-blue-500 hover:cursor-pointer hover:underline"
+                        onClick={() => {
+                          updateTransactionMutation.reset();
+                          setEditingTransactionId(transaction.id);
+                        }}
+                      >
+                        edit
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             ))
@@ -118,8 +193,12 @@ export const ItemCard = ({
         <button
           className="text-blue-500 hover:cursor-pointer hover:underline"
           type="button"
-          onClick={() => setManageSectionState((prevState) => (prevState === 'closed' ? 'manage' : 'closed'))}
-          disabled={isBusy}
+          onClick={() => {
+            setEditingTransactionId(null);
+            updateTransactionMutation.reset();
+            setManageSectionState((prevState) => (prevState === 'closed' ? 'manage' : 'closed'));
+          }}
+          disabled={isTransactionBusy}
           aria-expanded={manageSectionState !== 'closed' ? 'true' : 'false'}
         >
           {manageSectionState === 'closed' ? 'manage' : 'cancel'}
