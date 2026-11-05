@@ -1,6 +1,6 @@
 import { BuyFormValues } from '@/types/form.schema';
 
-import type { Item, ItemType } from '../types/inventory.types';
+import type { Item, ItemType, Transaction } from '../types/inventory.types';
 
 const backendUrlPath = import.meta.env.VITE_API_URL;
 
@@ -73,6 +73,18 @@ export const fetchItemTypes = async (): Promise<ItemType[]> => {
   });
   if (!res.ok) {
     throw new Error('Could not fetch item types.');
+  }
+  return await res.json();
+};
+
+export const fetchTransactions = async (id: string): Promise<Transaction[]> => {
+  const res = await fetch(`${backendUrlPath}/inventory/${id}/transactions`, {
+    headers: {
+      'Content-type': 'application/json',
+    },
+  });
+  if (!res.ok) {
+    throw new Error('Could not fetch transactions.');
   }
   return await res.json();
 };
