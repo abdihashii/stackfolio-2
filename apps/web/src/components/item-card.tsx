@@ -1,7 +1,9 @@
+import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import type { Item } from '@/types/inventory.types';
 
+import { fetchTransactions } from '@/lib/apis';
 import { calculateItemValue, formatUsd } from '@/lib/utils';
 
 type ItemCardProps = {
@@ -29,6 +31,12 @@ export const ItemCard = ({
   const { name, weight_unit, weight, purity } = item_type;
 
   const [manageSectionState, setManageSectionState] = useState<'closed' | 'manage' | 'transactions'>('closed');
+
+  const itemTransactionsQuery = useQuery({
+    queryKey: ['itemTransactions', id],
+    queryFn: () => fetchTransactions(id),
+    enabled: manageSectionState === 'transactions',
+  });
 
   return (
     <>
@@ -78,8 +86,22 @@ export const ItemCard = ({
       )}
 
       {manageSectionState === 'transactions' && (
-        <div className="flex w-full justify-between rounded-md border border-gray-300 px-4 py-2">
-          transactions section
+        <div className="flex w-full flex-col gap-2 rounded-md border border-gray-300 px-4 py-2">
+          {itemTransactionsQuery.isPending ? (
+            <p>Loading transactions...</p>
+          ) : itemTransactionsQuery.isError ? (
+            <p>Error loading transactions.</p>
+          ) : itemTransactionsQuery.data.length > 0 ? (
+            itemTransactionsQuery.data.map((transaction) => (
+              <div key={transaction.id}>
+                <p>Type: {transaction.type}</p>
+                <p>Quantity: {transaction.quantity}</p>
+                <p>Effective date: {transaction.effective_date}</p>
+              </div>
+            ))
+          ) : (
+            <p>No transactions found.</p>
+          )}
         </div>
       )}
 
