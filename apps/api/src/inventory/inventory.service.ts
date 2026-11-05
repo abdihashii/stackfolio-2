@@ -59,7 +59,6 @@ export class InventoryService {
   async findAll(): Promise<ItemWithQuantity[]> {
     return await this.dataSource.transaction(async (manager) => {
       const itemsRepository = manager.getRepository(Item);
-      const transactionRepository = manager.getRepository(Transaction);
 
       const itemQuantities = await manager
         .createQueryBuilder(Transaction, 'transaction')
@@ -67,9 +66,6 @@ export class InventoryService {
         .addSelect('transaction.item_id', 'item_id') // select the item ID
         .groupBy('item_id') // and group by it
         .getRawMany(); // execute the aggregate query
-
-      // Fetch all buy transactions including their item relation to match each buy to its item
-      
 
       const allItems = await itemsRepository.find({ relations: { item_type: true } });
 
