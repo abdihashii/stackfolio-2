@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
 import { RecordBuyDto } from './dto/record-buy.dto.js';
 import { UpdateItemDto } from './dto/update-item.dto.js';
+import { UpdateTransactionDto } from './dto/update-transaction.dto.js';
 import { ItemType } from './entities/item-type.entity.js';
 import { Item } from './entities/item.entity.js';
 import { Transaction } from './entities/transaction.entity.js';
@@ -89,10 +90,27 @@ export class InventoryService {
     return this.transactionRepository.findBy({ item: { id } });
   }
 
+  findTransactionForItem(itemId: string, transactionId: string): Promise<Transaction | null> {
+    return this.transactionRepository.findOneBy({ item: { id: itemId }, id: transactionId });
+  }
+
   async update(id: string, updateItemDto: UpdateItemDto) {
     const res = await this.itemsRepository.update(id, updateItemDto);
     if (res.affected === 0) {
       throw new NotFoundException('Item not found.');
+    }
+    return res;
+  }
+
+  async updateTransaction(itemId: string, transactionId: string, updateTransactionDto: UpdateTransactionDto) {
+    const transaction = await this.findTransactionForItem(itemId, transactionId);
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found.');
+    }
+    if (transaction.type !== 'buy') throw new BadRequestException('Only buy transactions can be updated.');
+    const res = await this.transactionRepository.update(transactionId, { quantity: updateTransactionDto.quantity });
+    if (res.affected === 0) {
+      throw new NotFoundException('Transaction not found.');
     }
     return res;
   }

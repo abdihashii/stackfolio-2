@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post } from
 
 import { RecordBuyDto } from './dto/record-buy.dto.js';
 import { UpdateItemDto } from './dto/update-item.dto.js';
+import { UpdateTransactionDto } from './dto/update-transaction.dto.js';
 import { InventoryService } from './inventory.service.js';
 
 @Controller('inventory')
@@ -31,6 +32,15 @@ export class InventoryController {
   @Patch(':id')
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateItemDto: UpdateItemDto) {
     return this.inventoryService.update(id, updateItemDto);
+  }
+
+  @Patch(':itemId/transactions/:transactionId')
+  updateTransaction(
+    @Param('itemId', new ParseUUIDPipe()) itemId: string,
+    @Param('transactionId', new ParseUUIDPipe()) transactionId: string,
+    @Body() updateTransactionDto: UpdateTransactionDto,
+  ) {
+    return this.inventoryService.updateTransaction(itemId, transactionId, updateTransactionDto);
   }
 
   @Delete(':id')
