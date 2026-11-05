@@ -87,7 +87,10 @@ export class InventoryService {
   }
 
   findTransactions(id: string): Promise<Transaction[]> {
-    return this.transactionRepository.findBy({ item: { id } });
+    return this.transactionRepository.find({
+      where: { item: { id } },
+      order: { effective_date: 'DESC', created_at: 'DESC', id: 'DESC' },
+    });
   }
 
   findTransactionForItem(itemId: string, transactionId: string): Promise<Transaction | null> {
