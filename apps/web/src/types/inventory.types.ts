@@ -23,3 +23,11 @@ export interface Item {
   item_type: ItemType;
   acquisition_date: string | null;
 }
+
+export interface Transaction {
+  id: string;
+  created_at: string;
+  effective_date: string;
+  type: 'buy' | 'sell';
+  quantity: number;
+}
