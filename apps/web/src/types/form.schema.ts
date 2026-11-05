@@ -1,6 +1,6 @@
 import * as z from 'zod';
 
-import { metals, weightUnits, itemCategories } from './inventory.types';
+import { itemCategories, metals, weightUnits } from './inventory.types';
 
 export const schema = z.object({
   metal: z.enum(metals),

@@ -1,6 +1,8 @@
+import { useState } from 'react';
+
 import type { Item } from '@/types/inventory.types';
 
-import { formatUsd, calculateItemValue } from '@/lib/utils';
+import { calculateItemValue, formatUsd } from '@/lib/utils';
 
 type ItemCardProps = {
   item: Item;
@@ -26,6 +28,8 @@ export const ItemCard = ({
   const { id, quantity, item_type, acquisition_date } = item;
   const { name, weight_unit, weight, purity } = item_type;
 
+  const [manageSectionState, setManageSectionState] = useState<'closed' | 'manage' | 'transactions'>('closed');
+
   return (
     <>
       <h3 className="text-lg font-semibold capitalize">{name}</h3>
@@ -44,7 +48,7 @@ export const ItemCard = ({
         <p>{spotPricesError}</p>
       ) : spotPrice !== undefined ? (
         <>
-          <p className="mt-2 text-sm text-gray-500 wrap-break-word">
+          <p className="mt-2 text-sm wrap-break-word text-gray-500">
             Price snapshot: {new Date(spotPricesTimestamp).toISOString()}
           </p>
 
@@ -54,22 +58,40 @@ export const ItemCard = ({
         <p className="mt-3 font-semibold">Item value: Unavailable</p>
       )}
 
-      <div className="w-full flex justify-between">
+      {manageSectionState === 'manage' && (
+        <div className="flex w-full justify-between rounded-md border border-gray-300 px-4 py-2">
+          <button type="button" className="hover:cursor-pointer" onClick={() => setManageSectionState('transactions')}>
+            edit transactions
+          </button>
+          <button type="button" disabled className="hover:cursor-pointer">
+            sell
+          </button>
+          <button
+            className="text-red-500 hover:cursor-pointer hover:underline"
+            type="button"
+            onClick={() => onDelete(id)}
+            disabled={isBusy}
+          >
+            delete item
+          </button>
+        </div>
+      )}
+
+      {manageSectionState === 'transactions' && (
+        <div className="flex w-full justify-between rounded-md border border-gray-300 px-4 py-2">
+          transactions section
+        </div>
+      )}
+
+      <div className="flex w-full justify-between">
         <button
           className="text-blue-500 hover:cursor-pointer hover:underline"
           type="button"
-          onClick={() => onStartUpdate(item)}
+          onClick={() => setManageSectionState((prevState) => (prevState === 'closed' ? 'manage' : 'closed'))}
           disabled={isBusy}
+          aria-expanded={manageSectionState !== 'closed' ? 'true' : 'false'}
         >
-          update
-        </button>
-        <button
-          className="text-red-500 hover:cursor-pointer hover:underline"
-          type="button"
-          onClick={() => onDelete(id)}
-          disabled={isBusy}
-        >
-          delete
+          {manageSectionState === 'closed' ? 'manage' : 'cancel'}
         </button>
       </div>
     </>
