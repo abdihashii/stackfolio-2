@@ -97,6 +97,15 @@ export const ItemCard = ({
                 <p>Type: {transaction.type}</p>
                 <p>Quantity: {transaction.quantity}</p>
                 <p>Effective date: {transaction.effective_date}</p>
+                {transaction.type === 'buy' && (
+                  <button
+                    type="button"
+                    className="text-blue-500 hover:cursor-pointer hover:underline"
+                    onClick={() => alert('yur')}
+                  >
+                    edit
+                  </button>
+                )}
               </div>
             ))
           ) : (
