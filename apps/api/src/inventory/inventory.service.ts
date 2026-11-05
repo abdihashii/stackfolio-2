@@ -69,7 +69,11 @@ export class InventoryService {
         .groupBy('item_id') // and group by it
         .getRawMany(); // execute the aggregate query
 
-      const allItems = await itemsRepository.find({ relations: { item_type: true }, order: { created_at: 'DESC' } });
+      const allItems = await itemsRepository.find({
+        relations: { item_type: true },
+        order: { created_at: 'DESC', id: 'DESC' },
+        take: 12,
+      });
 
       return allItems.map((item) => {
         const matchingTotal = itemQuantities.find((itemQuantity) => itemQuantity.item_id === item.id);
@@ -92,6 +96,7 @@ export class InventoryService {
     return this.transactionRepository.find({
       where: { item: { id } },
       order: { effective_date: 'DESC', created_at: 'DESC', id: 'DESC' },
+      take: 3,
     });
   }
 
