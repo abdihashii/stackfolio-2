@@ -58,7 +58,7 @@ export class InventoryService {
     });
   }
 
-  async findAll(page: number): Promise<ItemWithQuantity[]> {
+  async findAll(page: number): Promise<{ inventory: ItemWithQuantity[]; total: number }> {
     const skip = (page - 1) * 12;
 
     return await this.dataSource.transaction(async (manager) => {
@@ -71,14 +71,14 @@ export class InventoryService {
         .groupBy('item_id') // and group by it
         .getRawMany(); // execute the aggregate query
 
-      const allItems = await itemsRepository.find({
+      const [allItems, totalItems] = await itemsRepository.findAndCount({
         relations: { item_type: true },
         order: { created_at: 'DESC', id: 'DESC' },
         take: 12,
         skip,
       });
 
-      return allItems.map((item) => {
+      const allItemsWithQuantities = allItems.map((item) => {
         const matchingTotal = itemQuantities.find((itemQuantity) => itemQuantity.item_id === item.id);
         return {
           id: item.id,
@@ -88,6 +88,8 @@ export class InventoryService {
           quantity: Number(matchingTotal?.quantity ?? 0),
         };
       });
+
+      return { inventory: allItemsWithQuantities, total: totalItems };
     });
   }
 
