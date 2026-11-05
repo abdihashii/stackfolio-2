@@ -11,7 +11,6 @@
     "build": "nest build",
     "seed": "bun run build && node dist/scripts/seed.js",
     "deploy": "nest deploy",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start --env-file .env.local",
     "start:dev": "nest start --env-file .env.local --watch",
     "start:debug": "nest start --debug --watch",
