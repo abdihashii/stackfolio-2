@@ -10,7 +10,12 @@ type HistoricalSpotPrice = {
 
 @Injectable()
 export class SpotPricesService {
-  async getSpotPrices() {
+  async getSpotPrices(): Promise<{
+    timestamp: string;
+    currency: 'USD';
+    unit: 'toz';
+    prices: { gold: number; silver: number };
+  }> {
     const res = await fetch(`${STACKFOLIO_API_URL}/spot-price`);
     if (!res.ok) {
       throw new BadGatewayException('Could not fetch spot prices.');

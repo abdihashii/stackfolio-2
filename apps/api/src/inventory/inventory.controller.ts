@@ -32,6 +32,11 @@ export class InventoryController {
     return this.inventoryService.findAll(page);
   }
 
+  @Get('valuation')
+  getValuation() {
+    return this.inventoryService.getValuation();
+  }
+
   @Get(':id')
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.inventoryService.findOne(id);

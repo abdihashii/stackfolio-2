@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
+import { SpotPricesService } from '../spot-prices/spot-prices.service.js';
 import { RecordBuyDto } from './dto/record-buy.dto.js';
 import { UpdateTransactionDto } from './dto/update-transaction.dto.js';
 import { ItemType } from './entities/item-type.entity.js';
@@ -20,6 +21,7 @@ export class InventoryService {
     @InjectRepository(Transaction)
     private transactionRepository: Repository<Transaction>,
     private dataSource: DataSource,
+    private spotPricesService: SpotPricesService,
   ) {}
 
   async create(recordBuyDto: RecordBuyDto): Promise<Item> {
@@ -125,5 +127,35 @@ export class InventoryService {
 
   async remove(id: string): Promise<void> {
     await this.itemsRepository.delete(id);
+  }
+
+  async getValuation(): Promise<{
+    totalValue: number;
+    quote: { timestamp: string; currency: 'USD'; unit: 'toz'; prices: { gold: number; silver: number } };
+  }> {
+    const spotPrices = await this.spotPricesService.getSpotPrices();
+    const metalTotals = await this.transactionRepository
+      .createQueryBuilder('transaction')
+      .innerJoin('transaction.item', 'item')
+      .innerJoin('item.item_type', 'item_type')
+      .select('item_type.metal', 'metal')
+      .groupBy('item_type.metal')
+      .addSelect(
+        `SUM(transaction.quantity * CASE
+          WHEN item_type.weight_unit = 'gram'
+            THEN item_type.weight / 31.1034768
+          ELSE item_type.weight
+          END)`,
+        'total_ozt',
+      )
+      .getRawMany<{
+        metal: 'gold' | 'silver';
+        total_ozt: number;
+      }>();
+    const totalValue = metalTotals.reduce((acc, row) => acc + row.total_ozt * spotPrices.prices[row.metal], 0);
+    return {
+      totalValue,
+      quote: spotPrices,
+    };
   }
 }

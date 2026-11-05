@@ -6,5 +6,6 @@ import { SpotPricesService } from './spot-prices.service.js';
 @Module({
   providers: [SpotPricesService],
   controllers: [SpotPricesController],
+  exports: [SpotPricesService],
 })
 export class SpotPricesModule {}
