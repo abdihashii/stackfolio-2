@@ -5,6 +5,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "oxlint src/",
+    "lint:fix": "oxlint --fix src/",
     "dev": "vite dev",
     "build": "vite build"
   },

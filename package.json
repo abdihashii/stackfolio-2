@@ -7,10 +7,13 @@
   ],
   "scripts": {
     "typecheck": "bun run --cwd apps/api typecheck && bun run --cwd apps/web typecheck",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
+    "lint": "bun run --workspaces --if-present lint",
+    "lint:fix": "bun run --workspaces --if-present lint:fix",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -19,8 +22,5 @@
   },
   "peerDependencies": {
     "typescript": "^7.0.2"
-  },
-  "dependencies": {
-    "zod": "^4.6.7"
   }
 }
