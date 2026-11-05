@@ -14,6 +14,13 @@
           "variables": "off"
         }
       }
+    ],
+    "sort-imports": [
+      "error",
+      {
+        "ignoreDeclarationSort": true,
+        "ignoreCase": true
+      }
     ]
   },
   "env": {
