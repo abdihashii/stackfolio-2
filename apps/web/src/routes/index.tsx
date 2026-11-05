@@ -4,10 +4,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Form } from '@/components/form';
 import { H2 } from '@/components/h2';
 import { ItemCard } from '@/components/item-card';
-import { UpdateForm } from '@/components/update-form';
 import { useCreateItem } from '@/hooks/use-create-item';
 import { useDeleteItem } from '@/hooks/use-delete-item';
-import { useUpdateItem } from '@/hooks/use-update-item';
 import { fetchInventory, fetchItemTypes, fetchSpotPrices } from '@/lib/apis';
 import { calculateStackValue, formatUsd } from '@/lib/utils';
 
@@ -19,12 +17,7 @@ function Home() {
   const inventoryQuery = useQuery({ queryKey: ['inventory'], queryFn: fetchInventory });
   const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
   const { form, createItemMutation, onCreateItem } = useCreateItem(inventoryQuery.isPending);
-  const { updatingItemId, setUpdatingItemId, updateForm, onUpdateItem, onStartUpdate } = useUpdateItem();
-  const isBusyWithoutDelete =
-    form.formState.isSubmitting ||
-    updateForm.formState.isSubmitting ||
-    createItemMutation.isPending ||
-    inventoryQuery.isPending;
+  const isBusyWithoutDelete = form.formState.isSubmitting || createItemMutation.isPending || inventoryQuery.isPending;
   const { deleteItemMutation, onDeleteItem } = useDeleteItem(isBusyWithoutDelete);
 
   const itemTypesQuery = useQuery({ queryKey: ['itemTypes'], queryFn: fetchItemTypes });
@@ -69,45 +62,15 @@ function Home() {
 
                 return (
                   <div key={item.id} className="rounded-md border border-gray-300 p-4">
-                    {updatingItemId === item.id ? (
-                      <>
-                        {itemTypesQuery.isPending ? (
-                          <p>Loading item types...</p>
-                        ) : itemTypesQuery.isError ? (
-                          <p>{itemTypesQuery.error.message}</p>
-                        ) : itemTypesQuery.data.length === 0 ? (
-                          <p>Item types are empty. Please refresh.</p>
-                        ) : (
-                          <UpdateForm
-                            updateForm={updateForm}
-                            id={item.id}
-                            isBusy={isBusy}
-                            onUpdate={onUpdateItem}
-                            itemTypes={itemTypesQuery.data}
-                          />
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => setUpdatingItemId(null)}
-                          className="text-red-500 hover:cursor-pointer hover:underline"
-                          disabled={isBusy}
-                        >
-                          cancel
-                        </button>
-                      </>
-                    ) : (
-                      <ItemCard
-                        item={item}
-                        isBusy={isBusy}
-                        isSpotPricesLoading={spotPricesQuery.isPending}
-                        spotPricesError={spotPricesQuery.error?.message ?? ''}
-                        spotPrice={spotPrice}
-                        spotPricesTimestamp={spotPricesQuery.data?.timestamp ?? ''}
-                        onDelete={onDeleteItem}
-                        onStartUpdate={onStartUpdate}
-                      />
-                    )}
+                    <ItemCard
+                      item={item}
+                      isBusy={isBusy}
+                      isSpotPricesLoading={spotPricesQuery.isPending}
+                      spotPricesError={spotPricesQuery.error?.message ?? ''}
+                      spotPrice={spotPrice}
+                      spotPricesTimestamp={spotPricesQuery.data?.timestamp ?? ''}
+                      onDelete={onDeleteItem}
+                    />
                   </div>
                 );
               })

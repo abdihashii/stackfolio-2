@@ -14,7 +14,6 @@ type ItemCardProps = {
   spotPrice: number | undefined;
   spotPricesTimestamp: string;
   onDelete: (id: string) => Promise<void>;
-  onStartUpdate: (item: Item) => void;
 };
 
 export const ItemCard = ({

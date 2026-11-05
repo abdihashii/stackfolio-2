@@ -50,21 +50,6 @@ export const deleteItem = async (id: string): Promise<void> => {
   }
 };
 
-export const updateItem = async (id: string, newPayload: BuyFormValues): Promise<void> => {
-  const res = await fetch(`${backendUrlPath}/inventory/${id}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-type': 'application/json',
-    },
-    body: JSON.stringify(newPayload),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
-    throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not update item.');
-  }
-};
-
 export const fetchItemTypes = async (): Promise<ItemType[]> => {
   const res = await fetch(`${backendUrlPath}/item-types`, {
     headers: {
