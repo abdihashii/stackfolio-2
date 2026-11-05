@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsPositive, Max, Matches, IsDateString, IsUUID } from 'class-validator';
+import { IsDateString, IsInt, IsOptional, IsPositive, IsUUID, Matches, Max } from 'class-validator';
 
 export class RecordBuyDto {
   @IsInt({ message: 'Quantity must be a whole number.' })
