@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 
 import { RecordBuyDto } from './dto/record-buy.dto.js';
 import { UpdateTransactionDto } from './dto/update-transaction.dto.js';
@@ -14,8 +27,9 @@ export class InventoryController {
   }
 
   @Get()
-  findAll() {
-    return this.inventoryService.findAll();
+  findAll(@Query('page', new DefaultValuePipe('1'), new ParseIntPipe()) page = 1) {
+    if (page < 1) throw new BadRequestException('Page number must be greater than 0.');
+    return this.inventoryService.findAll(page);
   }
 
   @Get(':id')

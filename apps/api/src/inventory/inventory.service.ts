@@ -58,7 +58,9 @@ export class InventoryService {
     });
   }
 
-  async findAll(): Promise<ItemWithQuantity[]> {
+  async findAll(page: number): Promise<ItemWithQuantity[]> {
+    const skip = (page - 1) * 12;
+
     return await this.dataSource.transaction(async (manager) => {
       const itemsRepository = manager.getRepository(Item);
 
@@ -73,6 +75,7 @@ export class InventoryService {
         relations: { item_type: true },
         order: { created_at: 'DESC', id: 'DESC' },
         take: 12,
+        skip,
       });
 
       return allItems.map((item) => {
