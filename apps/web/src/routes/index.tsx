@@ -6,36 +6,25 @@ import { H2 } from '@/components/h2';
 import { ItemCard } from '@/components/item-card';
 import { useCreateItem } from '@/hooks/use-create-item';
 import { useDeleteItem } from '@/hooks/use-delete-item';
-import { fetchInventory, fetchItemTypes, fetchSpotPrices } from '@/lib/apis';
-import { calculateStackValue, formatUsd } from '@/lib/utils';
+import { fetchInventory, fetchItemTypes, fetchValuation } from '@/lib/apis';
+import { formatUsd } from '@/lib/utils';
 
 export const Route = createFileRoute('/')({
   component: Home,
 });
 
 function Home() {
-  const inventoryQuery = useQuery({ queryKey: ['inventory'], queryFn: fetchInventory });
-  const spotPricesQuery = useQuery({ queryKey: ['spot-prices'], queryFn: fetchSpotPrices });
+  const inventoryQuery = useQuery({ queryKey: ['inventory'], queryFn: () => fetchInventory(1) });
   const { form, createItemMutation, onCreateItem } = useCreateItem(inventoryQuery.isPending);
   const isBusyWithoutDelete = form.formState.isSubmitting || createItemMutation.isPending || inventoryQuery.isPending;
   const { deleteItemMutation, onDeleteItem } = useDeleteItem(isBusyWithoutDelete);
 
   const itemTypesQuery = useQuery({ queryKey: ['itemTypes'], queryFn: fetchItemTypes });
-
-  const stackValue = calculateStackValue(inventoryQuery.data, {
-    gold: spotPricesQuery.data?.prices.gold,
-    silver: spotPricesQuery.data?.prices.silver,
+  const valuationQuery = useQuery({
+    queryKey: ['valuation'],
+    queryFn: () => fetchValuation(),
   });
-  let stackValueText = 'Unavailable';
-  if (inventoryQuery.isPending) {
-    stackValueText = 'Loading...';
-  } else if (!inventoryQuery.isError) {
-    if (inventoryQuery.data.length > 0 && spotPricesQuery.isPending) {
-      stackValueText = 'Loading...';
-    } else if (stackValue !== undefined && (inventoryQuery.data.length === 0 || !spotPricesQuery.isError)) {
-      stackValueText = formatUsd(stackValue);
-    }
-  }
+
   const isBusy = isBusyWithoutDelete || deleteItemMutation.isPending;
 
   return (
@@ -43,7 +32,14 @@ function Home() {
       <h1 className="text-4xl font-bold">StackFolio 2</h1>
 
       <div className="flex w-full max-w-md flex-col gap-1 rounded-md border border-gray-300 p-4">
-        <H2>Total Stack Value: {stackValueText}</H2>
+        <H2>
+          Total Stack Value:{' '}
+          {valuationQuery.isPending
+            ? 'loading...'
+            : valuationQuery.isError
+              ? valuationQuery.error.message
+              : formatUsd(valuationQuery.data.totalValue)}
+        </H2>
         <p className="text-gray-500">
           Based on weight, purity, quantity, and spot price. Actual resale value may differ.
         </p>
@@ -56,19 +52,19 @@ function Home() {
           <p>{inventoryQuery.error.message}</p>
         ) : (
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-            {inventoryQuery.data.length > 0 ? (
-              inventoryQuery.data.map((item) => {
-                const spotPrice = spotPricesQuery.data?.prices[item.item_type.metal];
+            {inventoryQuery.data?.inventory.length > 0 ? (
+              inventoryQuery.data.inventory.map((item) => {
+                const spotPrice = valuationQuery?.data?.quote.prices[item.item_type.metal];
 
                 return (
                   <div key={item.id} className="rounded-md border border-gray-300 p-4">
                     <ItemCard
                       item={item}
                       isBusy={isBusy}
-                      isSpotPricesLoading={spotPricesQuery.isPending}
-                      spotPricesError={spotPricesQuery.error?.message ?? ''}
+                      isSpotPricesLoading={valuationQuery.isPending}
+                      spotPricesError={valuationQuery.error?.message ?? ''}
                       spotPrice={spotPrice}
-                      spotPricesTimestamp={spotPricesQuery.data?.timestamp ?? ''}
+                      spotPricesTimestamp={valuationQuery.data?.quote.timestamp ?? ''}
                       onDelete={onDeleteItem}
                     />
                   </div>

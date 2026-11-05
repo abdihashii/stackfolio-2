@@ -41,6 +41,7 @@ export const ItemCard = ({
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ['itemTransactions', id] }, { throwOnError: true }),
           queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
         ]);
       } catch {
         alert('Transaction saved, but could not refresh. Reload the page.');
@@ -108,8 +109,8 @@ export const ItemCard = ({
             <p>Loading transactions...</p>
           ) : itemTransactionsQuery.isError ? (
             <p>Error loading transactions.</p>
-          ) : itemTransactionsQuery.data.length > 0 ? (
-            itemTransactionsQuery.data.map((transaction) => (
+          ) : itemTransactionsQuery.data.transactions.length > 0 ? (
+            itemTransactionsQuery.data.transactions.map((transaction) => (
               <div key={transaction.id}>
                 {editingTransactionId === transaction.id ? (
                   <form

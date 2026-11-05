@@ -20,8 +20,15 @@ export const useCreateItem = (inventoryIsPending: boolean) => {
   const createItemMutation = useMutation({
     mutationFn: createItem,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['inventory'] });
       form.reset();
+      try {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
+        ]);
+      } catch {
+        alert('Buy saved, but could not refresh. Reload the page.');
+      }
     },
   });
 

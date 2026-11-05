@@ -13,9 +13,11 @@ export const fetchSpotPrices = async () => {
   return data;
 };
 
-export const fetchInventory = async (): Promise<Item[]> => {
+export const fetchInventory = async (page = 1): Promise<{ inventory: Item[]; total: number }> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
-  const res = await fetch(`${backendUrlPath}/inventory`, { headers: { 'Content-Type': 'application/json' } });
+  const res = await fetch(`${backendUrlPath}/inventory?page=${page}`, {
+    headers: { 'Content-Type': 'application/json' },
+  });
   const data = await res.json();
   if (!res.ok) {
     const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
@@ -62,7 +64,7 @@ export const fetchItemTypes = async (): Promise<ItemType[]> => {
   return await res.json();
 };
 
-export const fetchTransactions = async (id: string): Promise<Transaction[]> => {
+export const fetchTransactions = async (id: string): Promise<{ transactions: Transaction[]; total: number }> => {
   const res = await fetch(`${backendUrlPath}/inventory/${id}/transactions`, {
     headers: {
       'Content-type': 'application/json',
@@ -87,4 +89,19 @@ export const updateTransaction = async (itemId: string, transactionId: string, n
     const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
     throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not update transaction.');
   }
+};
+
+export const fetchValuation = async (): Promise<{
+  totalValue: number;
+  quote: { timestamp: string; currency: 'USD'; unit: 'toz'; prices: { gold: number; silver: number } };
+}> => {
+  const res = await fetch(`${backendUrlPath}/inventory/valuation`, {
+    headers: {
+      'Content-type': 'application/json',
+    },
+  });
+  if (!res.ok) {
+    throw new Error('Could not fetch valuation.');
+  }
+  return await res.json();
 };

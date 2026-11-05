@@ -7,7 +7,16 @@ export const useDeleteItem = (isBusy: boolean) => {
 
   const deleteItemMutation = useMutation({
     mutationFn: deleteItem,
-    onSuccess: async () => await queryClient.invalidateQueries({ queryKey: ['inventory'] }),
+    onSuccess: async () => {
+      try {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
+        ]);
+      } catch {
+        alert('Item deleted, but could not refresh. Reload the page.');
+      }
+    },
   });
 
   const onDeleteItem = async (id: string) => {
