@@ -1,7 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 
 import { RecordBuyDto } from './dto/record-buy.dto.js';
-import { UpdateItemDto } from './dto/update-item.dto.js';
 import { UpdateTransactionDto } from './dto/update-transaction.dto.js';
 import { InventoryService } from './inventory.service.js';
 
@@ -27,11 +26,6 @@ export class InventoryController {
   @Get(':id/transactions')
   findTransactions(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.inventoryService.findTransactions(id);
-  }
-
-  @Patch(':id')
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateItemDto: UpdateItemDto) {
-    return this.inventoryService.update(id, updateItemDto);
   }
 
   @Patch(':itemId/transactions/:transactionId')

@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
 import { RecordBuyDto } from './dto/record-buy.dto.js';
-import { UpdateItemDto } from './dto/update-item.dto.js';
 import { UpdateTransactionDto } from './dto/update-transaction.dto.js';
 import { ItemType } from './entities/item-type.entity.js';
 import { Item } from './entities/item.entity.js';
@@ -95,14 +94,6 @@ export class InventoryService {
 
   findTransactionForItem(itemId: string, transactionId: string): Promise<Transaction | null> {
     return this.transactionRepository.findOneBy({ item: { id: itemId }, id: transactionId });
-  }
-
-  async update(id: string, updateItemDto: UpdateItemDto) {
-    const res = await this.itemsRepository.update(id, updateItemDto);
-    if (res.affected === 0) {
-      throw new NotFoundException('Item not found.');
-    }
-    return res;
   }
 
   async updateTransaction(itemId: string, transactionId: string, updateTransactionDto: UpdateTransactionDto) {
