@@ -47,7 +47,7 @@ function Home() {
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
-      <h1 className="font-bold text-4xl">StackFolio 2</h1>
+      <h1 className="text-4xl font-bold">StackFolio 2</h1>
 
       <div className="flex w-full max-w-md flex-col gap-1 rounded-md border border-gray-300 p-4">
         <H2>Total Stack Value: {stackValueText}</H2>
@@ -90,7 +90,7 @@ function Home() {
                         <button
                           type="button"
                           onClick={() => setUpdatingItemId(null)}
-                          className="hover:underline hover:cursor-pointer text-red-500"
+                          className="text-red-500 hover:cursor-pointer hover:underline"
                           disabled={isBusy}
                         >
                           cancel
