@@ -12,11 +12,13 @@ describe('InventoryService', () => {
   let service: InventoryService;
 
   const findMock = vi.fn().mockResolvedValue([]);
+  const findAndCountMock = vi.fn().mockResolvedValue([[], 0]);
   const findOneByMock = vi.fn().mockResolvedValue({ type: 'buy' });
   const updateMock = vi.fn().mockResolvedValue({ affected: 1 });
 
   beforeEach(async () => {
     findMock.mockReset().mockResolvedValue([]);
+    findAndCountMock.mockReset().mockResolvedValue([[], 0]);
     findOneByMock.mockReset().mockResolvedValue({ type: 'buy' });
     updateMock.mockReset().mockResolvedValue({ affected: 1 });
 
@@ -26,7 +28,7 @@ describe('InventoryService', () => {
         { provide: getRepositoryToken(Item), useValue: {} },
         {
           provide: getRepositoryToken(Transaction),
-          useValue: { find: findMock, findOneBy: findOneByMock, update: updateMock },
+          useValue: { find: findMock, findAndCount: findAndCountMock, findOneBy: findOneByMock, update: updateMock },
         },
         { provide: DataSource, useValue: {} },
       ],
@@ -40,11 +42,12 @@ describe('InventoryService', () => {
   });
 
   it('should fetch transactions for the specified item in stable newest-first order', async () => {
-    await service.findTransactions('test-item-id-1');
+    await service.findAllTransactions('test-item-id-1');
 
-    expect(findMock).toHaveBeenCalledWith({
+    expect(findAndCountMock).toHaveBeenCalledWith({
       where: { item: { id: 'test-item-id-1' } },
       order: { effective_date: 'DESC', created_at: 'DESC', id: 'DESC' },
+      take: 3,
     });
   });
 

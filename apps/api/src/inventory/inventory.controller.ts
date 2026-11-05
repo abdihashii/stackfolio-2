@@ -38,8 +38,8 @@ export class InventoryController {
   }
 
   @Get(':id/transactions')
-  findTransactions(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.inventoryService.findTransactions(id);
+  findAllTransactions(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.inventoryService.findAllTransactions(id);
   }
 
   @Patch(':itemId/transactions/:transactionId')

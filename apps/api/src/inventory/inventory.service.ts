@@ -97,12 +97,13 @@ export class InventoryService {
     return this.itemsRepository.findOneBy({ id });
   }
 
-  findTransactions(id: string): Promise<Transaction[]> {
-    return this.transactionRepository.find({
+  async findAllTransactions(id: string): Promise<{ transactions: Transaction[]; total: number }> {
+    const [transactions, total] = await this.transactionRepository.findAndCount({
       where: { item: { id } },
       order: { effective_date: 'DESC', created_at: 'DESC', id: 'DESC' },
       take: 3,
     });
+    return { transactions, total };
   }
 
   findTransactionForItem(itemId: string, transactionId: string): Promise<Transaction | null> {
