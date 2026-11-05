@@ -88,3 +88,18 @@ export const fetchTransactions = async (id: string): Promise<Transaction[]> => {
   }
   return await res.json();
 };
+
+export const updateTransaction = async (itemId: string, transactionId: string, newQuantity: number): Promise<void> => {
+  const res = await fetch(`${backendUrlPath}/inventory/${itemId}/transactions/${transactionId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-type': 'application/json',
+    },
+    body: JSON.stringify({ quantity: newQuantity }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
+    throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not update transaction.');
+  }
+};
