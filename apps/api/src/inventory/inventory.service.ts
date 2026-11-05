@@ -37,8 +37,8 @@ export class InventoryService {
       }
 
       const recordBuyDtoWithItemType = {
-        ...recordBuyDto,
         item_type: itemType,
+        acquisition_date: recordBuyDto.acquisition_date,
       };
 
       // Look for an existing item before creating one
@@ -74,7 +74,10 @@ export class InventoryService {
       return allItems.map((item) => {
         const matchingTotal = itemQuantities.find((itemQuantity) => itemQuantity.item_id === item.id);
         return {
-          ...item,
+          id: item.id,
+          created_at: item.created_at,
+          item_type: item.item_type,
+          acquisition_date: item.acquisition_date,
           quantity: Number(matchingTotal?.quantity ?? 0),
         };
       });

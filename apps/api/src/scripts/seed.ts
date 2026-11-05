@@ -22,7 +22,13 @@ try {
       const existing = await repository.findBy({ name: preset.name });
       assert(existing.length <= 1, `Duplicate preset: ${preset.name}`);
       if (existing.length === 1) {
-        const { id: _id, ...definition } = existing[0]!;
+        const definition = {
+          name: existing[0]!.name,
+          metal: existing[0]!.metal,
+          weight_unit: existing[0]!.weight_unit,
+          weight: existing[0]!.weight,
+          purity: existing[0]!.purity,
+        };
         assert.deepEqual(definition, preset, `Conflicting preset: ${preset.name}`);
       } else {
         await repository.insert(preset);

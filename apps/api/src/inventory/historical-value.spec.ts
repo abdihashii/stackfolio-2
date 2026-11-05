@@ -61,7 +61,14 @@ describe('calculateHistoricalValue', () => {
     const silver: ItemWithQuantity = {
       ...gold,
       id: 'test-silver',
-      item_type: { ...gold.item_type, id: 'test-silver-type', name: 'Test silver', metal: 'silver' },
+      item_type: {
+        id: 'test-silver-type',
+        name: 'Test silver',
+        metal: 'silver',
+        weight_unit: 'ozt',
+        weight: 1,
+        purity: 1,
+      },
       acquisition_date: '2026-01-05',
     };
 
