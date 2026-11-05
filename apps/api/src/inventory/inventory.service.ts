@@ -69,7 +69,7 @@ export class InventoryService {
         .groupBy('item_id') // and group by it
         .getRawMany(); // execute the aggregate query
 
-      const allItems = await itemsRepository.find({ relations: { item_type: true } });
+      const allItems = await itemsRepository.find({ relations: { item_type: true }, order: { created_at: 'DESC' } });
 
       return allItems.map((item) => {
         const matchingTotal = itemQuantities.find((itemQuantity) => itemQuantity.item_id === item.id);
