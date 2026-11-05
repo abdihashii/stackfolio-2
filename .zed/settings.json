@@ -1,8 +1,13 @@
 {
-  "formatter": {
-    "language_server": {
-      "name": "oxfmt"
+  "formatter": [
+    {
+      "code_action": "source.fixAll.oxc"
+    },
+    {
+      "language_server": {
+        "name": "oxfmt"
+      }
     }
-  },
+  ],
   "format_on_save": "on"
 }
