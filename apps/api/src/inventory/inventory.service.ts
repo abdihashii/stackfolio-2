@@ -168,31 +168,38 @@ export class InventoryService {
       throw new BadRequestException('Sale date cannot be in the future.');
     }
 
-    // Check the selected buy transaction exists and it belongs to the item
-    const buyTransaction = await this.findTransactionForItem(itemId, buyId);
-    if (!buyTransaction) {
-      throw new NotFoundException('Buy transaction not found for this item.');
-    }
+    return await this.dataSource.transaction(async (manager) => {
+      const transactionRepository = manager.getRepository(Transaction);
 
-    // Reject non-purchase transactions
-    if (buyTransaction.type !== 'buy') throw new BadRequestException('Sales must reference a buy transaction.');
+      // Check the selected buy transaction exists and it belongs to the item
+      const buyTransaction = await transactionRepository.findOne({
+        where: { id: buyId, item: { id: itemId } },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!buyTransaction) {
+        throw new NotFoundException('Buy transaction not found for this item.');
+      }
 
-    // Reject a sale dated before its purchase
-    if (recordSaleDto.sale_date < buyTransaction.effective_date)
-      throw new BadRequestException('Sale date cannot be before the buy date.');
+      // Reject non-purchase transactions
+      if (buyTransaction.type !== 'buy') throw new BadRequestException('Sales must reference a buy transaction.');
 
-    // Get total quantities from sales connected to the purchase
-    const result = await this.dataSource
-      .createQueryBuilder(Transaction, 'transaction')
-      .select('SUM(transaction.quantity)', 'soldQuantity')
-      .where('transaction.buy_id = :buyId AND transaction.type = :type', { buyId, type: 'sell' })
-      .getRawOne();
-    const soldQuantity = result.soldQuantity === null ? 0 : Number(result.soldQuantity);
+      // Reject a sale dated before its purchase
+      if (recordSaleDto.sale_date < buyTransaction.effective_date)
+        throw new BadRequestException('Sale date cannot be before the buy date.');
 
-    const remainingQuantity = buyTransaction.quantity - soldQuantity;
+      // Get total quantities from sales connected to the purchase
+      const result = await transactionRepository
+        .createQueryBuilder('transaction')
+        .select('SUM(transaction.quantity)', 'soldQuantity')
+        .where('transaction.buy_id = :buyId AND transaction.type = :type', { buyId, type: 'sell' })
+        .getRawOne();
+      const soldQuantity = result.soldQuantity === null ? 0 : Number(result.soldQuantity);
 
-    // Quantity cannot exceed what remains in the selected buy
-    if (recordSaleDto.quantity > remainingQuantity)
-      throw new BadRequestException('Sale quantity cannot exceed the remaining buy quantity.');
+      const remainingQuantity = buyTransaction.quantity - soldQuantity;
+
+      // Quantity cannot exceed what remains in the selected buy
+      if (recordSaleDto.quantity > remainingQuantity)
+        throw new BadRequestException('Sale quantity cannot exceed the remaining buy quantity.');
+    });
   }
 }
