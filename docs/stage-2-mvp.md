@@ -52,10 +52,12 @@ The first buy creates the inventory item and transaction together; later buys ad
 
 ### Transaction Rules
 
+- Sales link to one buy for the same item. See [ADR 004: Purchase-linked sales](adr/004-purchase-linked-sales.md) for the decision and validation table.
 - A buy increases ownership from its effective date; a sell decreases it without changing earlier ownership.
 - A correction edits an existing buy or sell, not a separate transaction type. Recalculate from the affected date, or the earlier of the old/new dates when changing a date.
 - Reject changes that cause negative ownership at any point, including later transactions. Failed changes leave records unchanged.
 - Effective dates are UTC date-only values. Unknown acquisition dates fall back to the UTC recorded date; keep the separate server-managed recorded timestamp unchanged through corrections.
+- Reject future effective dates. Count buys before sales on the same UTC date.
 - Deleting a record is not a sale. Fully sold items retain their transactions.
 - Current spot value uses derived quantity and fine-metal content. Stage 1’s spot-price and unavailable-value behavior still applies.
 
@@ -77,8 +79,9 @@ Inventory is empty and the app is not in production; no existing-data conversion
 
 #### 3. Full and partial sales
 
-- [ ] Record sales through the app and API; update current quantity and spot value.
+- [ ] Record sales linked to individual buys through the app and API; update current quantity and spot value.
 - [ ] Reject overselling, including backdated or concurrent changes that would create negative ownership.
+- [ ] Reject existing buy edits that reduce quantity below linked sales or move the buy after a linked sale.
 - [ ] Keep fully sold items and their history accessible.
 
 **Verify:** Buy three, sell one, reload to see two. Sell the remaining two and retain the records. An excess sale is rejected without changes.
@@ -95,8 +98,7 @@ Inventory is empty and the app is not in production; no existing-data conversion
 
 ### Open Decisions
 
-- Whether sales identify only the item or also an acquisition batch. Item-only sales are recommended, not yet explicitly settled.
-- Same-day ordering, future-date rules, and how unknown acquisition dates appear in the form and history.
+- How unknown acquisition dates appear in the form and history.
 - How to correct an incorrectly selected preset or remove erroneous records with dependent sales.
 
 ### Outside Stage 2
