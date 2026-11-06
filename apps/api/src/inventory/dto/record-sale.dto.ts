@@ -1,6 +1,9 @@
-import { IsDateString, IsInt, IsPositive, Matches, Max } from 'class-validator';
+import { IsDateString, IsInt, IsPositive, IsUUID, Matches, Max } from 'class-validator';
 
 export class RecordSaleDto {
+  @IsUUID()
+  buy_id: string;
+
   @IsInt({ message: 'Quantity must be a whole number.' })
   @IsPositive()
   @Max(2147483647)

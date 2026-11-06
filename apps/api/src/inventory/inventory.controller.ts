@@ -67,7 +67,9 @@ export class InventoryController {
   }
 
   @Post(':itemId/sales')
-  recordSale(@Param('itemId', new ParseUUIDPipe()) itemId: string, @Body() recordSaleDto: RecordSaleDto) {}
+  recordSale(@Param('itemId', new ParseUUIDPipe()) itemId: string, @Body() recordSaleDto: RecordSaleDto) {
+    return this.inventoryService.recordSale(recordSaleDto, itemId);
+  }
 
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {

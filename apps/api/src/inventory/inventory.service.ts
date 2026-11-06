@@ -168,7 +168,7 @@ export class InventoryService {
     };
   }
 
-  async recordSale(recordSaleDto: RecordSaleDto, itemId: string, buyId: string) {
+  async recordSale(recordSaleDto: RecordSaleDto, itemId: string) {
     if (recordSaleDto.sale_date > new Date().toISOString().slice(0, 10)) {
       throw new BadRequestException('Sale date cannot be in the future.');
     }
@@ -178,7 +178,7 @@ export class InventoryService {
 
       // Check the selected buy transaction exists and it belongs to the item
       const buyTransaction = await transactionRepository.findOne({
-        where: { id: buyId, item: { id: itemId } },
+        where: { id: recordSaleDto.buy_id, item: { id: itemId } },
         lock: { mode: 'pessimistic_write' },
       });
       if (!buyTransaction) {
@@ -196,7 +196,10 @@ export class InventoryService {
       const result = await transactionRepository
         .createQueryBuilder('transaction')
         .select('SUM(transaction.quantity)', 'soldQuantity')
-        .where('transaction.buy_id = :buyId AND transaction.type = :type', { buyId, type: 'sell' })
+        .where('transaction.buy_id = :buyId AND transaction.type = :type', {
+          buyId: recordSaleDto.buy_id,
+          type: 'sell',
+        })
         .getRawOne();
       const soldQuantity = result.soldQuantity === null ? 0 : Number(result.soldQuantity);
 
