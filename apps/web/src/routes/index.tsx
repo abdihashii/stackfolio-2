@@ -10,7 +10,7 @@ import { useDeleteItem } from '@/hooks/use-delete-item';
 import { fetchInventory, fetchItemTypes, fetchValuation } from '@/lib/apis';
 import { formatUsd } from '@/lib/utils';
 
-const pageSize = 1;
+const pageSize = 12;
 
 export const Route = createFileRoute('/')({
   component: Home,
