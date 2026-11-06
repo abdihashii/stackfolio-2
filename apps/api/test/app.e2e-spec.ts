@@ -276,6 +276,57 @@ describe('AppController (e2e)', () => {
     }
   });
 
+  it('deletes an item and all its transactions while preserving unrelated records and item types', async () => {
+    const database = app.get(DataSource);
+    const itemTypes = database.getRepository(ItemType);
+    const items = database.getRepository(Item);
+    const transactions = database.getRepository(Transaction);
+    const presetIds: string[] = [];
+    const fixtures: Item[] = [];
+
+    try {
+      for (let index = 0; index < 2; index++) {
+        const preset = await itemTypes.save({
+          name: `Cascade test ${randomUUID()}`,
+          metal: 'silver',
+          weight: 1,
+          weight_unit: 'ozt',
+          purity: 0.999,
+        });
+        presetIds.push(preset.id);
+        fixtures.push(await items.save({ item_type: preset, acquisition_date: '2026-01-01' }));
+      }
+      const [deletedItem, retainedItem] = fixtures;
+      for (const quantity of [1, 2, 3]) {
+        await transactions.save({ item: deletedItem, type: 'buy', quantity, effective_date: '2026-01-01' });
+      }
+      const retainedTransaction = await transactions.save({
+        item: retainedItem,
+        type: 'buy',
+        quantity: 7,
+        effective_date: '2026-02-01',
+      });
+      const itemBefore = await items.findOneByOrFail({ id: retainedItem.id });
+      const transactionBefore = await transactions.findOneByOrFail({ id: retainedTransaction.id });
+      expect(await transactions.countBy({ item: { id: deletedItem.id } })).toBe(3);
+
+      await request(app.getHttpServer()).delete(`/inventory/${deletedItem.id}`).expect(200);
+
+      expect(await items.findOneBy({ id: deletedItem.id })).toBeNull();
+      expect(await transactions.countBy({ item: { id: deletedItem.id } })).toBe(0);
+      expect(await items.findOneByOrFail({ id: retainedItem.id })).toEqual(itemBefore);
+      expect(await transactions.findOneByOrFail({ id: retainedTransaction.id })).toEqual(transactionBefore);
+      expect(await transactions.countBy({ item: { id: retainedItem.id } })).toBe(1);
+      for (const id of presetIds) expect(await itemTypes.existsBy({ id })).toBe(true);
+    } finally {
+      for (const item of fixtures) {
+        await transactions.delete({ item: { id: item.id } });
+        await items.delete(item.id);
+      }
+      for (const id of presetIds) await itemTypes.delete(id);
+    }
+  });
+
   afterEach(async () => {
     await app.close();
   });
