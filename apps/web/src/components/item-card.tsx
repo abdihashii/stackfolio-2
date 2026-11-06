@@ -205,12 +205,13 @@ export const ItemCard = ({
           {itemTransactionsQuery.isSuccess && (
             <div className="flex w-full items-center justify-between gap-2 rounded-md border border-gray-300 px-4 py-2">
               <button
+                type="button"
                 disabled={transactionPage <= 1 || isTransactionBusy}
                 className="hover:cursor-pointer disabled:text-gray-300 disabled:hover:cursor-not-allowed"
                 onClick={() => {
                   setEditingTransactionId(null);
-                  setTransactionPage((prevPage) => Math.max(prevPage - 1, 1));
                   updateTransactionMutation.reset();
+                  setTransactionPage((prevPage) => Math.max(prevPage - 1, 1));
                 }}
                 aria-label="Previous page"
               >
@@ -219,6 +220,19 @@ export const ItemCard = ({
               <p>
                 Page {transactionPage} of {totalTransactionPages}
               </p>
+              <button
+                type="button"
+                disabled={transactionPage >= totalTransactionPages || isTransactionBusy}
+                className="hover:cursor-pointer disabled:text-gray-300 disabled:hover:cursor-not-allowed"
+                onClick={() => {
+                  setEditingTransactionId(null);
+                  updateTransactionMutation.reset();
+                  setTransactionPage((prevPage) => Math.min(totalTransactionPages, prevPage + 1));
+                }}
+                aria-label="Next page"
+              >
+                {'>'}
+              </button>
             </div>
           )}
         </div>
