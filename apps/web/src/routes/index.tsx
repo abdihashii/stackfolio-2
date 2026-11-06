@@ -66,7 +66,12 @@ function Home() {
         {inventoryQuery.isPending ? (
           <p>loading...</p>
         ) : inventoryQuery.isError ? (
-          <p>{inventoryQuery.error.message}</p>
+          <div>
+            <p>{inventoryQuery.error.message}</p>
+            <button type="button" onClick={() => inventoryQuery.refetch()}>
+              retry
+            </button>
+          </div>
         ) : (
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
             {inventoryQuery.data?.inventory.length > 0 ? (
