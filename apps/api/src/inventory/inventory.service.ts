@@ -148,7 +148,7 @@ export class InventoryService {
       .select('item_type.metal', 'metal')
       .groupBy('item_type.metal')
       .addSelect(
-        `SUM(transaction.quantity * CASE
+        `SUM(CASE WHEN transaction.type = 'buy' THEN transaction.quantity ELSE -transaction.quantity END * CASE
           WHEN item_type.weight_unit = 'gram'
             THEN item_type.weight / 31.1034768
           ELSE item_type.weight
