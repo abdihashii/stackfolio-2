@@ -29,6 +29,8 @@ function Home() {
   const { deleteItemMutation, onDeleteItem } = useDeleteItem(isBusyWithoutDelete);
 
   const isBusy = isBusyWithoutDelete || deleteItemMutation.isPending;
+  const totalItems = inventoryQuery.data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / 12));
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
