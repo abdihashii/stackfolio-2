@@ -79,9 +79,27 @@ function Home() {
               <p>No inventory yet. Add your first item below.</p>
             )}
 
-            <p className="col-span-full">
-              Page: {page} of {totalPages}
-            </p>
+            <div className="col-span-full flex w-full items-center justify-between gap-2 rounded-md border border-gray-300 px-4 py-2">
+              <button
+                disabled={page <= 1 || isBusy}
+                className="disabled:text-gray-300 disabled:hover:cursor-not-allowed"
+                onClick={() => setPage((prevPage) => prevPage - 1)}
+                aria-label="Previous page"
+              >
+                {'<'}
+              </button>
+              <p>
+                Page: {page} of {totalPages}
+              </p>
+              <button
+                disabled={page >= totalPages || isBusy}
+                className="disabled:text-gray-300 disabled:hover:cursor-not-allowed"
+                onClick={() => setPage((prevPage) => prevPage + 1)}
+                aria-label="Next page"
+              >
+                {'>'}
+              </button>
+            </div>
           </div>
         )}
 
