@@ -99,11 +99,14 @@ export class InventoryService {
     return this.itemsRepository.findOneBy({ id });
   }
 
-  async findAllTransactions(id: string): Promise<{ transactions: Transaction[]; total: number }> {
+  async findAllTransactions(id: string, page: number): Promise<{ transactions: Transaction[]; total: number }> {
+    const skip = (page - 1) * 2;
+
     const [transactions, total] = await this.transactionRepository.findAndCount({
       where: { item: { id } },
       order: { effective_date: 'DESC', created_at: 'DESC', id: 'DESC' },
-      take: 3,
+      take: 2,
+      skip,
     });
     return { transactions, total };
   }

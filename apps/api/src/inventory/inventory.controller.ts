@@ -48,8 +48,12 @@ export class InventoryController {
   }
 
   @Get(':id/transactions')
-  findAllTransactions(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.inventoryService.findAllTransactions(id);
+  findAllTransactions(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query('page', new DefaultValuePipe('1'), new ParseIntPipe()) page = 1,
+  ) {
+    if (page < 1) throw new BadRequestException('Page number must be greater than 0.');
+    return this.inventoryService.findAllTransactions(id, page);
   }
 
   @Patch(':itemId/transactions/:transactionId')
