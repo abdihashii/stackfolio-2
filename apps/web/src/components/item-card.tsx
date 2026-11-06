@@ -120,7 +120,12 @@ export const ItemCard = ({
           {itemTransactionsQuery.isPending ? (
             <p>Loading transactions...</p>
           ) : itemTransactionsQuery.isError ? (
-            <p>Error loading transactions.</p>
+            <div>
+              <p>Error loading transactions.</p>
+              <button type="button" onClick={() => itemTransactionsQuery.refetch()}>
+                retry
+              </button>
+            </div>
           ) : itemTransactionsQuery.data.transactions.length > 0 ? (
             itemTransactionsQuery.data.transactions.map((transaction) => (
               <div key={transaction.id}>
