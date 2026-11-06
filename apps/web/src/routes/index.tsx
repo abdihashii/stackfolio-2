@@ -32,6 +32,7 @@ function Home() {
   const totalItems = inventoryQuery.data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / 12));
 
+  // Return to the last valid page when refreshed inventory shrinks.
   useEffect(() => {
     if (inventoryQuery.isSuccess && page > totalPages) {
       setPage(totalPages);
