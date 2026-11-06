@@ -60,8 +60,8 @@ export class InventoryService {
     });
   }
 
-  async findAll(page: number): Promise<{ inventory: ItemWithQuantity[]; total: number }> {
-    const skip = (page - 1) * 12;
+  async findAll(page: number, limit: number): Promise<{ inventory: ItemWithQuantity[]; total: number }> {
+    const skip = (page - 1) * limit;
 
     return await this.dataSource.transaction(async (manager) => {
       const itemsRepository = manager.getRepository(Item);
@@ -76,7 +76,7 @@ export class InventoryService {
       const [allItems, totalItems] = await itemsRepository.findAndCount({
         relations: { item_type: true },
         order: { created_at: 'DESC', id: 'DESC' },
-        take: 12,
+        take: limit,
         skip,
       });
 

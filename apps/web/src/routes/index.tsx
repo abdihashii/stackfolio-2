@@ -10,6 +10,8 @@ import { useDeleteItem } from '@/hooks/use-delete-item';
 import { fetchInventory, fetchItemTypes, fetchValuation } from '@/lib/apis';
 import { formatUsd } from '@/lib/utils';
 
+const pageSize = 1;
+
 export const Route = createFileRoute('/')({
   component: Home,
 });
@@ -17,7 +19,10 @@ export const Route = createFileRoute('/')({
 function Home() {
   const [page, setPage] = useState(1);
 
-  const inventoryQuery = useQuery({ queryKey: ['inventory', page], queryFn: () => fetchInventory(page) });
+  const inventoryQuery = useQuery({
+    queryKey: ['inventory', page, pageSize],
+    queryFn: () => fetchInventory(page, pageSize),
+  });
   const itemTypesQuery = useQuery({ queryKey: ['itemTypes'], queryFn: fetchItemTypes });
   const valuationQuery = useQuery({
     queryKey: ['valuation'],
@@ -30,7 +35,7 @@ function Home() {
 
   const isBusy = isBusyWithoutDelete || deleteItemMutation.isPending;
   const totalItems = inventoryQuery.data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalItems / 12));
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
   // Return to the last valid page when refreshed inventory shrinks.
   useEffect(() => {

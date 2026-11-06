@@ -4,9 +4,9 @@ import type { Item, ItemType, Transaction } from '../types/inventory.types';
 
 const backendUrlPath = import.meta.env.VITE_API_URL;
 
-export const fetchInventory = async (page = 1): Promise<{ inventory: Item[]; total: number }> => {
+export const fetchInventory = async (page = 1, limit = 12): Promise<{ inventory: Item[]; total: number }> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
-  const res = await fetch(`${backendUrlPath}/inventory?page=${page}`, {
+  const res = await fetch(`${backendUrlPath}/inventory?page=${page}&limit=${limit}`, {
     headers: { 'Content-Type': 'application/json' },
   });
   const data = await res.json();

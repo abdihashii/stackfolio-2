@@ -27,9 +27,14 @@ export class InventoryController {
   }
 
   @Get()
-  findAll(@Query('page', new DefaultValuePipe('1'), new ParseIntPipe()) page = 1) {
+  findAll(
+    @Query('page', new DefaultValuePipe('1'), new ParseIntPipe()) page = 1,
+    @Query('limit', new DefaultValuePipe('12'), new ParseIntPipe()) limit: number,
+  ) {
     if (page < 1) throw new BadRequestException('Page number must be greater than 0.');
-    return this.inventoryService.findAll(page);
+    if (limit < 1) throw new BadRequestException('Limit must be greater than 0.');
+    if (limit > 100) throw new BadRequestException('Limit must be less than or equal to 100.');
+    return this.inventoryService.findAll(page, limit);
   }
 
   @Get('valuation')
