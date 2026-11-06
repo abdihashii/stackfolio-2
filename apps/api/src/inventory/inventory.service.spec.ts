@@ -14,7 +14,7 @@ describe('InventoryService', () => {
 
   const findMock = vi.fn().mockResolvedValue([]);
   const findAndCountMock = vi.fn().mockResolvedValue([[], 0]);
-  const findOneByMock = vi.fn().mockResolvedValue({ type: 'buy' });
+  const findOneMock = vi.fn().mockResolvedValue({ type: 'buy' });
   const updateMock = vi.fn().mockResolvedValue({ affected: 1 });
   const getRawManyMock = vi.fn();
   const createQueryBuilderMock = vi.fn();
@@ -28,7 +28,7 @@ describe('InventoryService', () => {
   beforeEach(async () => {
     findMock.mockReset().mockResolvedValue([]);
     findAndCountMock.mockReset().mockResolvedValue([[], 0]);
-    findOneByMock.mockReset().mockResolvedValue({ type: 'buy' });
+    findOneMock.mockReset().mockResolvedValue({ type: 'buy' });
     updateMock.mockReset().mockResolvedValue({ affected: 1 });
     getRawManyMock.mockReset().mockResolvedValue([]);
     createQueryBuilderMock.mockReset().mockReturnValue({
@@ -54,12 +54,21 @@ describe('InventoryService', () => {
           useValue: {
             find: findMock,
             findAndCount: findAndCountMock,
-            findOneBy: findOneByMock,
-            update: updateMock,
             createQueryBuilder: createQueryBuilderMock,
           },
         },
-        { provide: DataSource, useValue: {} },
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: async (callback: (manager: unknown) => Promise<unknown>) =>
+              callback({
+                getRepository: (entity: unknown) => {
+                  expect(entity).toBe(Transaction);
+                  return { findOne: findOneMock, update: updateMock };
+                },
+              }),
+          },
+        },
         { provide: SpotPricesService, useValue: { getSpotPrices: getSpotPricesMock } },
       ],
     }).compile();
@@ -135,24 +144,30 @@ describe('InventoryService', () => {
   it("should update a buy's quantity", async () => {
     const result = await service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity: 4 });
 
-    expect(findOneByMock).toHaveBeenCalledWith({ id: 'test-transaction-id-1', item: { id: 'test-item-id-1' } });
+    expect(findOneMock).toHaveBeenCalledWith({
+      where: { id: 'test-transaction-id-1', item: { id: 'test-item-id-1' } },
+      lock: { mode: 'pessimistic_write' },
+    });
     expect(updateMock).toHaveBeenCalledExactlyOnceWith('test-transaction-id-1', { quantity: 4 });
     expect(result).toEqual({ affected: 1 });
   });
 
   it('should reject a transaction not found for the specified item without updating', async () => {
-    findOneByMock.mockResolvedValueOnce(null);
+    findOneMock.mockResolvedValueOnce(null);
 
     await expect(
       service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity: 4 }),
     ).rejects.toBeInstanceOf(NotFoundException);
 
-    expect(findOneByMock).toHaveBeenCalledWith({ id: 'test-transaction-id-1', item: { id: 'test-item-id-1' } });
+    expect(findOneMock).toHaveBeenCalledWith({
+      where: { id: 'test-transaction-id-1', item: { id: 'test-item-id-1' } },
+      lock: { mode: 'pessimistic_write' },
+    });
     expect(updateMock).not.toHaveBeenCalled();
   });
 
   it('should reject a sell without updating', async () => {
-    findOneByMock.mockResolvedValueOnce({ type: 'sell' });
+    findOneMock.mockResolvedValueOnce({ type: 'sell' });
 
     await expect(
       service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity: 4 }),

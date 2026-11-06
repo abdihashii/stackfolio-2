@@ -115,21 +115,23 @@ export class InventoryService {
     return { transactions, total };
   }
 
-  findTransactionForItem(itemId: string, transactionId: string): Promise<Transaction | null> {
-    return this.transactionRepository.findOneBy({ item: { id: itemId }, id: transactionId });
-  }
-
   async updateTransaction(itemId: string, transactionId: string, updateTransactionDto: UpdateTransactionDto) {
-    const transaction = await this.findTransactionForItem(itemId, transactionId);
-    if (!transaction) {
-      throw new NotFoundException('Transaction not found.');
-    }
-    if (transaction.type !== 'buy') throw new BadRequestException('Only buy transactions can be updated.');
-    const res = await this.transactionRepository.update(transactionId, { quantity: updateTransactionDto.quantity });
-    if (res.affected === 0) {
-      throw new NotFoundException('Transaction not found.');
-    }
-    return res;
+    return await this.dataSource.transaction(async (manager) => {
+      const transactionRepository = manager.getRepository(Transaction);
+      const transaction = await transactionRepository.findOne({
+        where: { id: transactionId, item: { id: itemId } },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found.');
+      }
+      if (transaction.type !== 'buy') throw new BadRequestException('Only buy transactions can be updated.');
+      const res = await transactionRepository.update(transactionId, { quantity: updateTransactionDto.quantity });
+      if (res.affected === 0) {
+        throw new NotFoundException('Transaction not found.');
+      }
+      return res;
+    });
   }
 
   async remove(id: string): Promise<void> {
