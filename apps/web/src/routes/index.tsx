@@ -68,7 +68,11 @@ function Home() {
         ) : inventoryQuery.isError ? (
           <div>
             <p>{inventoryQuery.error.message}</p>
-            <button type="button" onClick={() => inventoryQuery.refetch()}>
+            <button
+              type="button"
+              className="rounded-md bg-gray-900 px-4 py-2 font-semibold text-white hover:cursor-pointer hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => inventoryQuery.refetch()}
+            >
               retry
             </button>
           </div>

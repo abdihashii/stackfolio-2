@@ -122,7 +122,11 @@ export const ItemCard = ({
           ) : itemTransactionsQuery.isError ? (
             <div>
               <p>Error loading transactions.</p>
-              <button type="button" onClick={() => itemTransactionsQuery.refetch()}>
+              <button
+                type="button"
+                className="rounded-md bg-gray-900 px-4 py-2 font-semibold text-white hover:cursor-pointer hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => itemTransactionsQuery.refetch()}
+              >
                 retry
               </button>
             </div>
