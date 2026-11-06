@@ -200,6 +200,14 @@ export class InventoryService {
       // Quantity cannot exceed what remains in the selected buy
       if (recordSaleDto.quantity > remainingQuantity)
         throw new BadRequestException('Sale quantity cannot exceed the remaining buy quantity.');
+
+      return await transactionRepository.save({
+        type: 'sell',
+        quantity: recordSaleDto.quantity,
+        effective_date: recordSaleDto.sale_date,
+        buy: buyTransaction,
+        item: { id: itemId },
+      });
     });
   }
 }
