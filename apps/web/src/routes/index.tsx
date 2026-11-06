@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Form } from '@/components/form';
 import { H2 } from '@/components/h2';
@@ -31,6 +31,12 @@ function Home() {
   const isBusy = isBusyWithoutDelete || deleteItemMutation.isPending;
   const totalItems = inventoryQuery.data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / 12));
+
+  useEffect(() => {
+    if (inventoryQuery.isSuccess && page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [inventoryQuery.isSuccess, page, totalPages]);
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
