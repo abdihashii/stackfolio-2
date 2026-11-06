@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { Item } from '@/types/inventory.types';
 
@@ -60,6 +60,13 @@ export const ItemCard = ({
   const isTransactionBusy = isBusy || updateTransactionMutation.isPending;
   const transactionsTotal = itemTransactionsQuery.data?.total ?? 0;
   const totalTransactionPages = Math.max(1, Math.ceil(transactionsTotal / 2));
+
+  // Return to the last valid page when refreshed inventory shrinks.
+  useEffect(() => {
+    if (itemTransactionsQuery.isSuccess && transactionPage > totalTransactionPages) {
+      setTransactionPage(totalTransactionPages);
+    }
+  }, [itemTransactionsQuery.isSuccess, transactionPage, totalTransactionPages]);
 
   return (
     <>
