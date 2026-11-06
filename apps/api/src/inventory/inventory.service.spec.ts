@@ -17,6 +17,9 @@ describe('InventoryService', () => {
   const findOneMock = vi.fn().mockResolvedValue({ type: 'buy' });
   const updateMock = vi.fn().mockResolvedValue({ affected: 1 });
   const getRawManyMock = vi.fn();
+  const getRawOneMock = vi.fn();
+  const salesWhereMock = vi.fn();
+  const salesQueryBuilderMock = vi.fn();
   const createQueryBuilderMock = vi.fn();
   const getSpotPricesMock = vi.fn().mockResolvedValue({
     timestamp: '2026-01-01T00:00:00.000Z',
@@ -31,6 +34,13 @@ describe('InventoryService', () => {
     findOneMock.mockReset().mockResolvedValue({ type: 'buy' });
     updateMock.mockReset().mockResolvedValue({ affected: 1 });
     getRawManyMock.mockReset().mockResolvedValue([]);
+    getRawOneMock.mockReset().mockResolvedValue({ soldQuantity: null });
+    salesWhereMock.mockReset().mockReturnThis();
+    salesQueryBuilderMock.mockReset().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      where: salesWhereMock,
+      getRawOne: getRawOneMock,
+    });
     createQueryBuilderMock.mockReset().mockReturnValue({
       innerJoin: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
@@ -64,7 +74,7 @@ describe('InventoryService', () => {
               callback({
                 getRepository: (entity: unknown) => {
                   expect(entity).toBe(Transaction);
-                  return { findOne: findOneMock, update: updateMock };
+                  return { findOne: findOneMock, update: updateMock, createQueryBuilder: salesQueryBuilderMock };
                 },
               }),
           },
@@ -150,6 +160,29 @@ describe('InventoryService', () => {
     });
     expect(updateMock).toHaveBeenCalledExactlyOnceWith('test-transaction-id-1', { quantity: 4 });
     expect(result).toEqual({ affected: 1 });
+  });
+
+  it('should reject reducing a buy below its linked sales without updating', async () => {
+    getRawOneMock.mockResolvedValueOnce({ soldQuantity: '3' });
+
+    await expect(service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity: 2 })).rejects.toThrow(
+      'Buy quantity cannot be less than the quantity already sold.',
+    );
+
+    expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith('transaction.buy_id = :buyId AND transaction.type = :type', {
+      buyId: 'test-transaction-id-1',
+      type: 'sell',
+    });
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  it.each([3, 4])('should allow a buy quantity of %i when three units have been sold', async (quantity) => {
+    getRawOneMock.mockResolvedValueOnce({ soldQuantity: '3' });
+
+    await expect(service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity })).resolves.toEqual({
+      affected: 1,
+    });
+    expect(updateMock).toHaveBeenCalledExactlyOnceWith('test-transaction-id-1', { quantity });
   });
 
   it('should reject a transaction not found for the specified item without updating', async () => {

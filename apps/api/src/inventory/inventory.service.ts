@@ -126,11 +126,25 @@ export class InventoryService {
         throw new NotFoundException('Transaction not found.');
       }
       if (transaction.type !== 'buy') throw new BadRequestException('Only buy transactions can be updated.');
-      const res = await transactionRepository.update(transactionId, { quantity: updateTransactionDto.quantity });
-      if (res.affected === 0) {
+
+      const salesTotalResult = await transactionRepository
+        .createQueryBuilder('transaction')
+        .select('SUM(transaction.quantity)', 'soldQuantity')
+        .where('transaction.buy_id = :buyId AND transaction.type = :type', { buyId: transactionId, type: 'sell' })
+        .getRawOne();
+      const soldQuantity = salesTotalResult.soldQuantity === null ? 0 : Number(salesTotalResult.soldQuantity);
+      if (updateTransactionDto.quantity < soldQuantity) {
+        throw new BadRequestException('Buy quantity cannot be less than the quantity already sold.');
+      }
+
+      const updateResult = await transactionRepository.update(transactionId, {
+        quantity: updateTransactionDto.quantity,
+      });
+      if (updateResult.affected === 0) {
         throw new NotFoundException('Transaction not found.');
       }
-      return res;
+
+      return updateResult;
     });
   }
 
