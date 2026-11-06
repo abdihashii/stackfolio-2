@@ -169,10 +169,16 @@ export class InventoryService {
     }
 
     // Check the selected buy transaction exists and it belongs to the item
-    const buyTx = await this.findTransactionForItem(itemId, buyId);
-    if (!buyTx) {
-      throw new NotFoundException('Purchase transaction for this item was not found.');
+    const buyTransaction = await this.findTransactionForItem(itemId, buyId);
+    if (!buyTransaction) {
+      throw new NotFoundException('Buy transaction not found for this item.');
     }
-    if (buyTx.type !== 'buy') throw new BadRequestException('Transaction must be of purchase type.');
+
+    // Reject non-purchase transactions
+    if (buyTransaction.type !== 'buy') throw new BadRequestException('Sales must reference a buy transaction.');
+
+    // Reject a sale dated before its purchase
+    if (recordSaleDto.sale_date < buyTransaction.effective_date)
+      throw new BadRequestException('Sale date cannot be after the buy date.');
   }
 }
