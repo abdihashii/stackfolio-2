@@ -17,6 +17,10 @@ export class Transaction {
   @JoinColumn({ name: 'item_id' })
   item: Item;
 
+  @ManyToOne(() => Transaction, { nullable: true })
+  @JoinColumn({ name: 'buy_id' })
+  buy: Transaction | null;
+
   @Column()
   type: 'buy' | 'sell';
 
