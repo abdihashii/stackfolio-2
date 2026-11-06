@@ -78,6 +78,10 @@ function Home() {
             ) : (
               <p>No inventory yet. Add your first item below.</p>
             )}
+
+            <p className="col-span-full">
+              Page: {page} of {totalPages}
+            </p>
           </div>
         )}
 
