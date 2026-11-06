@@ -168,6 +168,11 @@ export class InventoryService {
       throw new BadRequestException('Sale date cannot be in the future.');
     }
 
-    
+    // Check the selected buy transaction exists and it belongs to the item
+    const buyTx = await this.findTransactionForItem(itemId, buyId);
+    if (!buyTx) {
+      throw new NotFoundException('Purchase transaction for this item was not found.');
+    }
+    if (buyTx.type !== 'buy') throw new BadRequestException('Transaction must be of purchase type.');
   }
 }
