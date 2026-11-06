@@ -18,18 +18,3 @@ export const calculateItemValue = ({ item_type, quantity }: Item, spotPrice: num
 
   return fineMetalWeightOzt * quantity * spotPrice;
 };
-
-export const calculateStackValue = (
-  inventory: Item[] | undefined,
-  spotPrices: Record<'gold' | 'silver', number | undefined>,
-): number | undefined => {
-  if (inventory === undefined) return undefined;
-  let stackValue = 0;
-  for (const item of inventory) {
-    const spotPrice = spotPrices[item.item_type.metal];
-    if (spotPrice === undefined) return undefined;
-    stackValue += calculateItemValue(item, spotPrice);
-  }
-
-  return stackValue;
-};

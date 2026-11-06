@@ -4,15 +4,6 @@ import type { Item, ItemType, Transaction } from '../types/inventory.types';
 
 const backendUrlPath = import.meta.env.VITE_API_URL;
 
-export const fetchSpotPrices = async () => {
-  const res = await fetch(`${backendUrlPath}/spot-prices`);
-  if (!res.ok) {
-    throw new Error(`Could not fetch spot prices.`);
-  }
-  const data = (await res.json()) as { timestamp: string; prices: { gold: number; silver: number } };
-  return data;
-};
-
 export const fetchInventory = async (page = 1): Promise<{ inventory: Item[]; total: number }> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
   const res = await fetch(`${backendUrlPath}/inventory?page=${page}`, {
