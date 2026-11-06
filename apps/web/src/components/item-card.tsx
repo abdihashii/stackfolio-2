@@ -207,7 +207,7 @@ export const ItemCard = ({
               <button
                 disabled={transactionPage <= 1 || isTransactionBusy}
                 className="hover:cursor-pointer disabled:text-gray-300 disabled:hover:cursor-not-allowed"
-                onClick={() => setTransactionPage((prevPage) => prevPage - 1)}
+                onClick={() => setTransactionPage((prevPage) => Math.max(prevPage - 1, 1))}
                 aria-label="Previous page"
               >
                 {'<'}
