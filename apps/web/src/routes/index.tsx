@@ -15,15 +15,15 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   const inventoryQuery = useQuery({ queryKey: ['inventory'], queryFn: () => fetchInventory(1) });
-  const { form, createItemMutation, onCreateItem } = useCreateItem(inventoryQuery.isPending);
-  const isBusyWithoutDelete = form.formState.isSubmitting || createItemMutation.isPending || inventoryQuery.isPending;
-  const { deleteItemMutation, onDeleteItem } = useDeleteItem(isBusyWithoutDelete);
-
   const itemTypesQuery = useQuery({ queryKey: ['itemTypes'], queryFn: fetchItemTypes });
   const valuationQuery = useQuery({
     queryKey: ['valuation'],
     queryFn: () => fetchValuation(),
   });
+
+  const { form, createItemMutation, onCreateItem } = useCreateItem(inventoryQuery.isPending);
+  const isBusyWithoutDelete = form.formState.isSubmitting || createItemMutation.isPending || inventoryQuery.isPending;
+  const { deleteItemMutation, onDeleteItem } = useDeleteItem(isBusyWithoutDelete);
 
   const isBusy = isBusyWithoutDelete || deleteItemMutation.isPending;
 
