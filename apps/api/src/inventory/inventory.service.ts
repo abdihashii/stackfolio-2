@@ -69,7 +69,10 @@ export class InventoryService {
 
       const itemQuantities = await manager
         .createQueryBuilder(Transaction, 'transaction')
-        .select('SUM(transaction.quantity)', 'quantity') // sum quantities
+        .select(
+          "SUM(CASE WHEN transaction.type = 'buy' THEN transaction.quantity ELSE -transaction.quantity END)",
+          'quantity',
+        ) // sum quantities
         .addSelect('transaction.item_id', 'item_id') // select the item ID
         .groupBy('item_id') // and group by it
         .getRawMany(); // execute the aggregate query
