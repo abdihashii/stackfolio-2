@@ -12,6 +12,7 @@ export const useDeleteItem = (isBusy: boolean) => {
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
           queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['itemTransactions'] }, { throwOnError: true }),
         ]);
       } catch {
         alert('Item deleted, but could not refresh. Reload the page.');
