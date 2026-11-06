@@ -96,7 +96,7 @@ function Home() {
             <div className="col-span-full flex w-full items-center justify-between gap-2 rounded-md border border-gray-300 px-4 py-2">
               <button
                 disabled={page <= 1 || isBusy}
-                className="disabled:text-gray-300 disabled:hover:cursor-not-allowed"
+                className="hover:cursor-pointer disabled:text-gray-300 disabled:hover:cursor-not-allowed"
                 onClick={() => setPage((prevPage) => prevPage - 1)}
                 aria-label="Previous page"
               >
@@ -107,7 +107,7 @@ function Home() {
               </p>
               <button
                 disabled={page >= totalPages || isBusy}
-                className="disabled:text-gray-300 disabled:hover:cursor-not-allowed"
+                className="hover:cursor-pointer disabled:text-gray-300 disabled:hover:cursor-not-allowed"
                 onClick={() => setPage((prevPage) => prevPage + 1)}
                 aria-label="Next page"
               >
