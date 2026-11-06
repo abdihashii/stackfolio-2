@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 
 import { RecordBuyDto } from './dto/record-buy.dto.js';
+import { RecordSaleDto } from './dto/record-sale.dto.js';
 import { UpdateTransactionDto } from './dto/update-transaction.dto.js';
 import { InventoryService } from './inventory.service.js';
 
@@ -64,6 +65,9 @@ export class InventoryController {
   ) {
     return this.inventoryService.updateTransaction(itemId, transactionId, updateTransactionDto);
   }
+
+  @Post(':itemId/sales')
+  recordSale(@Param('itemId', new ParseUUIDPipe()) itemId: string, @Body() recordSaleDto: RecordSaleDto) {}
 
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
