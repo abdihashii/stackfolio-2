@@ -202,6 +202,7 @@ export const ItemCard = ({
           ) : (
             <p>No transactions found.</p>
           )}
+
           {itemTransactionsQuery.isSuccess && (
             <div className="flex w-full items-center justify-between gap-2 rounded-md border border-gray-300 px-4 py-2">
               <button
