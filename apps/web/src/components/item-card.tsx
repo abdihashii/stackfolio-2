@@ -28,7 +28,9 @@ export const ItemCard = ({
   const { id, quantity, item_type, acquisition_date } = item;
   const { name, weight_unit, weight, purity } = item_type;
 
-  const [manageSectionState, setManageSectionState] = useState<'closed' | 'manage' | 'transactions'>('closed');
+  const [manageSectionState, setManageSectionState] = useState<'closed' | 'manage' | 'transactions' | 'delete'>(
+    'closed',
+  );
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
@@ -95,7 +97,7 @@ export const ItemCard = ({
           <button
             className="text-red-500 hover:cursor-pointer hover:underline"
             type="button"
-            onClick={() => onDelete(id)}
+            onClick={() => setManageSectionState('delete')}
             disabled={isTransactionBusy}
           >
             delete item
@@ -190,6 +192,32 @@ export const ItemCard = ({
           ) : (
             <p>No transactions found.</p>
           )}
+        </div>
+      )}
+
+      {manageSectionState === 'delete' && (
+        <div className="flex w-full flex-col gap-2 rounded-md border border-gray-300 px-4 py-2">
+          <p className="text-sm text-gray-500">
+            Delete this item and all its transactions? This permanently removes its history and cannot be undone.
+          </p>
+          <div className="flex w-full justify-between">
+            <button
+              type="button"
+              disabled={isTransactionBusy}
+              className="hover:cursor-pointer hover:underline"
+              onClick={() => setManageSectionState('manage')}
+            >
+              cancel
+            </button>
+            <button
+              className="text-red-500 hover:cursor-pointer hover:underline"
+              type="button"
+              onClick={() => onDelete(id)}
+              disabled={isTransactionBusy}
+            >
+              delete permanently
+            </button>
+          </div>
         </div>
       )}
 
