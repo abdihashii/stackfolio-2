@@ -179,6 +179,10 @@ export class InventoryService {
 
     // Reject a sale dated before its purchase
     if (recordSaleDto.sale_date < buyTransaction.effective_date)
-      throw new BadRequestException('Sale date cannot be after the buy date.');
+      throw new BadRequestException('Sale date cannot be before the buy date.');
+
+    // Quantity cannot exceed what remains in the selected buy
+    if (recordSaleDto.quantity > buyTransaction.quantity)
+      throw new BadRequestException('Sale quantity cannot exceed the remaining buy quantity.');
   }
 }
