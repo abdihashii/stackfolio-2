@@ -112,15 +112,25 @@ describe('InventoryService', () => {
     await expect(service.getValuation()).rejects.toBe(error);
   });
 
-  it('should fetch transactions for the specified item in stable newest-first order', async () => {
-    await service.findAllTransactions('test-item-id-1');
+  it.each([
+    { page: 1, skip: 0 },
+    { page: 2, skip: 2 },
+    { page: 4, skip: 6 },
+  ])(
+    'should fetch transaction page $page for the specified item in stable newest-first order',
+    async ({ page, skip }) => {
+      findAndCountMock.mockResolvedValueOnce([[], 5]);
+      const result = await service.findAllTransactions('test-item-id-1', page);
 
-    expect(findAndCountMock).toHaveBeenCalledWith({
-      where: { item: { id: 'test-item-id-1' } },
-      order: { effective_date: 'DESC', created_at: 'DESC', id: 'DESC' },
-      take: 3,
-    });
-  });
+      expect(findAndCountMock).toHaveBeenCalledWith({
+        where: { item: { id: 'test-item-id-1' } },
+        order: { effective_date: 'DESC', created_at: 'DESC', id: 'DESC' },
+        take: 2,
+        skip,
+      });
+      expect(result).toEqual({ transactions: [], total: 5 });
+    },
+  );
 
   it("should update a buy's quantity", async () => {
     const result = await service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity: 4 });
