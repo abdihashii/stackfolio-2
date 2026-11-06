@@ -29,7 +29,7 @@ function Home() {
     queryFn: () => fetchValuation(),
   });
 
-  const { form, createItemMutation, onCreateItem } = useCreateItem(inventoryQuery.isPending);
+  const { form, createItemMutation, onCreateItem } = useCreateItem(inventoryQuery.isPending, setPage);
   const isBusyWithoutDelete = form.formState.isSubmitting || createItemMutation.isPending || inventoryQuery.isPending;
   const { deleteItemMutation, onDeleteItem } = useDeleteItem(isBusyWithoutDelete);
 

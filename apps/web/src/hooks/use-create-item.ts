@@ -2,6 +2,7 @@ import type { SubmitHandler } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 
 import type { BuyFormValues } from '@/types/form.schema';
@@ -9,7 +10,7 @@ import type { BuyFormValues } from '@/types/form.schema';
 import { createItem } from '@/lib/apis';
 import { buySchema } from '@/types/form.schema';
 
-export const useCreateItem = (inventoryIsPending: boolean) => {
+export const useCreateItem = (inventoryIsPending: boolean, setPage: React.Dispatch<React.SetStateAction<number>>) => {
   const queryClient = useQueryClient();
 
   const form = useForm<BuyFormValues>({
@@ -30,6 +31,7 @@ export const useCreateItem = (inventoryIsPending: boolean) => {
       } catch {
         alert('Buy saved, but could not refresh. Reload the page.');
       }
+      setPage(1);
     },
   });
 
