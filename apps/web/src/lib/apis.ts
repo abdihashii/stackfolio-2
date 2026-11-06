@@ -55,8 +55,11 @@ export const fetchItemTypes = async (): Promise<ItemType[]> => {
   return await res.json();
 };
 
-export const fetchTransactions = async (id: string): Promise<{ transactions: Transaction[]; total: number }> => {
-  const res = await fetch(`${backendUrlPath}/inventory/${id}/transactions`, {
+export const fetchTransactions = async (
+  id: string,
+  page = 1,
+): Promise<{ transactions: Transaction[]; total: number }> => {
+  const res = await fetch(`${backendUrlPath}/inventory/${id}/transactions?page=${page}`, {
     headers: {
       'Content-type': 'application/json',
     },

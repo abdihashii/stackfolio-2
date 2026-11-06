@@ -32,6 +32,7 @@ export const ItemCard = ({
     'closed',
   );
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+  const [transactionPage, setTransactionPage] = useState<number>(1);
 
   const queryClient = useQueryClient();
   const updateTransactionMutation = useMutation({
@@ -51,12 +52,14 @@ export const ItemCard = ({
     },
   });
   const itemTransactionsQuery = useQuery({
-    queryKey: ['itemTransactions', id],
-    queryFn: () => fetchTransactions(id),
+    queryKey: ['itemTransactions', id, transactionPage],
+    queryFn: () => fetchTransactions(id, transactionPage),
     enabled: manageSectionState === 'transactions',
   });
 
   const isTransactionBusy = isBusy || updateTransactionMutation.isPending;
+  const transactionsTotal = itemTransactionsQuery.data?.total ?? 0;
+  const totalTransactionPages = Math.max(1, Math.ceil(transactionsTotal / 2));
 
   return (
     <>
@@ -191,6 +194,21 @@ export const ItemCard = ({
             ))
           ) : (
             <p>No transactions found.</p>
+          )}
+          {itemTransactionsQuery.isSuccess && (
+            <div className="flex w-full items-center justify-between gap-2 rounded-md border border-gray-300 px-4 py-2">
+              <button
+                disabled={transactionPage <= 1 || isTransactionBusy}
+                className="hover:cursor-pointer disabled:text-gray-300 disabled:hover:cursor-not-allowed"
+                onClick={() => setTransactionPage((prevPage) => prevPage - 1)}
+                aria-label="Previous page"
+              >
+                {'<'}
+              </button>
+              <p>
+                Page {transactionPage} of {totalTransactionPages}
+              </p>
+            </div>
           )}
         </div>
       )}
