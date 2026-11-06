@@ -75,8 +75,10 @@ function Home() {
                   </div>
                 );
               })
-            ) : (
+            ) : totalItems === 0 ? (
               <p>No inventory yet. Add your first item below.</p>
+            ) : (
+              <p>No items on this page.</p>
             )}
 
             <div className="col-span-full flex w-full items-center justify-between gap-2 rounded-md border border-gray-300 px-4 py-2">
