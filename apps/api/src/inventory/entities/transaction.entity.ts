@@ -13,7 +13,7 @@ export class Transaction {
   @Column({ type: 'date' })
   effective_date: string;
 
-  @ManyToOne(() => Item, { nullable: false })
+  @ManyToOne(() => Item, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
   item: Item;
 
