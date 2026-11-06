@@ -181,8 +181,18 @@ export class InventoryService {
     if (recordSaleDto.sale_date < buyTransaction.effective_date)
       throw new BadRequestException('Sale date cannot be before the buy date.');
 
+    // Get total quantities from sales connected to the purchase
+    const result = await this.dataSource
+      .createQueryBuilder(Transaction, 'transaction')
+      .select('SUM(transaction.quantity)', 'soldQuantity')
+      .where('transaction.buy_id = :buyId AND transaction.type = :type', { buyId, type: 'sell' })
+      .getRawOne();
+    const soldQuantity = result.soldQuantity === null ? 0 : Number(result.soldQuantity);
+
+    const remainingQuantity = buyTransaction.quantity - soldQuantity;
+
     // Quantity cannot exceed what remains in the selected buy
-    if (recordSaleDto.quantity > buyTransaction.quantity)
+    if (recordSaleDto.quantity > remainingQuantity)
       throw new BadRequestException('Sale quantity cannot exceed the remaining buy quantity.');
   }
 }
