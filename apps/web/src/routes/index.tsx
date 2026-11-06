@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
 
 import { Form } from '@/components/form';
 import { H2 } from '@/components/h2';
@@ -14,7 +15,9 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  const inventoryQuery = useQuery({ queryKey: ['inventory'], queryFn: () => fetchInventory(1) });
+  const [page, setPage] = useState(1);
+
+  const inventoryQuery = useQuery({ queryKey: ['inventory', page], queryFn: () => fetchInventory(page) });
   const itemTypesQuery = useQuery({ queryKey: ['itemTypes'], queryFn: fetchItemTypes });
   const valuationQuery = useQuery({
     queryKey: ['valuation'],
