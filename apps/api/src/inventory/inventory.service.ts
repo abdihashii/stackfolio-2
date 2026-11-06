@@ -4,6 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 
 import { SpotPricesService } from '../spot-prices/spot-prices.service.js';
 import { RecordBuyDto } from './dto/record-buy.dto.js';
+import { RecordSaleDto } from './dto/record-sale.dto.js';
 import { UpdateTransactionDto } from './dto/update-transaction.dto.js';
 import { ItemType } from './entities/item-type.entity.js';
 import { Item } from './entities/item.entity.js';
@@ -160,5 +161,13 @@ export class InventoryService {
       totalValue,
       quote: spotPrices,
     };
+  }
+
+  async recordSale(recordSaleDto: RecordSaleDto, itemId: string, buyId: string) {
+    if (recordSaleDto.sale_date > new Date().toISOString().slice(0, 10)) {
+      throw new BadRequestException('Sale date cannot be in the future.');
+    }
+
+    
   }
 }
