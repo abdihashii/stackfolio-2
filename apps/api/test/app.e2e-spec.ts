@@ -38,6 +38,24 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
   });
 
+  it('creates an isolated item type for sale verification', async () => {
+    const database = app.get(DataSource);
+    const itemTypes = database.getRepository(ItemType);
+    const preset = await itemTypes.save({
+      name: `Sale test ${randomUUID()}`,
+      metal: 'silver',
+      weight: 1,
+      weight_unit: 'ozt',
+      purity: 0.999,
+    });
+
+    try {
+      expect(await itemTypes.existsBy({ id: preset.id })).toBe(true);
+    } finally {
+      await itemTypes.delete(preset.id);
+    }
+  });
+
   it('keeps two buys under one item and calculates its quantity from transactions', async () => {
     const database = app.get(DataSource);
     const itemTypes = database.getRepository(ItemType);
