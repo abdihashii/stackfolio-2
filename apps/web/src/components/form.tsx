@@ -80,6 +80,7 @@ export const Form = ({ form, onSubmit, creatingItemError, isBusy, itemTypes }: F
           className="w-full rounded-md border border-gray-300 px-3 py-2"
           aria-invalid={!!errors.acquisition_date}
           aria-describedby={errors.acquisition_date ? 'acquisition-date-error' : undefined}
+          max={new Date().toISOString().slice(0, 10)}
         />
         <p id="acquisition-date-error" role="alert" className="text-sm text-red-500">
           {errors.acquisition_date?.message}
@@ -88,7 +89,7 @@ export const Form = ({ form, onSubmit, creatingItemError, isBusy, itemTypes }: F
 
       <button
         type="submit"
-        className="rounded-md bg-gray-900 px-4 py-2 font-semibold text-white hover:bg-gray-800 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded-md bg-gray-900 px-4 py-2 font-semibold text-white hover:cursor-pointer hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
         disabled={isBusy}
       >
         {isSubmitting ? 'Adding...' : 'Add'}
