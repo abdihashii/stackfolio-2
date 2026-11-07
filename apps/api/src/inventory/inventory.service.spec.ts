@@ -15,6 +15,7 @@ describe('InventoryService', () => {
   const findMock = vi.fn().mockResolvedValue([]);
   const findAndCountMock = vi.fn().mockResolvedValue([[], 0]);
   const findOneMock = vi.fn().mockResolvedValue({ type: 'buy' });
+  const saveMock = vi.fn();
   const updateMock = vi.fn().mockResolvedValue({ affected: 1 });
   const getRawManyMock = vi.fn();
   const getRawOneMock = vi.fn();
@@ -32,6 +33,7 @@ describe('InventoryService', () => {
     findMock.mockReset().mockResolvedValue([]);
     findAndCountMock.mockReset().mockResolvedValue([[], 0]);
     findOneMock.mockReset().mockResolvedValue({ type: 'buy' });
+    saveMock.mockReset().mockResolvedValue({ id: 'sale-id' });
     updateMock.mockReset().mockResolvedValue({ affected: 1 });
     getRawManyMock.mockReset().mockResolvedValue([]);
     getRawOneMock.mockReset().mockResolvedValue({ soldQuantity: null });
@@ -74,7 +76,7 @@ describe('InventoryService', () => {
               callback({
                 getRepository: (entity: unknown) => {
                   expect(entity).toBe(Transaction);
-                  return { findOne: findOneMock, update: updateMock, createQueryBuilder: salesQueryBuilderMock };
+                  return { findOne: findOneMock, update: updateMock, save: saveMock, createQueryBuilder: salesQueryBuilderMock };
                 },
               }),
           },
@@ -216,4 +218,43 @@ describe('InventoryService', () => {
       service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity: 4 }),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  it.each([
+    { sold: null, quantity: 5 },
+    { sold: '2', quantity: 1 },
+    { sold: '2', quantity: 3 },
+  ])('should save a sale of $quantity with a previous total of $sold', async ({ sold, quantity }) => {
+    const buy = { id: 'buy-id', type: 'buy', quantity: 5, effective_date: '2020-01-01' };
+    findOneMock.mockResolvedValueOnce(buy);
+    getRawOneMock.mockResolvedValueOnce({ soldQuantity: sold });
+
+    const result = await service.recordSale(
+      { buy_id: 'buy-id', sale_date: '2020-01-01', quantity },
+      'item-id',
+    );
+
+    expect(findOneMock).toHaveBeenCalledWith({
+      where: { id: 'buy-id', item: { id: 'item-id' } },
+      lock: { mode: 'pessimistic_write' },
+    });
+    expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith(
+      'transaction.buy_id = :buyId AND transaction.type = :type',
+      { buyId: 'buy-id', type: 'sell' },
+    );
+    expect(saveMock).toHaveBeenCalledExactlyOnceWith({
+      type: 'sell', quantity, effective_date: '2020-01-01', buy, item: { id: 'item-id' },
+    });
+    expect(result).toEqual({ id: 'sale-id' });
+  });
+
+  it('should reject a sale exceeding the remaining buy quantity without saving', async () => {
+    findOneMock.mockResolvedValueOnce({ type: 'buy', quantity: 5, effective_date: '2020-01-01' });
+    getRawOneMock.mockResolvedValueOnce({ soldQuantity: '2' });
+
+    await expect(service.recordSale(
+      { buy_id: 'buy-id', sale_date: '2020-01-02', quantity: 4 }, 'item-id',
+    )).rejects.toThrow('Sale quantity cannot exceed the remaining buy quantity.');
+    expect(saveMock).not.toHaveBeenCalled();
+  });
+
 });

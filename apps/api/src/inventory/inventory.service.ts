@@ -14,6 +14,15 @@ export interface ItemWithQuantity extends Item {
   quantity: number;
 }
 
+async function getSoldQuantity(transactionRepository: Repository<Transaction>, buyId: string): Promise<number> {
+  const salesTotalResult = await transactionRepository
+    .createQueryBuilder('transaction')
+    .select('SUM(transaction.quantity)', 'soldQuantity')
+    .where('transaction.buy_id = :buyId AND transaction.type = :type', { buyId, type: 'sell' })
+    .getRawOne();
+  return salesTotalResult.soldQuantity === null ? 0 : Number(salesTotalResult.soldQuantity);
+}
+
 @Injectable()
 export class InventoryService {
   constructor(
@@ -127,12 +136,7 @@ export class InventoryService {
       }
       if (transaction.type !== 'buy') throw new BadRequestException('Only buy transactions can be updated.');
 
-      const salesTotalResult = await transactionRepository
-        .createQueryBuilder('transaction')
-        .select('SUM(transaction.quantity)', 'soldQuantity')
-        .where('transaction.buy_id = :buyId AND transaction.type = :type', { buyId: transactionId, type: 'sell' })
-        .getRawOne();
-      const soldQuantity = salesTotalResult.soldQuantity === null ? 0 : Number(salesTotalResult.soldQuantity);
+      const soldQuantity = await getSoldQuantity(transactionRepository, transactionId);
       if (updateTransactionDto.quantity < soldQuantity) {
         throw new BadRequestException('Buy quantity cannot be less than the quantity already sold.');
       }
@@ -206,16 +210,7 @@ export class InventoryService {
       if (recordSaleDto.sale_date < buyTransaction.effective_date)
         throw new BadRequestException('Sale date cannot be before the buy date.');
 
-      // Get total quantities from sales connected to the purchase
-      const result = await transactionRepository
-        .createQueryBuilder('transaction')
-        .select('SUM(transaction.quantity)', 'soldQuantity')
-        .where('transaction.buy_id = :buyId AND transaction.type = :type', {
-          buyId: recordSaleDto.buy_id,
-          type: 'sell',
-        })
-        .getRawOne();
-      const soldQuantity = result.soldQuantity === null ? 0 : Number(result.soldQuantity);
+      const soldQuantity = await getSoldQuantity(transactionRepository, recordSaleDto.buy_id);
 
       const remainingQuantity = buyTransaction.quantity - soldQuantity;
 
