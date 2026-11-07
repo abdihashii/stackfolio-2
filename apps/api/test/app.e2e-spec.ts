@@ -62,6 +62,11 @@ describe('AppController (e2e)', () => {
         .expect(201);
 
       expect(await items.existsBy({ id: buyResponse.body.id, item_type: { id: preset.id } })).toBe(true);
+      const buy = await transactions.findOneByOrFail({
+        item: { id: buyResponse.body.id },
+        type: 'buy',
+      });
+      expect(buy.quantity).toBe(5);
     } finally {
       for (const item of await items.findBy({ item_type: { id: preset.id } })) {
         await transactions.delete({ item: { id: item.id } });
