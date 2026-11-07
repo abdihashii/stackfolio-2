@@ -38,9 +38,11 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
   });
 
-  it('creates an isolated item type for sale verification', async () => {
+  it('records an isolated buy for sale verification', async () => {
     const database = app.get(DataSource);
     const itemTypes = database.getRepository(ItemType);
+    const items = database.getRepository(Item);
+    const transactions = database.getRepository(Transaction);
     const preset = await itemTypes.save({
       name: `Sale test ${randomUUID()}`,
       metal: 'silver',
@@ -50,8 +52,21 @@ describe('AppController (e2e)', () => {
     });
 
     try {
-      expect(await itemTypes.existsBy({ id: preset.id })).toBe(true);
+      const buyResponse = await request(app.getHttpServer())
+        .post('/inventory')
+        .send({
+          item_type_id: preset.id,
+          quantity: 5,
+          acquisition_date: '2026-01-10',
+        })
+        .expect(201);
+
+      expect(await items.existsBy({ id: buyResponse.body.id, item_type: { id: preset.id } })).toBe(true);
     } finally {
+      for (const item of await items.findBy({ item_type: { id: preset.id } })) {
+        await transactions.delete({ item: { id: item.id } });
+        await items.delete(item.id);
+      }
       await itemTypes.delete(preset.id);
     }
   });
