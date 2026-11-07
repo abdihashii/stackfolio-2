@@ -38,7 +38,7 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
   });
 
-  it('records an isolated buy for sale verification', async () => {
+  it('records a partial sale against a buy', async () => {
     const database = app.get(DataSource);
     const itemTypes = database.getRepository(ItemType);
     const items = database.getRepository(Item);
@@ -67,6 +67,17 @@ describe('AppController (e2e)', () => {
         type: 'buy',
       });
       expect(buy.quantity).toBe(5);
+
+      const saleResponse = await request(app.getHttpServer())
+        .post(`/inventory/${buyResponse.body.id}/sales`)
+        .send({
+          buy_id: buy.id,
+          quantity: 2,
+          sale_date: '2026-01-10',
+        })
+        .expect(201);
+
+      expect(saleResponse.body.quantity).toBe(2);
     } finally {
       for (const item of await items.findBy({ item_type: { id: preset.id } })) {
         await transactions.delete({ item: { id: item.id } });
