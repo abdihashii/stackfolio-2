@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SpotPricesService } from '../spot-prices/spot-prices.service.js';
+import { ItemType } from './entities/item-type.entity.js';
 import { Item } from './entities/item.entity.js';
 import { Transaction } from './entities/transaction.entity.js';
 import { InventoryService } from './inventory.service.js';
@@ -75,8 +76,15 @@ describe('InventoryService', () => {
             transaction: async (callback: (manager: unknown) => Promise<unknown>) =>
               callback({
                 getRepository: (entity: unknown) => {
+                  if (entity === Item) return { findOneBy: vi.fn().mockResolvedValue({ id: 'item-id' }) };
+                  if (entity === ItemType) return { findOne: vi.fn().mockResolvedValue({ id: 'type-id' }) };
                   expect(entity).toBe(Transaction);
-                  return { findOne: findOneMock, update: updateMock, save: saveMock, createQueryBuilder: salesQueryBuilderMock };
+                  return {
+                    findOne: findOneMock,
+                    update: updateMock,
+                    save: saveMock,
+                    createQueryBuilder: salesQueryBuilderMock,
+                  };
                 },
               }),
           },
@@ -91,6 +99,44 @@ describe('InventoryService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  it('rejects a future buy date without saving a transaction', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-07T23:59:59.000Z'));
+    try {
+      await expect(
+        service.recordBuy({
+          item_type_id: 'type-id',
+          quantity: 1,
+          acquisition_date: '2026-11-08',
+        }),
+      ).rejects.toThrow(new BadRequestException('Acquisition date cannot be in the future.'));
+      expect(saveMock).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it.each(['2026-11-06', '2026-11-07', undefined, null])(
+    'accepts buy date %s and defaults missing dates to today in UTC',
+    async (acquisition_date) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-11-07T00:00:00.000Z'));
+      try {
+        await expect(service.recordBuy({ item_type_id: 'type-id', quantity: 1, acquisition_date })).resolves.toEqual({
+          id: 'item-id',
+        });
+        expect(saveMock).toHaveBeenCalledExactlyOnceWith({
+          effective_date: acquisition_date ?? '2026-11-07',
+          type: 'buy',
+          item: { id: 'item-id' },
+          quantity: 1,
+        });
+      } finally {
+        vi.useRealTimers();
+      }
+    },
+  );
 
   it('should value each metal using one quote and return that quote', async () => {
     const quote = {
@@ -228,21 +274,22 @@ describe('InventoryService', () => {
     findOneMock.mockResolvedValueOnce(buy);
     getRawOneMock.mockResolvedValueOnce({ soldQuantity: sold });
 
-    const result = await service.recordSale(
-      { buy_id: 'buy-id', sale_date: '2020-01-01', quantity },
-      'item-id',
-    );
+    const result = await service.recordSale({ buy_id: 'buy-id', sale_date: '2020-01-01', quantity }, 'item-id');
 
     expect(findOneMock).toHaveBeenCalledWith({
       where: { id: 'buy-id', item: { id: 'item-id' } },
       lock: { mode: 'pessimistic_write' },
     });
-    expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith(
-      'transaction.buy_id = :buyId AND transaction.type = :type',
-      { buyId: 'buy-id', type: 'sell' },
-    );
+    expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith('transaction.buy_id = :buyId AND transaction.type = :type', {
+      buyId: 'buy-id',
+      type: 'sell',
+    });
     expect(saveMock).toHaveBeenCalledExactlyOnceWith({
-      type: 'sell', quantity, effective_date: '2020-01-01', buy, item: { id: 'item-id' },
+      type: 'sell',
+      quantity,
+      effective_date: '2020-01-01',
+      buy,
+      item: { id: 'item-id' },
     });
     expect(result).toEqual({ id: 'sale-id' });
   });
@@ -251,10 +298,9 @@ describe('InventoryService', () => {
     findOneMock.mockResolvedValueOnce({ type: 'buy', quantity: 5, effective_date: '2020-01-01' });
     getRawOneMock.mockResolvedValueOnce({ soldQuantity: '2' });
 
-    await expect(service.recordSale(
-      { buy_id: 'buy-id', sale_date: '2020-01-02', quantity: 4 }, 'item-id',
-    )).rejects.toThrow('Sale quantity cannot exceed the remaining buy quantity.');
+    await expect(
+      service.recordSale({ buy_id: 'buy-id', sale_date: '2020-01-02', quantity: 4 }, 'item-id'),
+    ).rejects.toThrow('Sale quantity cannot exceed the remaining buy quantity.');
     expect(saveMock).not.toHaveBeenCalled();
   });
-
 });

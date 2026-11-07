@@ -35,6 +35,10 @@ export class InventoryService {
   ) {}
 
   async recordBuy(recordBuyDto: RecordBuyDto): Promise<Item> {
+    if (recordBuyDto.acquisition_date && recordBuyDto.acquisition_date > new Date().toISOString().slice(0, 10)) {
+      throw new BadRequestException('Acquisition date cannot be in the future.');
+    }
+
     return await this.dataSource.transaction(async (manager) => {
       const itemRepository = manager.getRepository(Item);
       const itemTypeRepository = manager.getRepository(ItemType);
