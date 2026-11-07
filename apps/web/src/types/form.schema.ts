@@ -16,6 +16,11 @@ export type FormValues = z.infer<typeof schema>;
 export const buySchema = z.object({
   item_type_id: z.uuid(),
   quantity: z.number().int().positive().max(2147483647),
-  acquisition_date: z.iso.date().nullable(),
+  acquisition_date: z.iso
+    .date()
+    .nullable()
+    .refine((date) => date === null || date <= new Date().toISOString().slice(0, 10), {
+      error: 'Acquisition date cannot be in the future.',
+    }),
 });
 export type BuyFormValues = z.infer<typeof buySchema>;
