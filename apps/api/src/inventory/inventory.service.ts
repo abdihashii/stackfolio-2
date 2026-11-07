@@ -34,7 +34,7 @@ export class InventoryService {
     private spotPricesService: SpotPricesService,
   ) {}
 
-  async create(recordBuyDto: RecordBuyDto): Promise<Item> {
+  async recordBuy(recordBuyDto: RecordBuyDto): Promise<Item> {
     return await this.dataSource.transaction(async (manager) => {
       const itemRepository = manager.getRepository(Item);
       const itemTypeRepository = manager.getRepository(ItemType);
