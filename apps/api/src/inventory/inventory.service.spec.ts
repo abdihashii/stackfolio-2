@@ -199,6 +199,25 @@ describe('InventoryService', () => {
     },
   );
 
+  it('should return remaining buy availability without changing the purchased quantity', async () => {
+    const buy = { id: 'buy-id', type: 'buy', quantity: 5 };
+    findAndCountMock.mockResolvedValueOnce([[buy], 3]);
+    createQueryBuilderMock.mockReturnValueOnce(salesQueryBuilderMock());
+    getRawOneMock.mockResolvedValueOnce({ soldQuantity: '2' });
+
+    const result = await service.findAllTransactions('item-id', 1);
+
+    expect(result).toEqual({
+      transactions: [expect.objectContaining({ id: 'buy-id', type: 'buy', quantity: 5, remaining_quantity: 3 })],
+      total: 3,
+    });
+    expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith('transaction.buy_id = :buyId AND transaction.type = :type', {
+      buyId: 'buy-id',
+      type: 'sell',
+    });
+    expect(buy.quantity).toBe(5);
+  });
+
   it("should update a buy's quantity", async () => {
     const result = await service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity: 4 });
 
