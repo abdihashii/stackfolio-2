@@ -77,6 +77,37 @@ describe('AppController (e2e)', () => {
       });
       expect(buy.quantity).toBe(5);
 
+      const otherPreset = await itemTypes.save({
+        name: `Other sale test ${randomUUID()}`,
+        metal: 'silver',
+        weight: 1,
+        weight_unit: 'ozt',
+        purity: 0.999,
+      });
+      try {
+        const otherBuyResponse = await request(app.getHttpServer())
+          .post('/inventory')
+          .send({ item_type_id: otherPreset.id, quantity: 5, acquisition_date: '2026-01-10' })
+          .expect(201);
+        const otherBuy = await transactions.findOneByOrFail({
+          item: { id: otherBuyResponse.body.id },
+          type: 'buy',
+        });
+
+        await request(app.getHttpServer())
+          .post(`/inventory/${buyResponse.body.id}/sales`)
+          .send({ buy_id: otherBuy.id, quantity: 1, sale_date: '2026-01-10' })
+          .expect(404);
+        expect(await transactions.findBy({ item: { id: buyResponse.body.id } })).toEqual([buy]);
+        expect(await transactions.findBy({ item: { id: otherBuyResponse.body.id } })).toEqual([otherBuy]);
+      } finally {
+        for (const item of await items.findBy({ item_type: { id: otherPreset.id } })) {
+          await transactions.delete({ item: { id: item.id } });
+          await items.delete(item.id);
+        }
+        await itemTypes.delete(otherPreset.id);
+      }
+
       for (const sale_date of ['2026-01-09', tomorrow.toISOString().slice(0, 10)]) {
         await request(app.getHttpServer())
           .post(`/inventory/${buyResponse.body.id}/sales`)
@@ -106,6 +137,14 @@ describe('AppController (e2e)', () => {
       expect(sale.effective_date).toBe('2026-01-10');
       expect(sale.buy?.id).toBe(buy.id);
       expect(sale.item.id).toBe(buyResponse.body.id);
+
+      for (const [buy_id, status] of [[randomUUID(), 404], [sale.id, 400]] as const) {
+        await request(app.getHttpServer())
+          .post(`/inventory/${buyResponse.body.id}/sales`)
+          .send({ buy_id, quantity: 1, sale_date: '2026-01-10' })
+          .expect(status);
+        expect(await transactions.countBy({ item: { id: buyResponse.body.id } })).toBe(2);
+      }
 
       const firstPage = await request(app.getHttpServer()).get('/inventory?limit=100').expect(200);
       let remainingItem = firstPage.body.inventory.find((item: { id: string }) => item.id === buyResponse.body.id);
