@@ -127,6 +127,12 @@ describe('AppController (e2e)', () => {
           expect.objectContaining({ id: finalSaleResponse.body.id, type: 'sell', quantity: 3 }),
         ]),
       );
+
+      await request(app.getHttpServer())
+        .post(`/inventory/${buyResponse.body.id}/sales`)
+        .send({ buy_id: buy.id, quantity: 1, sale_date: '2026-01-10' })
+        .expect(400);
+      expect(await transactions.countBy({ item: { id: buyResponse.body.id } })).toBe(3);
     } finally {
       for (const item of await items.findBy({ item_type: { id: preset.id } })) {
         await transactions.delete({ item: { id: item.id } });
