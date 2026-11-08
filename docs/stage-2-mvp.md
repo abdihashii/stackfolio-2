@@ -86,21 +86,23 @@ Inventory is empty and the app is not in production; no existing-data conversion
 
 **Verify:** Buy three, sell one, reload to see two. Sell the remaining two and retain the records. An excess sale is rejected without changes.
 
-#### 4. Corrections
+#### 4. Edit and delete transactions
 
+- [ ] Offer Edit and Delete actions on buys and sales; no separate correction screen, workflow, or transaction type.
 - [ ] Edit a buy or sell’s quantity or effective date while preserving its identity and recorded timestamp.
 - [ ] Reject buy-date edits that move the buy after a linked sale (deferred from Slice 3).
-- [ ] Reject corrections that invalidate later sales.
-- [ ] Remove erroneous transactions without leaving invalid dependent records or negative ownership; rejected removals leave records unchanged.
+- [ ] Reject edits that invalidate later sales, with concrete explanations such as “You’ve already sold 2 from this purchase. Quantity must be at least 2.” Rejected edits leave records unchanged.
+- [ ] Allow deleting an accidental sale or a buy with no linked sales.
+- [ ] Block deleting a buy with linked sales and explain: “Delete its sales first.” Never silently delete linked sales; rejected removals leave records unchanged.
 
-**Verify:** Buy three, sell one, then correct the buy to four: three remain after reload. Reducing that buy below the sold quantity is rejected without changes.
+**Verify:** Buy three, sell one, then edit the buy to four: three remain after reload, with its identity and recorded timestamp unchanged. Reducing that buy below the sold quantity or moving its date after the sale is rejected without changes and explains why. Deleting the buy is blocked until its sale is deleted. Delete the sale to restore quantity four, then delete the buy; verify both removals persist after reload. Exercise quantity and date edits on sales, including an edit that exceeds the linked buy’s quantity.
 
 **Stage gate:** Demonstrate the flows in the app; pass workspace typecheck, lint, and available tests. Commit slices only after sign-off.
 
 ### Open Decisions
 
 - How unknown acquisition dates appear in the form and history.
-- How to correct an incorrectly selected preset or remove erroneous records with dependent sales.
+- How to correct an incorrectly selected preset.
 
 ### Outside Stage 2
 
