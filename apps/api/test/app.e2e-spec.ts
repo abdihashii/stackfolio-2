@@ -247,7 +247,7 @@ describe('AppController (e2e)', () => {
     }
   });
 
-  it('serializes competing sales against the same buy', async () => {
+  it.each(['sale', 'buy edit'])('serializes a sale competing with another %s against the same buy', async (competitor) => {
     const database = app.get(DataSource);
     const itemTypes = database.getRepository(ItemType);
     const items = database.getRepository(Item);
@@ -271,13 +271,17 @@ describe('AppController (e2e)', () => {
           lock: { mode: 'pessimistic_write' },
         });
         const [{ pid }] = await blocker.query('SELECT pg_backend_pid() AS pid');
-        const responses = Promise.allSettled(
-          [1, 2].map(() =>
+        const competingRequest = competitor === 'sale'
+          ? request(app.getHttpServer()).post(`/inventory/${item.id}/sales`)
+            .send({ buy_id: buy.id, quantity: 3, sale_date: '2026-01-10' })
+          : request(app.getHttpServer()).patch(`/inventory/${item.id}/transactions/${buy.id}`)
+            .send({ quantity: 2 });
+        const responses = Promise.allSettled([
             request(app.getHttpServer())
               .post(`/inventory/${item.id}/sales`)
               .send({ buy_id: buy.id, quantity: 3, sale_date: '2026-01-10' }),
-          ),
-        );
+            competingRequest,
+        ]);
         try {
           // Prove both requests overlap at the database before releasing the buy lock.
           let waiting = 0;
@@ -304,11 +308,18 @@ describe('AppController (e2e)', () => {
           if (response.status === 'rejected') throw response.reason;
           return response.value.status;
         });
-        expect(statuses.sort((a, b) => a - b)).toEqual([201, 400]);
-        expect(await transactions.findBy({ buy: { id: buy.id } })).toEqual([
-          expect.objectContaining({ type: 'sell', quantity: 3 }),
-        ]);
-        expect((await transactions.findOneByOrFail({ id: buy.id })).quantity).toBe(5);
+        if (competitor === 'sale') {
+          expect(statuses.sort((a, b) => a - b)).toEqual([201, 400]);
+        } else {
+          // Either serial order is valid; accepting both would leave more sold than bought.
+          expect([[201, 400], [400, 200]]).toContainEqual(statuses);
+        }
+        const editWon = competitor === 'buy edit' && statuses[1] === 200;
+        expect(await transactions.findBy({ buy: { id: buy.id } })).toEqual(
+          editWon ? [] : [expect.objectContaining({ type: 'sell', quantity: 3 })],
+        );
+        expect((await transactions.findOneByOrFail({ id: buy.id })).quantity).toBe(editWon ? 2 : 5);
+        expect(await transactions.countBy({ item: { id: item.id } })).toBe(editWon ? 1 : 2);
       } finally {
         if (blocker.isTransactionActive) await blocker.rollbackTransaction();
         await blocker.release();
