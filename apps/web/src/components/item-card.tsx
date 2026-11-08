@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 
 import type { Item } from '@/types/inventory.types';
 
-import { fetchTransactions, updateTransaction } from '@/lib/apis';
+import { fetchTransactions, recordSale, updateTransaction } from '@/lib/apis';
 import { calculateItemValue, formatUsd } from '@/lib/utils';
 
 type ItemCardProps = {
@@ -52,13 +52,28 @@ export const ItemCard = ({
       }
     },
   });
+  const saleMutation = useMutation({
+    mutationFn: (payload: Parameters<typeof recordSale>[1]) => recordSale(id, payload),
+    onSuccess: async () => {
+      setSellingTransactionId(null);
+      try {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['itemTransactions', id] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
+        ]);
+      } catch {
+        alert('Sale saved, but could not refresh. Reload the page.');
+      }
+    },
+  });
   const itemTransactionsQuery = useQuery({
     queryKey: ['itemTransactions', id, transactionPage],
     queryFn: () => fetchTransactions(id, transactionPage),
     enabled: manageSectionState === 'transactions',
   });
 
-  const isTransactionBusy = isBusy || updateTransactionMutation.isPending;
+  const isTransactionBusy = isBusy || updateTransactionMutation.isPending || saleMutation.isPending;
   const transactionsTotal = itemTransactionsQuery.data?.total ?? 0;
   const totalTransactionPages = Math.max(1, Math.ceil(transactionsTotal / 2));
 
@@ -101,9 +116,6 @@ export const ItemCard = ({
         <div className="flex w-full justify-between rounded-md border border-gray-300 px-4 py-2">
           <button type="button" className="hover:cursor-pointer" onClick={() => setManageSectionState('transactions')}>
             edit transactions
-          </button>
-          <button type="button" disabled className="hover:cursor-pointer">
-            sell
           </button>
           <button
             className="text-red-500 hover:cursor-pointer hover:underline"
@@ -188,7 +200,19 @@ export const ItemCard = ({
                     )}
                   </form>
                 ) : sellingTransactionId === transaction.id ? (
-                  <form className="flex flex-col gap-2" onSubmit={(event) => event.preventDefault()}>
+                  <form
+                    className="flex flex-col gap-2"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      if (isTransactionBusy) return;
+                      const data = new FormData(event.currentTarget);
+                      saleMutation.mutate({
+                        buy_id: transaction.id,
+                        quantity: Number(data.get('quantity')),
+                        sale_date: String(data.get('sale_date')),
+                      });
+                    }}
+                  >
                     <p>Sell from buy on {transaction.effective_date}</p>
                     <p>Available: {transaction.remaining_quantity}</p>
                     <label htmlFor={`sale-quantity-${transaction.id}`}>Quantity to sell:</label>
@@ -217,13 +241,28 @@ export const ItemCard = ({
                       className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
                     <button
+                      type="submit"
+                      disabled={isTransactionBusy}
+                      className="text-blue-500 hover:cursor-pointer hover:underline"
+                    >
+                      {saleMutation.isPending ? 'Saving...' : 'Save sale'}
+                    </button>
+                    <button
                       type="button"
                       disabled={isTransactionBusy}
-                      onClick={() => setSellingTransactionId(null)}
+                      onClick={() => {
+                        setSellingTransactionId(null);
+                        saleMutation.reset();
+                      }}
                       className="text-red-500 hover:cursor-pointer hover:underline"
                     >
                       Cancel sale
                     </button>
+                    {saleMutation.isError && (
+                      <p role="alert" className="text-red-500">
+                        {saleMutation.error.message}
+                      </p>
+                    )}
                   </form>
                 ) : (
                   <>
@@ -253,6 +292,7 @@ export const ItemCard = ({
                           className="ml-3 text-red-500 hover:cursor-pointer hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                           onClick={() => {
                             setEditingTransactionId(null);
+                            saleMutation.reset();
                             setSellingTransactionId(transaction.id);
                           }}
                         >
