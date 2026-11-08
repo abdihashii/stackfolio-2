@@ -89,6 +89,14 @@ describe('AppController (e2e)', () => {
       expect(sale.effective_date).toBe('2026-01-10');
       expect(sale.buy?.id).toBe(buy.id);
       expect(sale.item.id).toBe(buyResponse.body.id);
+
+      const firstPage = await request(app.getHttpServer()).get('/inventory?limit=100').expect(200);
+      let remainingItem = firstPage.body.inventory.find((item: { id: string }) => item.id === buyResponse.body.id);
+      for (let page = 2; !remainingItem && page <= Math.ceil(firstPage.body.total / 100); page++) {
+        const response = await request(app.getHttpServer()).get(`/inventory?page=${page}&limit=100`).expect(200);
+        remainingItem = response.body.inventory.find((item: { id: string }) => item.id === buyResponse.body.id);
+      }
+      expect(remainingItem).toEqual(expect.objectContaining({ id: buyResponse.body.id, quantity: 3 }));
     } finally {
       for (const item of await items.findBy({ item_type: { id: preset.id } })) {
         await transactions.delete({ item: { id: item.id } });
