@@ -17,6 +17,9 @@ describe('InventoryService', () => {
   const findAndCountMock = vi.fn().mockResolvedValue([[], 0]);
   const findOneMock = vi.fn().mockResolvedValue({ type: 'buy' });
   const saveMock = vi.fn();
+  const findOneOrFailMock = vi.fn();
+  const existsByMock = vi.fn();
+  const deleteMock = vi.fn();
   const updateMock = vi.fn().mockResolvedValue({ affected: 1 });
   const getRawManyMock = vi.fn();
   const getRawOneMock = vi.fn();
@@ -35,6 +38,9 @@ describe('InventoryService', () => {
     findAndCountMock.mockReset().mockResolvedValue([[], 0]);
     findOneMock.mockReset().mockResolvedValue({ type: 'buy' });
     saveMock.mockReset().mockResolvedValue({ id: 'sale-id' });
+    findOneOrFailMock.mockReset().mockResolvedValue({ buy: { id: 'buy-id' } });
+    existsByMock.mockReset().mockResolvedValue(false);
+    deleteMock.mockReset().mockResolvedValue({ affected: 1 });
     updateMock.mockReset().mockResolvedValue({ affected: 1 });
     getRawManyMock.mockReset().mockResolvedValue([]);
     getRawOneMock.mockReset().mockResolvedValue({ soldQuantity: null });
@@ -81,6 +87,9 @@ describe('InventoryService', () => {
                   expect(entity).toBe(Transaction);
                   return {
                     findOne: findOneMock,
+                    findOneOrFail: findOneOrFailMock,
+                    existsBy: existsByMock,
+                    delete: deleteMock,
                     update: updateMock,
                     save: saveMock,
                     createQueryBuilder: salesQueryBuilderMock,
@@ -233,7 +242,7 @@ describe('InventoryService', () => {
     getRawOneMock.mockResolvedValueOnce({ soldQuantity: '3' });
 
     await expect(service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity: 2 })).rejects.toThrow(
-      'Buy quantity cannot be less than the quantity already sold.',
+      'You’ve already sold 3 from this purchase. Quantity must be at least 3.',
     );
 
     expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith('transaction.buy_id = :buyId AND transaction.type = :type', {
@@ -266,14 +275,66 @@ describe('InventoryService', () => {
     expect(updateMock).not.toHaveBeenCalled();
   });
 
-  it('should reject a sell without updating', async () => {
-    findOneMock.mockResolvedValueOnce({ type: 'sell' });
+  it('edits a sale using availability excluding its old quantity', async () => {
+    findOneMock
+      .mockResolvedValueOnce({ type: 'sell', quantity: 2, effective_date: '2020-02-01' })
+      .mockResolvedValueOnce({ id: 'buy-id', quantity: 5, effective_date: '2020-01-01' });
+    getRawOneMock.mockResolvedValueOnce({ soldQuantity: '4' });
+    await service.updateTransaction('item-id', 'sale-id', { quantity: 3, effective_date: '2020-01-01' });
+    expect(updateMock).toHaveBeenCalledExactlyOnceWith('sale-id', { quantity: 3, effective_date: '2020-01-01' });
+  });
 
-    await expect(
-      service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity: 4 }),
-    ).rejects.toBeInstanceOf(BadRequestException);
-
+  it.each([
+    { quantity: 4, effective_date: '2020-02-01', message: 'Sale quantity cannot exceed 3' },
+    { quantity: 1, effective_date: '2019-12-31', message: 'Sale date must be on or after' },
+  ])('rejects an invalid sale edit: $message', async ({ quantity, effective_date, message }) => {
+    findOneMock
+      .mockResolvedValueOnce({ type: 'sell', quantity: 2 })
+      .mockResolvedValueOnce({ id: 'buy-id', quantity: 5, effective_date: '2020-01-01' });
+    getRawOneMock.mockResolvedValueOnce({ soldQuantity: '4' });
+    await expect(service.updateTransaction('item-id', 'sale-id', { quantity, effective_date })).rejects.toThrow(
+      message,
+    );
     expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects moving a buy after its first sale', async () => {
+    findOneMock.mockResolvedValueOnce({ type: 'buy' }).mockResolvedValueOnce({ effective_date: '2020-02-01' });
+    await expect(
+      service.updateTransaction('item-id', 'buy-id', { quantity: 5, effective_date: '2020-02-02' }),
+    ).rejects.toThrow('Buy date must be on or before');
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects future effective dates', async () => {
+    await expect(
+      service.updateTransaction('item-id', 'buy-id', { quantity: 5, effective_date: '9999-01-01' }),
+    ).rejects.toThrow('Effective date cannot be in the future.');
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  it('blocks deleting a buy with linked sales', async () => {
+    existsByMock.mockResolvedValueOnce(true);
+    await expect(service.removeTransaction('item-id', 'buy-id')).rejects.toThrow('Delete its sales first.');
+    expect(deleteMock).not.toHaveBeenCalled();
+  });
+
+  it.each(['buy', 'sell'])('deletes a %s without changing other records', async (type) => {
+    findOneMock.mockResolvedValueOnce({ type });
+    await service.removeTransaction('item-id', 'transaction-id');
+    expect(deleteMock).toHaveBeenCalledExactlyOnceWith('transaction-id');
+    expect(updateMock).not.toHaveBeenCalled();
+    if (type === 'sell')
+      expect(findOneOrFailMock).toHaveBeenCalledWith({
+        where: { id: 'buy-id' },
+        lock: { mode: 'pessimistic_write' },
+      });
+  });
+
+  it('rejects deleting a transaction outside the item', async () => {
+    findOneMock.mockResolvedValueOnce(null);
+    await expect(service.removeTransaction('item-id', 'transaction-id')).rejects.toBeInstanceOf(NotFoundException);
+    expect(deleteMock).not.toHaveBeenCalled();
   });
 
   it('should report not found when the transaction disappears before the update', async () => {

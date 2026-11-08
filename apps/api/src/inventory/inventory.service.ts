@@ -150,6 +150,12 @@ export class InventoryService {
   }
 
   async updateTransaction(itemId: string, transactionId: string, updateTransactionDto: UpdateTransactionDto) {
+    if (
+      updateTransactionDto.effective_date &&
+      updateTransactionDto.effective_date > new Date().toISOString().slice(0, 10)
+    ) {
+      throw new BadRequestException('Effective date cannot be in the future.');
+    }
     return await this.dataSource.transaction(async (manager) => {
       const transactionRepository = manager.getRepository(Transaction);
       const transaction = await transactionRepository.findOne({
@@ -159,21 +165,71 @@ export class InventoryService {
       if (!transaction) {
         throw new NotFoundException('Transaction not found.');
       }
-      if (transaction.type !== 'buy') throw new BadRequestException('Only buy transactions can be updated.');
-
-      const soldQuantity = await getSoldQuantity(transactionRepository, transactionId);
-      if (updateTransactionDto.quantity < soldQuantity) {
-        throw new BadRequestException('Buy quantity cannot be less than the quantity already sold.');
+      const effectiveDate = updateTransactionDto.effective_date ?? transaction.effective_date;
+      if (transaction.type === 'buy') {
+        const soldQuantity = await getSoldQuantity(transactionRepository, transactionId);
+        if (updateTransactionDto.quantity < soldQuantity) {
+          throw new BadRequestException(
+            `You’ve already sold ${soldQuantity} from this purchase. Quantity must be at least ${soldQuantity}.`,
+          );
+        }
+        const firstSale = await transactionRepository.findOne({
+          where: { buy: { id: transactionId }, type: 'sell' },
+          order: { effective_date: 'ASC' },
+        });
+        if (firstSale && effectiveDate > firstSale.effective_date) {
+          throw new BadRequestException(`Buy date must be on or before its first sale on ${firstSale.effective_date}.`);
+        }
+      } else {
+        const sale = await transactionRepository.findOneOrFail({
+          where: { id: transactionId },
+          relations: { buy: true },
+        });
+        const buy = await transactionRepository.findOne({
+          where: { id: sale.buy!.id, item: { id: itemId }, type: 'buy' },
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!buy) throw new NotFoundException('Buy transaction not found for this item.');
+        if (effectiveDate < buy.effective_date) {
+          throw new BadRequestException(`Sale date must be on or after the buy date ${buy.effective_date}.`);
+        }
+        const soldQuantity = await getSoldQuantity(transactionRepository, buy.id);
+        const available = buy.quantity - soldQuantity + transaction.quantity;
+        if (updateTransactionDto.quantity > available) {
+          throw new BadRequestException(`Sale quantity cannot exceed ${available} available from this purchase.`);
+        }
       }
 
       const updateResult = await transactionRepository.update(transactionId, {
         quantity: updateTransactionDto.quantity,
+        ...(updateTransactionDto.effective_date !== undefined ? { effective_date: effectiveDate } : {}),
       });
       if (updateResult.affected === 0) {
         throw new NotFoundException('Transaction not found.');
       }
 
       return updateResult;
+    });
+  }
+
+  async removeTransaction(itemId: string, transactionId: string): Promise<void> {
+    await this.dataSource.transaction(async (manager) => {
+      const repository = manager.getRepository(Transaction);
+      const transaction = await repository.findOne({
+        where: { id: transactionId, item: { id: itemId } },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!transaction) throw new NotFoundException('Transaction not found.');
+      if (transaction.type === 'buy') {
+        if (await repository.existsBy({ buy: { id: transactionId } })) {
+          throw new BadRequestException('Delete its sales first.');
+        }
+      } else {
+        const sale = await repository.findOneOrFail({ where: { id: transactionId }, relations: { buy: true } });
+        // Serialize changes to availability with sales and edits against this buy.
+        await repository.findOneOrFail({ where: { id: sale.buy!.id }, lock: { mode: 'pessimistic_write' } });
+      }
+      await repository.delete(transactionId);
     });
   }
 
