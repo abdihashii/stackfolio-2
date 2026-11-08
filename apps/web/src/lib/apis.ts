@@ -99,3 +99,19 @@ export const fetchValuation = async (): Promise<{
   }
   return await res.json();
 };
+
+export const recordSale = async (
+  itemId: string,
+  payload: { buy_id: string; quantity: number; sale_date: string },
+): Promise<void> => {
+  const res = await fetch(`${backendUrlPath}/inventory/${itemId}/sales`, {
+    method: 'POST',
+    headers: { 'Content-type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
+    throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not record sale.');
+  }
+};
