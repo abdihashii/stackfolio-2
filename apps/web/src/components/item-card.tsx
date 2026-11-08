@@ -187,6 +187,19 @@ export const ItemCard = ({
                       </p>
                     )}
                   </form>
+                ) : sellingTransactionId === transaction.id ? (
+                  <form className="flex flex-col gap-2" onSubmit={(event) => event.preventDefault()}>
+                    <p>Sell from buy on {transaction.effective_date}</p>
+                    <p>Available: {transaction.remaining_quantity}</p>
+                    <button
+                      type="button"
+                      disabled={isTransactionBusy}
+                      onClick={() => setSellingTransactionId(null)}
+                      className="text-red-500 hover:cursor-pointer hover:underline"
+                    >
+                      Cancel sale
+                    </button>
+                  </form>
                 ) : (
                   <>
                     <p>Type: {transaction.type}</p>
