@@ -189,20 +189,25 @@ export const ItemCard = ({
                 ) : (
                   <>
                     <p>Type: {transaction.type}</p>
-                    <p>Quantity: {transaction.quantity}</p>
+                    <p>
+                      {transaction.type === 'buy' ? 'Bought' : 'Sold'}: {transaction.quantity}
+                    </p>
                     <p>Effective date: {transaction.effective_date}</p>
                     {transaction.type === 'buy' && (
-                      <button
-                        type="button"
-                        disabled={isTransactionBusy}
-                        className="text-blue-500 hover:cursor-pointer hover:underline"
-                        onClick={() => {
-                          updateTransactionMutation.reset();
-                          setEditingTransactionId(transaction.id);
-                        }}
-                      >
-                        edit
-                      </button>
+                      <>
+                        <p>Available: {transaction.remaining_quantity}</p>
+                        <button
+                          type="button"
+                          disabled={isTransactionBusy}
+                          className="text-blue-500 hover:cursor-pointer hover:underline"
+                          onClick={() => {
+                            updateTransactionMutation.reset();
+                            setEditingTransactionId(transaction.id);
+                          }}
+                        >
+                          edit
+                        </button>
+                      </>
                     )}
                   </>
                 )}

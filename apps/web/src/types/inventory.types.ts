@@ -30,4 +30,5 @@ export interface Transaction {
   effective_date: string;
   type: 'buy' | 'sell';
   quantity: number;
+  remaining_quantity?: number;
 }
