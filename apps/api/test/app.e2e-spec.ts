@@ -52,6 +52,15 @@ describe('AppController (e2e)', () => {
     });
 
     try {
+      const tomorrow = new Date();
+      tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+      await request(app.getHttpServer())
+        .post('/inventory')
+        .send({ item_type_id: preset.id, quantity: 5, acquisition_date: tomorrow.toISOString().slice(0, 10) })
+        .expect(400);
+      expect(await items.countBy({ item_type: { id: preset.id } })).toBe(0);
+      expect(await transactions.countBy({ item: { item_type: { id: preset.id } } })).toBe(0);
+
       const buyResponse = await request(app.getHttpServer())
         .post('/inventory')
         .send({
@@ -68,8 +77,6 @@ describe('AppController (e2e)', () => {
       });
       expect(buy.quantity).toBe(5);
 
-      const tomorrow = new Date();
-      tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
       for (const sale_date of ['2026-01-09', tomorrow.toISOString().slice(0, 10)]) {
         await request(app.getHttpServer())
           .post(`/inventory/${buyResponse.body.id}/sales`)
