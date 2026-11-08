@@ -166,6 +166,18 @@ describe('AppController (e2e)', () => {
       expect(sale.buy?.id).toBe(buy.id);
       expect(sale.item.id).toBe(buyResponse.body.id);
 
+      const buyEditPath = `/inventory/${buyResponse.body.id}/transactions/${buy.id}`;
+      await request(app.getHttpServer()).patch(buyEditPath).send({ quantity: 1 }).expect(400);
+      expect((await transactions.findOneByOrFail({ id: buy.id })).quantity).toBe(5);
+      for (const quantity of [2, 5]) {
+        await request(app.getHttpServer()).patch(buyEditPath).send({ quantity }).expect(200);
+        expect((await transactions.findOneByOrFail({ id: buy.id })).quantity).toBe(quantity);
+        expect(await transactions.countBy({ item: { id: buyResponse.body.id } })).toBe(2);
+        expect(await transactions.findOneByOrFail({ id: sale.id })).toEqual(
+          expect.objectContaining({ type: 'sell', quantity: 2, effective_date: '2026-01-10' }),
+        );
+      }
+
       for (const [buy_id, status] of [
         [randomUUID(), 404],
         [sale.id, 400],
