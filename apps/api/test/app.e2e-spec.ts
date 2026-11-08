@@ -247,6 +247,81 @@ describe('AppController (e2e)', () => {
     }
   });
 
+  it('serializes competing sales against the same buy', async () => {
+    const database = app.get(DataSource);
+    const itemTypes = database.getRepository(ItemType);
+    const items = database.getRepository(Item);
+    const transactions = database.getRepository(Transaction);
+    const preset = await itemTypes.save({
+      name: `Concurrent sale test ${randomUUID()}`,
+      metal: 'silver',
+      weight: 1,
+      weight_unit: 'ozt',
+      purity: 0.999,
+    });
+    try {
+      const item = await items.save({ item_type: preset, acquisition_date: '2026-01-10' });
+      const buy = await transactions.save({ item, type: 'buy', quantity: 5, effective_date: '2026-01-10' });
+      const blocker = database.createQueryRunner();
+      await blocker.connect();
+      try {
+        await blocker.startTransaction();
+        await blocker.manager.getRepository(Transaction).findOneOrFail({
+          where: { id: buy.id },
+          lock: { mode: 'pessimistic_write' },
+        });
+        const [{ pid }] = await blocker.query('SELECT pg_backend_pid() AS pid');
+        const responses = Promise.allSettled(
+          [1, 2].map(() =>
+            request(app.getHttpServer())
+              .post(`/inventory/${item.id}/sales`)
+              .send({ buy_id: buy.id, quantity: 3, sale_date: '2026-01-10' }),
+          ),
+        );
+        try {
+          // Prove both requests overlap at the database before releasing the buy lock.
+          let waiting = 0;
+          const deadline = Date.now() + 3000;
+          while (waiting < 2 && Date.now() < deadline) {
+            const [result] = await database.query(
+              `WITH RECURSIVE blocked(pid) AS (
+                SELECT pid FROM pg_stat_activity WHERE $1 = ANY(pg_blocking_pids(pid))
+                UNION
+                SELECT activity.pid FROM pg_stat_activity activity
+                JOIN blocked ON blocked.pid = ANY(pg_blocking_pids(activity.pid))
+              ) SELECT COUNT(*)::int AS waiting FROM blocked`,
+              [pid],
+            );
+            waiting = result.waiting;
+            if (waiting < 2) await new Promise((resolve) => setTimeout(resolve, 10));
+          }
+          expect(waiting).toBe(2);
+        } finally {
+          await blocker.rollbackTransaction();
+          await responses;
+        }
+        const statuses = (await responses).map((response) => {
+          if (response.status === 'rejected') throw response.reason;
+          return response.value.status;
+        });
+        expect(statuses.sort((a, b) => a - b)).toEqual([201, 400]);
+        expect(await transactions.findBy({ buy: { id: buy.id } })).toEqual([
+          expect.objectContaining({ type: 'sell', quantity: 3 }),
+        ]);
+        expect((await transactions.findOneByOrFail({ id: buy.id })).quantity).toBe(5);
+      } finally {
+        if (blocker.isTransactionActive) await blocker.rollbackTransaction();
+        await blocker.release();
+      }
+    } finally {
+      for (const item of await items.findBy({ item_type: { id: preset.id } })) {
+        await transactions.delete({ item: { id: item.id } });
+        await items.delete(item.id);
+      }
+      await itemTypes.delete(preset.id);
+    }
+  }, 10000);
+
   it('keeps two buys under one item and calculates its quantity from transactions', async () => {
     const database = app.get(DataSource);
     const itemTypes = database.getRepository(ItemType);
