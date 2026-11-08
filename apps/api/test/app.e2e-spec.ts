@@ -38,7 +38,7 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
   });
 
-  it('records a partial sale against a buy', async () => {
+  it('records partial and full sales while retaining the item and its history', async () => {
     const database = app.get(DataSource);
     const itemTypes = database.getRepository(ItemType);
     const items = database.getRepository(Item);
@@ -97,6 +97,36 @@ describe('AppController (e2e)', () => {
         remainingItem = response.body.inventory.find((item: { id: string }) => item.id === buyResponse.body.id);
       }
       expect(remainingItem).toEqual(expect.objectContaining({ id: buyResponse.body.id, quantity: 3 }));
+
+      const finalSaleResponse = await request(app.getHttpServer())
+        .post(`/inventory/${buyResponse.body.id}/sales`)
+        .send({ buy_id: buy.id, quantity: 3, sale_date: '2026-01-10' })
+        .expect(201);
+
+      const soldOutPage = await request(app.getHttpServer()).get('/inventory?limit=100').expect(200);
+      let soldOutItem = soldOutPage.body.inventory.find((item: { id: string }) => item.id === buyResponse.body.id);
+      for (let page = 2; !soldOutItem && page <= Math.ceil(soldOutPage.body.total / 100); page++) {
+        const response = await request(app.getHttpServer()).get(`/inventory?page=${page}&limit=100`).expect(200);
+        soldOutItem = response.body.inventory.find((item: { id: string }) => item.id === buyResponse.body.id);
+      }
+      expect(soldOutItem).toEqual(expect.objectContaining({ id: buyResponse.body.id, quantity: 0 }));
+      expect(await items.existsBy({ id: buyResponse.body.id })).toBe(true);
+
+      const history = await request(app.getHttpServer())
+        .get(`/inventory/${buyResponse.body.id}/transactions`)
+        .expect(200);
+      const nextHistoryPage = await request(app.getHttpServer())
+        .get(`/inventory/${buyResponse.body.id}/transactions?page=2`)
+        .expect(200);
+      expect(history.body.total).toBe(3);
+      expect(nextHistoryPage.body.total).toBe(3);
+      expect([...history.body.transactions, ...nextHistoryPage.body.transactions]).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: buy.id, type: 'buy', quantity: 5 }),
+          expect.objectContaining({ id: sale.id, type: 'sell', quantity: 2 }),
+          expect.objectContaining({ id: finalSaleResponse.body.id, type: 'sell', quantity: 3 }),
+        ]),
+      );
     } finally {
       for (const item of await items.findBy({ item_type: { id: preset.id } })) {
         await transactions.delete({ item: { id: item.id } });
