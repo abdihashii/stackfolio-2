@@ -78,6 +78,17 @@ describe('AppController (e2e)', () => {
         .expect(201);
 
       expect(saleResponse.body.quantity).toBe(2);
+
+      const sale = await transactions.findOneOrFail({
+        where: { id: saleResponse.body.id },
+        relations: { buy: true, item: true },
+      });
+
+      expect(sale.type).toBe('sell');
+      expect(sale.quantity).toBe(2);
+      expect(sale.effective_date).toBe('2026-01-10');
+      expect(sale.buy?.id).toBe(buy.id);
+      expect(sale.item.id).toBe(buyResponse.body.id);
     } finally {
       for (const item of await items.findBy({ item_type: { id: preset.id } })) {
         await transactions.delete({ item: { id: item.id } });
