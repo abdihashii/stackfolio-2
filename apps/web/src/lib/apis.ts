@@ -17,7 +17,7 @@ export const fetchInventory = async (page = 1, limit = 12): Promise<{ inventory:
   return data;
 };
 
-export const createItem = async (payload: BuyFormValues): Promise<Item> => {
+export const recordBuy = async (payload: BuyFormValues): Promise<Item> => {
   // TODO: show user-facing API validation messages on submit; keep unexpected errors generic.
   const res = await fetch(`${backendUrlPath}/inventory`, {
     method: 'POST',

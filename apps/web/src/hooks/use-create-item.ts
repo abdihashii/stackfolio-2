@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 
 import type { BuyFormValues } from '@/types/form.schema';
 
-import { createItem } from '@/lib/apis';
+import { recordBuy } from '@/lib/apis';
 import { buySchema } from '@/types/form.schema';
 
 export const useCreateItem = (inventoryIsPending: boolean, setPage: React.Dispatch<React.SetStateAction<number>>) => {
@@ -19,7 +19,7 @@ export const useCreateItem = (inventoryIsPending: boolean, setPage: React.Dispat
   });
 
   const createItemMutation = useMutation({
-    mutationFn: createItem,
+    mutationFn: recordBuy,
     onSuccess: async () => {
       form.reset();
       try {
