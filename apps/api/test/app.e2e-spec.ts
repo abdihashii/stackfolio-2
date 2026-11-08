@@ -77,6 +77,34 @@ describe('AppController (e2e)', () => {
       });
       expect(buy.quantity).toBe(5);
 
+      const validSale = { buy_id: buy.id, quantity: 1, sale_date: '2026-01-10' };
+      for (const invalidFields of [
+        { quantity: 0 },
+        { quantity: -1 },
+        { quantity: 1.5 },
+        { quantity: 2147483648 },
+        { quantity: '1' },
+        { quantity: null },
+        { quantity: undefined },
+        { buy_id: 'invalid' },
+        { buy_id: null },
+        { buy_id: undefined },
+        { sale_date: '2026-02-30' },
+        { sale_date: '2026-01-10T00:00:00Z' },
+        { sale_date: 'invalid' },
+        { sale_date: null },
+        { sale_date: undefined },
+        { unexpected: true },
+      ]) {
+        await request(app.getHttpServer())
+          .post(`/inventory/${buyResponse.body.id}/sales`)
+          .send({ ...validSale, ...invalidFields })
+          .expect(400);
+        expect(await transactions.countBy({ item: { id: buyResponse.body.id } })).toBe(1);
+      }
+      await request(app.getHttpServer()).post('/inventory/invalid/sales').send(validSale).expect(400);
+      expect(await transactions.countBy({ item: { id: buyResponse.body.id } })).toBe(1);
+
       const otherPreset = await itemTypes.save({
         name: `Other sale test ${randomUUID()}`,
         metal: 'silver',
@@ -138,7 +166,10 @@ describe('AppController (e2e)', () => {
       expect(sale.buy?.id).toBe(buy.id);
       expect(sale.item.id).toBe(buyResponse.body.id);
 
-      for (const [buy_id, status] of [[randomUUID(), 404], [sale.id, 400]] as const) {
+      for (const [buy_id, status] of [
+        [randomUUID(), 404],
+        [sale.id, 400],
+      ] as const) {
         await request(app.getHttpServer())
           .post(`/inventory/${buyResponse.body.id}/sales`)
           .send({ buy_id, quantity: 1, sale_date: '2026-01-10' })
