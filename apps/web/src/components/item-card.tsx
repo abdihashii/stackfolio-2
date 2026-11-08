@@ -33,6 +33,7 @@ export const ItemCard = ({
   );
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   const [transactionPage, setTransactionPage] = useState<number>(1);
+  const [sellingTransactionId, setSellingTransactionId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
   const updateTransactionMutation = useMutation({
@@ -202,6 +203,7 @@ export const ItemCard = ({
                           className="text-blue-500 hover:cursor-pointer hover:underline"
                           onClick={() => {
                             updateTransactionMutation.reset();
+                            setSellingTransactionId(null);
                             setEditingTransactionId(transaction.id);
                           }}
                         >
@@ -211,6 +213,10 @@ export const ItemCard = ({
                           type="button"
                           disabled={(transaction.remaining_quantity ?? 0) <= 0 || isTransactionBusy}
                           className="ml-3 text-red-500 hover:cursor-pointer hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                          onClick={() => {
+                            setEditingTransactionId(null);
+                            setSellingTransactionId(transaction.id);
+                          }}
                         >
                           {transaction.remaining_quantity === 0 ? 'fully sold' : 'sell'}
                         </button>
@@ -232,6 +238,7 @@ export const ItemCard = ({
                 className="hover:cursor-pointer disabled:text-gray-300 disabled:hover:cursor-not-allowed"
                 onClick={() => {
                   setEditingTransactionId(null);
+                  setSellingTransactionId(null);
                   updateTransactionMutation.reset();
                   setTransactionPage((prevPage) => Math.max(prevPage - 1, 1));
                 }}
@@ -248,6 +255,7 @@ export const ItemCard = ({
                 className="hover:cursor-pointer disabled:text-gray-300 disabled:hover:cursor-not-allowed"
                 onClick={() => {
                   setEditingTransactionId(null);
+                  setSellingTransactionId(null);
                   updateTransactionMutation.reset();
                   setTransactionPage((prevPage) => Math.min(totalTransactionPages, prevPage + 1));
                 }}
@@ -292,6 +300,7 @@ export const ItemCard = ({
           type="button"
           onClick={() => {
             setEditingTransactionId(null);
+            setSellingTransactionId(null);
             updateTransactionMutation.reset();
             setManageSectionState((prevState) => (prevState === 'closed' ? 'manage' : 'closed'));
           }}
