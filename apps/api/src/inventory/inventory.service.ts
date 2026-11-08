@@ -125,7 +125,28 @@ export class InventoryService {
       take: 2,
       skip,
     });
-    return { transactions, total };
+
+    const transactionsWithAvailability = await Promise.all(
+      transactions.map(async (transaction) => {
+        if (transaction.type !== 'buy') return transaction;
+
+        const soldQuantity = await getSoldQuantity(this.transactionRepository, transaction.id);
+
+        const { id, created_at, effective_date, type, quantity, item, buy } = transaction;
+        return {
+          id,
+          created_at,
+          effective_date,
+          type,
+          quantity,
+          item,
+          buy,
+          remaining_quantity: transaction.quantity - soldQuantity,
+        };
+      }),
+    );
+
+    return { transactions: transactionsWithAvailability, total };
   }
 
   async updateTransaction(itemId: string, transactionId: string, updateTransactionDto: UpdateTransactionDto) {
