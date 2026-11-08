@@ -68,6 +68,16 @@ describe('AppController (e2e)', () => {
       });
       expect(buy.quantity).toBe(5);
 
+      const tomorrow = new Date();
+      tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+      for (const sale_date of ['2026-01-09', tomorrow.toISOString().slice(0, 10)]) {
+        await request(app.getHttpServer())
+          .post(`/inventory/${buyResponse.body.id}/sales`)
+          .send({ buy_id: buy.id, quantity: 1, sale_date })
+          .expect(400);
+        expect(await transactions.countBy({ item: { id: buyResponse.body.id } })).toBe(1);
+      }
+
       const saleResponse = await request(app.getHttpServer())
         .post(`/inventory/${buyResponse.body.id}/sales`)
         .send({
@@ -97,6 +107,12 @@ describe('AppController (e2e)', () => {
         remainingItem = response.body.inventory.find((item: { id: string }) => item.id === buyResponse.body.id);
       }
       expect(remainingItem).toEqual(expect.objectContaining({ id: buyResponse.body.id, quantity: 3 }));
+
+      await request(app.getHttpServer())
+        .post(`/inventory/${buyResponse.body.id}/sales`)
+        .send({ buy_id: buy.id, quantity: 4, sale_date: '2026-01-10' })
+        .expect(400);
+      expect(await transactions.countBy({ item: { id: buyResponse.body.id } })).toBe(2);
 
       const finalSaleResponse = await request(app.getHttpServer())
         .post(`/inventory/${buyResponse.body.id}/sales`)
