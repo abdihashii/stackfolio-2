@@ -191,6 +191,19 @@ export const ItemCard = ({
                   <form className="flex flex-col gap-2" onSubmit={(event) => event.preventDefault()}>
                     <p>Sell from buy on {transaction.effective_date}</p>
                     <p>Available: {transaction.remaining_quantity}</p>
+                    <label htmlFor={`sale-quantity-${transaction.id}`}>Quantity to sell:</label>
+                    <input
+                      id={`sale-quantity-${transaction.id}`}
+                      name="quantity"
+                      type="number"
+                      defaultValue={1}
+                      min="1"
+                      max={transaction.remaining_quantity}
+                      step="1"
+                      required
+                      disabled={isTransactionBusy}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2"
+                    />
                     <button
                       type="button"
                       disabled={isTransactionBusy}
