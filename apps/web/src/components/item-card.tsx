@@ -207,6 +207,13 @@ export const ItemCard = ({
                         >
                           edit
                         </button>
+                        <button
+                          type="button"
+                          disabled={(transaction.remaining_quantity ?? 0) <= 0 || isTransactionBusy}
+                          className="ml-3 text-red-500 hover:cursor-pointer hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {transaction.remaining_quantity === 0 ? 'fully sold' : 'sell'}
+                        </button>
                       </>
                     )}
                   </>
