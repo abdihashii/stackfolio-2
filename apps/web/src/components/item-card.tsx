@@ -204,6 +204,18 @@ export const ItemCard = ({
                       disabled={isTransactionBusy}
                       className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
+                    <label htmlFor={`sale-date-${transaction.id}`}>Sale date:</label>
+                    <input
+                      id={`sale-date-${transaction.id}`}
+                      name="sale_date"
+                      type="date"
+                      defaultValue={new Date().toISOString().slice(0, 10)}
+                      min={transaction.effective_date}
+                      max={new Date().toISOString().slice(0, 10)}
+                      required
+                      disabled={isTransactionBusy}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2"
+                    />
                     <button
                       type="button"
                       disabled={isTransactionBusy}
