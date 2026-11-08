@@ -77,18 +77,19 @@ Inventory is empty and the app is not in production; no existing-data conversion
 
 **Verify:** Buy one Silver Eagle in January and another in March. After reload, one item shows quantity two and both buys; ownership in February is one.
 
-#### 3. Full and partial sales
+#### 3. Full and partial sales: completed
 
-- [ ] Record sales linked to individual buys through the app and API; update current quantity and spot value.
-- [ ] Reject overselling, including backdated or concurrent changes that would create negative ownership.
-- [ ] Reject existing buy edits that reduce quantity below linked sales or move the buy after a linked sale.
-- [ ] Keep fully sold items and their history accessible.
+- [x] Record sales linked to individual buys through the app and API; update current quantity and spot value.
+- [x] Reject overselling, including backdated or concurrent changes that would create negative ownership.
+- [x] Reject existing buy edits that reduce quantity below linked sales.
+- [x] Keep fully sold items and their history accessible.
 
 **Verify:** Buy three, sell one, reload to see two. Sell the remaining two and retain the records. An excess sale is rejected without changes.
 
 #### 4. Corrections
 
 - [ ] Edit a buy or sell’s quantity or effective date while preserving its identity and recorded timestamp.
+- [ ] Reject buy-date edits that move the buy after a linked sale (deferred from Slice 3).
 - [ ] Reject corrections that invalidate later sales.
 - [ ] Remove erroneous transactions without leaving invalid dependent records or negative ownership; rejected removals leave records unchanged.
 
