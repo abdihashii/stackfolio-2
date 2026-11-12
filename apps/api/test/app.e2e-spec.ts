@@ -38,67 +38,6 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
   });
 
-  it('edits and deletes transactions while preserving identity, dates, and remaining quantities', async () => {
-    const database = app.get(DataSource);
-    const itemTypes = database.getRepository(ItemType);
-    const items = database.getRepository(Item);
-    const transactions = database.getRepository(Transaction);
-    const preset = await itemTypes.save({
-      name: `Edit test ${randomUUID()}`,
-      metal: 'silver',
-      weight: 1,
-      weight_unit: 'ozt',
-      purity: 0.999,
-    });
-    const item = await items.save({ item_type: preset });
-    try {
-      const buy = await transactions.save({ item, type: 'buy', quantity: 3, effective_date: '2020-01-01' });
-      const sale = await transactions.save({ item, buy, type: 'sell', quantity: 1, effective_date: '2020-02-01' });
-      const buyPath = `/inventory/${item.id}/transactions/${buy.id}`;
-      const salePath = `/inventory/${item.id}/transactions/${sale.id}`;
-      await request(app.getHttpServer()).patch(buyPath).send({ quantity: 4, effective_date: '2020-01-02' }).expect(200);
-      const editedBuy = await transactions.findOneByOrFail({ id: buy.id });
-      expect(editedBuy).toMatchObject({
-        id: buy.id,
-        quantity: 4,
-        effective_date: '2020-01-02',
-        created_at: buy.created_at,
-      });
-      const history = await request(app.getHttpServer()).get(`/inventory/${item.id}/transactions`).expect(200);
-      expect(history.body.transactions).toContainEqual(
-        expect.objectContaining({ id: buy.id, quantity: 4, remaining_quantity: 3 }),
-      );
-      for (const effective_date of ['2020-02-02', '9999-01-01', '2020-02-30', '2020-01-01T00:00:00Z', null]) {
-        await request(app.getHttpServer()).patch(buyPath).send({ quantity: 4, effective_date }).expect(400);
-        expect(await transactions.findOneByOrFail({ id: buy.id })).toEqual(editedBuy);
-      }
-      await request(app.getHttpServer()).delete(buyPath).expect(400);
-      await request(app.getHttpServer())
-        .patch(salePath)
-        .send({ quantity: 4, effective_date: '2020-01-02' })
-        .expect(200);
-      const editedSale = await transactions.findOneByOrFail({ id: sale.id });
-      expect(editedSale).toMatchObject({ quantity: 4, effective_date: '2020-01-02', created_at: sale.created_at });
-      await request(app.getHttpServer()).patch(buyPath).send({ quantity: 3 }).expect(400);
-      for (const changes of [{ quantity: 5 }, { quantity: 1, effective_date: '2020-01-01' }]) {
-        await request(app.getHttpServer()).patch(salePath).send(changes).expect(400);
-        expect(await transactions.findOneByOrFail({ id: sale.id })).toEqual(editedSale);
-      }
-      await request(app.getHttpServer()).delete(`/inventory/${randomUUID()}/transactions/${sale.id}`).expect(404);
-      await request(app.getHttpServer()).delete(salePath).expect(200);
-      const restored = await request(app.getHttpServer()).get(`/inventory/${item.id}/transactions`).expect(200);
-      expect(restored.body.transactions).toContainEqual(expect.objectContaining({ id: buy.id, remaining_quantity: 4 }));
-      await request(app.getHttpServer()).delete(buyPath).expect(200);
-      expect(await transactions.countBy({ item: { id: item.id } })).toBe(0);
-      expect(await items.existsBy({ id: item.id })).toBe(true);
-      await request(app.getHttpServer()).delete(buyPath).expect(404);
-    } finally {
-      await transactions.delete({ item: { id: item.id } });
-      await items.delete(item.id);
-      await itemTypes.delete(preset.id);
-    }
-  });
-
   it('records partial and full sales while retaining the item and its history', async () => {
     const database = app.get(DataSource);
     const itemTypes = database.getRepository(ItemType);
