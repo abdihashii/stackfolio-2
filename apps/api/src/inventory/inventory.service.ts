@@ -14,7 +14,10 @@ export interface ItemWithQuantity extends Item {
   quantity: number;
 }
 
-async function getSoldQuantity(transactionRepository: Repository<Transaction>, buyId: string): Promise<number> {
+async function getTotalQuantitySoldForBuy(
+  transactionRepository: Repository<Transaction>,
+  buyId: string,
+): Promise<number> {
   const salesTotalResult = await transactionRepository
     .createQueryBuilder('transaction')
     .select('SUM(transaction.quantity)', 'soldQuantity')
@@ -130,7 +133,7 @@ export class InventoryService {
       transactions.map(async (transaction) => {
         if (transaction.type !== 'buy') return transaction;
 
-        const soldQuantity = await getSoldQuantity(this.transactionRepository, transaction.id);
+        const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(this.transactionRepository, transaction.id);
 
         const { id, created_at, effective_date, type, quantity, item, buy } = transaction;
         return {
@@ -141,7 +144,7 @@ export class InventoryService {
           quantity,
           item,
           buy,
-          remaining_quantity: transaction.quantity - soldQuantity,
+          remaining_quantity: transaction.quantity - totalQuantitySoldForBuy,
         };
       }),
     );
@@ -153,7 +156,7 @@ export class InventoryService {
     return await this.dataSource.transaction(async (manager) => {
       const transactionRepository = manager.getRepository(Transaction);
       const transaction = await transactionRepository.findOne({
-        where: { id: transactionId, item: { id: itemId } },
+        where: { id: transactionId, item: { id: itemId } }, // find this specific transaction and make sure it belongs to this item.
         lock: { mode: 'pessimistic_write' },
       });
       if (!transaction) {
@@ -161,8 +164,8 @@ export class InventoryService {
       }
       if (transaction.type !== 'buy') throw new BadRequestException('Only buy transactions can be updated.');
 
-      const soldQuantity = await getSoldQuantity(transactionRepository, transactionId);
-      if (updateTransactionDto.quantity < soldQuantity) {
+      const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, transactionId); // This asks "how many were sold from the purchase being edited?"
+      if (updateTransactionDto.quantity < totalQuantitySoldForBuy) {
         throw new BadRequestException('Buy quantity cannot be less than the quantity already sold.');
       }
 
@@ -235,9 +238,9 @@ export class InventoryService {
       if (recordSaleDto.sale_date < buyTransaction.effective_date)
         throw new BadRequestException('Sale date cannot be before the buy date.');
 
-      const soldQuantity = await getSoldQuantity(transactionRepository, recordSaleDto.buy_id);
+      const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, recordSaleDto.buy_id);
 
-      const remainingQuantity = buyTransaction.quantity - soldQuantity;
+      const remainingQuantity = buyTransaction.quantity - totalQuantitySoldForBuy;
 
       // Quantity cannot exceed what remains in the selected buy
       if (recordSaleDto.quantity > remainingQuantity)
