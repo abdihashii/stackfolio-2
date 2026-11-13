@@ -253,6 +253,21 @@ describe('InventoryService', () => {
     expect(result).toEqual({ affected: 1 });
   });
 
+  it('should preserve the buy quantity when only its date is corrected', async () => {
+    findOneMock.mockResolvedValueOnce({ type: 'buy', quantity: 5, effective_date: '2020-01-10' });
+
+    await expect(
+      service.updateTransaction('test-item-id-1', 'test-transaction-id-1', {
+        effective_date: '2020-01-12',
+      }),
+    ).resolves.toEqual({ affected: 1 });
+
+    expect(updateMock).toHaveBeenCalledExactlyOnceWith('test-transaction-id-1', {
+      quantity: 5,
+      effective_date: '2020-01-12',
+    });
+  });
+
   it('should reject moving a buy after its earliest linked sale without updating', async () => {
     findOneMock
       .mockResolvedValueOnce({ type: 'buy', quantity: 5, effective_date: '2020-01-10' })
