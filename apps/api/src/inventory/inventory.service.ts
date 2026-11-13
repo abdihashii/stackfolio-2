@@ -164,11 +164,13 @@ export class InventoryService {
       }
       if (transaction.type !== 'buy') throw new BadRequestException('Only buy transactions can be updated.');
 
-      const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, transactionId); // This asks "how many were sold from the purchase being edited?"
+      // This asks "how many were sold from the purchase being edited?"
+      const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, transactionId);
       if (updateTransactionDto.quantity < totalQuantitySoldForBuy) {
         throw new BadRequestException('Buy quantity cannot be less than the quantity already sold.');
       }
 
+      // Save the corrected purchase quantity; remaining quantity is calculated from linked sales.
       const updateResult = await transactionRepository.update(transactionId, {
         quantity: updateTransactionDto.quantity,
       });
