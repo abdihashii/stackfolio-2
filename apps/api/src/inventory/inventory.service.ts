@@ -155,13 +155,16 @@ export class InventoryService {
   async updateTransaction(itemId: string, transactionId: string, updateTransactionDto: UpdateTransactionDto) {
     return await this.dataSource.transaction(async (manager) => {
       const transactionRepository = manager.getRepository(Transaction);
+
+      // find the specific transaction by transactionId and make sure it belongs to this item.
       const transaction = await transactionRepository.findOne({
-        where: { id: transactionId, item: { id: itemId } }, // find this specific transaction and make sure it belongs to this item.
+        where: { id: transactionId, item: { id: itemId } },
         lock: { mode: 'pessimistic_write' },
       });
       if (!transaction) {
         throw new NotFoundException('Transaction not found.');
       }
+
       if (transaction.type !== 'buy') throw new BadRequestException('Only buy transactions can be updated.');
 
       const transactionDate = updateTransactionDto.effective_date ?? transaction.effective_date;
