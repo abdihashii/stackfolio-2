@@ -33,7 +33,11 @@ describe('InventoryService', () => {
   beforeEach(async () => {
     findMock.mockReset().mockResolvedValue([]);
     findAndCountMock.mockReset().mockResolvedValue([[], 0]);
-    findOneMock.mockReset().mockResolvedValue({ type: 'buy' });
+    findOneMock
+      .mockReset()
+      .mockImplementation(async ({ where }) =>
+        where.type === 'sell' ? null : { type: 'buy', quantity: 5, effective_date: '2020-01-10' },
+      );
     saveMock.mockReset().mockResolvedValue({ id: 'sale-id' });
     updateMock.mockReset().mockResolvedValue({ affected: 1 });
     getRawManyMock.mockReset().mockResolvedValue([]);
@@ -225,7 +229,27 @@ describe('InventoryService', () => {
       where: { id: 'test-transaction-id-1', item: { id: 'test-item-id-1' } },
       lock: { mode: 'pessimistic_write' },
     });
-    expect(updateMock).toHaveBeenCalledExactlyOnceWith('test-transaction-id-1', { quantity: 4 });
+    expect(updateMock).toHaveBeenCalledExactlyOnceWith('test-transaction-id-1', {
+      quantity: 4,
+      effective_date: '2020-01-10',
+    });
+    expect(result).toEqual({ affected: 1 });
+  });
+
+  it('should save a corrected buy date when there are no linked sales', async () => {
+    const result = await service.updateTransaction('test-item-id-1', 'test-transaction-id-1', {
+      quantity: 5,
+      effective_date: '2020-01-12',
+    });
+
+    expect(findOneMock).toHaveBeenNthCalledWith(2, {
+      where: { buy: { id: 'test-transaction-id-1' }, type: 'sell' },
+      order: { effective_date: 'ASC' },
+    });
+    expect(updateMock).toHaveBeenCalledExactlyOnceWith('test-transaction-id-1', {
+      quantity: 5,
+      effective_date: '2020-01-12',
+    });
     expect(result).toEqual({ affected: 1 });
   });
 
@@ -249,7 +273,10 @@ describe('InventoryService', () => {
     await expect(service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity })).resolves.toEqual({
       affected: 1,
     });
-    expect(updateMock).toHaveBeenCalledExactlyOnceWith('test-transaction-id-1', { quantity });
+    expect(updateMock).toHaveBeenCalledExactlyOnceWith('test-transaction-id-1', {
+      quantity,
+      effective_date: '2020-01-10',
+    });
   });
 
   it('should reject a transaction not found for the specified item without updating', async () => {

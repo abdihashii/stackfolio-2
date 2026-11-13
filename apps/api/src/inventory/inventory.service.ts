@@ -170,6 +170,13 @@ export class InventoryService {
       if (transactionDate > new Date().toISOString().slice(0, 10))
         throw new BadRequestException('Purchase date cannot be in the future.');
 
+      const earliestSale = await transactionRepository.findOne({
+        where: { buy: { id: transactionId }, type: 'sell' },
+        order: { effective_date: 'ASC' },
+      });
+      if (earliestSale && transactionDate > earliestSale.effective_date)
+        throw new BadRequestException('Purchase date cannot be after sale date.');
+
       // This asks "how many were sold from the purchase being edited?"
       const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, transactionId);
       if (updateTransactionDto.quantity < totalQuantitySoldForBuy) {
@@ -179,6 +186,7 @@ export class InventoryService {
       // Save the corrected purchase quantity; remaining quantity is calculated from linked sales.
       const updateResult = await transactionRepository.update(transactionId, {
         quantity: updateTransactionDto.quantity,
+        effective_date: transactionDate,
       });
       if (updateResult.affected === 0) {
         throw new NotFoundException('Transaction not found.');

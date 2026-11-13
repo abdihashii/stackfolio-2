@@ -25,7 +25,7 @@ export const ItemCard = ({
   spotPricesTimestamp,
   onDelete,
 }: ItemCardProps) => {
-  const { id, quantity, item_type, acquisition_date } = item;
+  const { id, quantity, item_type } = item;
   const { name, weight_unit, weight, purity } = item_type;
 
   const [manageSectionState, setManageSectionState] = useState<'closed' | 'manage' | 'transactions' | 'delete'>(
@@ -95,7 +95,6 @@ export const ItemCard = ({
       <p>
         Total weight: {weight * quantity} {weight_unit}
       </p>
-      {acquisition_date && <p>Acquisition date: {acquisition_date}</p>}
       {isSpotPricesLoading ? (
         <p>Item value: loading...</p>
       ) : spotPricesError ? (
