@@ -268,6 +268,25 @@ describe('InventoryService', () => {
     expect(updateMock).not.toHaveBeenCalled();
   });
 
+  it('should allow moving a buy to the same date as its earliest linked sale', async () => {
+    findOneMock
+      .mockResolvedValueOnce({ type: 'buy', quantity: 5, effective_date: '2020-01-10' })
+      .mockResolvedValueOnce({ type: 'sell', quantity: 2, effective_date: '2020-01-15' });
+    getRawOneMock.mockResolvedValueOnce({ soldQuantity: '2' });
+
+    await expect(
+      service.updateTransaction('test-item-id-1', 'test-transaction-id-1', {
+        quantity: 5,
+        effective_date: '2020-01-15',
+      }),
+    ).resolves.toEqual({ affected: 1 });
+
+    expect(updateMock).toHaveBeenCalledExactlyOnceWith('test-transaction-id-1', {
+      quantity: 5,
+      effective_date: '2020-01-15',
+    });
+  });
+
   it('should reject reducing a buy below its linked sales without updating', async () => {
     getRawOneMock.mockResolvedValueOnce({ soldQuantity: '3' });
 
