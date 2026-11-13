@@ -164,6 +164,12 @@ export class InventoryService {
       }
       if (transaction.type !== 'buy') throw new BadRequestException('Only buy transactions can be updated.');
 
+      const transactionDate = updateTransactionDto.effective_date ?? transaction.effective_date;
+
+      // Reject a purchase dated in the future.
+      if (transactionDate > new Date().toISOString().slice(0, 10))
+        throw new BadRequestException('Purchase date cannot be in the future.');
+
       // This asks "how many were sold from the purchase being edited?"
       const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, transactionId);
       if (updateTransactionDto.quantity < totalQuantitySoldForBuy) {
