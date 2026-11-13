@@ -253,6 +253,21 @@ describe('InventoryService', () => {
     expect(result).toEqual({ affected: 1 });
   });
 
+  it('should reject moving a buy after its earliest linked sale without updating', async () => {
+    findOneMock
+      .mockResolvedValueOnce({ type: 'buy', quantity: 5, effective_date: '2020-01-10' })
+      .mockResolvedValueOnce({ type: 'sell', quantity: 2, effective_date: '2020-01-15' });
+
+    await expect(
+      service.updateTransaction('test-item-id-1', 'test-transaction-id-1', {
+        quantity: 5,
+        effective_date: '2020-01-16',
+      }),
+    ).rejects.toThrow(new BadRequestException('Purchase date cannot be after sale date.'));
+
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
   it('should reject reducing a buy below its linked sales without updating', async () => {
     getRawOneMock.mockResolvedValueOnce({ soldQuantity: '3' });
 
