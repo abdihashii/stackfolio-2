@@ -287,6 +287,22 @@ describe('InventoryService', () => {
     });
   });
 
+  it('should reject moving a buy to a future date without updating', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2020-01-15T23:59:59.000Z'));
+    try {
+      await expect(
+        service.updateTransaction('test-item-id-1', 'test-transaction-id-1', {
+          quantity: 5,
+          effective_date: '2020-01-16',
+        }),
+      ).rejects.toThrow(new BadRequestException('Purchase date cannot be in the future.'));
+      expect(updateMock).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('should reject reducing a buy below its linked sales without updating', async () => {
     getRawOneMock.mockResolvedValueOnce({ soldQuantity: '3' });
 
