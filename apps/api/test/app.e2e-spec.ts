@@ -38,6 +38,159 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
   });
 
+  it('persists buy and sale corrections and leaves rejected edits unchanged', async () => {
+    const database = app.get(DataSource);
+    const itemTypes = database.getRepository(ItemType);
+    const items = database.getRepository(Item);
+    const transactions = database.getRepository(Transaction);
+    const preset = await itemTypes.save({
+      name: `Sale edit test ${randomUUID()}`,
+      metal: 'silver',
+      weight: 1,
+      weight_unit: 'ozt',
+      purity: 0.999,
+    });
+
+    try {
+      const buyResponse = await request(app.getHttpServer())
+        .post('/inventory')
+        .send({ item_type_id: preset.id, quantity: 5, acquisition_date: '2026-01-10' })
+        .expect(201);
+      const buy = await transactions.findOneByOrFail({
+        item: { id: buyResponse.body.id },
+        type: 'buy',
+      });
+      const saleResponse = await request(app.getHttpServer())
+        .post(`/inventory/${buyResponse.body.id}/sales`)
+        .send({ buy_id: buy.id, quantity: 2, sale_date: '2026-01-11' })
+        .expect(201);
+      const sale = await transactions.findOneOrFail({
+        where: { id: saleResponse.body.id },
+        relations: { buy: true, item: true },
+      });
+
+      expect(buy.quantity).toBe(5);
+      expect(sale.quantity).toBe(2);
+      expect(sale.buy?.id).toBe(buy.id);
+      expect(sale.item.id).toBe(buyResponse.body.id);
+      await request(app.getHttpServer())
+        .patch(`/inventory/${buyResponse.body.id}/transactions/${sale.id}`)
+        .send({ quantity: 3, effective_date: '2026-01-12' })
+        .expect(200);
+
+      const updatedSale = await transactions.findOneOrFail({
+        where: { id: sale.id },
+        relations: { buy: true, item: true },
+      });
+      expect(updatedSale.quantity).toBe(3);
+      expect(updatedSale.effective_date).toBe('2026-01-12');
+      expect(updatedSale.id).toBe(sale.id);
+      expect(updatedSale.buy?.id).toBe(sale.buy?.id);
+      expect(updatedSale.item.id).toBe(sale.item.id);
+      expect(updatedSale.created_at).toEqual(sale.created_at);
+
+      const tomorrow = new Date();
+      tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+      for (const changes of [
+        { quantity: 6, effective_date: '2026-01-13' },
+        { quantity: 1, effective_date: '2026-01-09' },
+        { effective_date: tomorrow.toISOString().slice(0, 10) },
+        { quantity: null },
+        { quantity: 0 },
+        { quantity: 1.5 },
+        { quantity: '3' },
+        { effective_date: null },
+        { effective_date: '2026-02-30' },
+        { effective_date: '2026-01-12T00:00:00Z' },
+        { buy_id: randomUUID() },
+      ]) {
+        await request(app.getHttpServer())
+          .patch(`/inventory/${buyResponse.body.id}/transactions/${sale.id}`)
+          .send(changes)
+          .expect(400);
+        expect(
+          await transactions.findOneOrFail({
+            where: { id: sale.id },
+            relations: { buy: true, item: true },
+          }),
+        ).toEqual(updatedSale);
+      }
+
+      for (const changes of [
+        { quantity: 2, effective_date: '2026-01-09' },
+        { quantity: 6, effective_date: '2026-01-13' },
+        { effective_date: tomorrow.toISOString().slice(0, 10) },
+      ]) {
+        await request(app.getHttpServer())
+          .patch(`/inventory/${buyResponse.body.id}/transactions/${buy.id}`)
+          .send(changes)
+          .expect(400);
+        expect(await transactions.findOneByOrFail({ id: buy.id })).toEqual(buy);
+      }
+
+      await request(app.getHttpServer())
+        .patch(`/inventory/${buyResponse.body.id}/transactions/${buy.id}`)
+        .send({ quantity: 4, effective_date: '2026-01-11' })
+        .expect(200);
+      expect(await transactions.findOneByOrFail({ id: buy.id })).toEqual({
+        id: buy.id,
+        type: buy.type,
+        created_at: buy.created_at,
+        quantity: 4,
+        effective_date: '2026-01-11',
+      });
+
+      await request(app.getHttpServer())
+        .patch(`/inventory/${buyResponse.body.id}/transactions/${sale.id}`)
+        .send({ effective_date: '2026-01-11' })
+        .expect(200);
+      expect(
+        await transactions.findOneOrFail({
+          where: { id: sale.id },
+          relations: { buy: true, item: true },
+        }),
+      ).toEqual({
+        id: updatedSale.id,
+        type: updatedSale.type,
+        quantity: updatedSale.quantity,
+        created_at: updatedSale.created_at,
+        item: updatedSale.item,
+        effective_date: '2026-01-11',
+        buy: expect.objectContaining({ id: buy.id, quantity: 4, effective_date: '2026-01-11' }),
+      });
+
+      await request(app.getHttpServer())
+        .patch(`/inventory/${buyResponse.body.id}/transactions/${sale.id}`)
+        .send({ quantity: 4 })
+        .expect(200);
+      expect(await transactions.findOneByOrFail({ id: sale.id })).toEqual(
+        expect.objectContaining({
+          quantity: 4,
+          effective_date: '2026-01-11',
+          created_at: sale.created_at,
+        }),
+      );
+      await request(app.getHttpServer())
+        .patch(`/inventory/${buyResponse.body.id}/transactions/${buy.id}`)
+        .send({ effective_date: '2026-01-10' })
+        .expect(200);
+      expect(await transactions.findOneByOrFail({ id: buy.id })).toEqual({
+        id: buy.id,
+        type: buy.type,
+        created_at: buy.created_at,
+        effective_date: buy.effective_date,
+        quantity: 4,
+      });
+      expect(await transactions.countBy({ item: { id: buyResponse.body.id } })).toBe(2);
+    } finally {
+      for (const item of await items.findBy({ item_type: { id: preset.id } })) {
+        await transactions.delete({ item: { id: item.id } });
+        await items.delete(item.id);
+      }
+      await itemTypes.delete(preset.id);
+    }
+  });
+
   it('records partial and full sales while retaining the item and its history', async () => {
     const database = app.get(DataSource);
     const itemTypes = database.getRepository(ItemType);
@@ -247,91 +400,122 @@ describe('AppController (e2e)', () => {
     }
   });
 
-  it.each(['sale', 'buy edit'])('serializes a sale competing with another %s against the same buy', async (competitor) => {
-    const database = app.get(DataSource);
-    const itemTypes = database.getRepository(ItemType);
-    const items = database.getRepository(Item);
-    const transactions = database.getRepository(Transaction);
-    const preset = await itemTypes.save({
-      name: `Concurrent sale test ${randomUUID()}`,
-      metal: 'silver',
-      weight: 1,
-      weight_unit: 'ozt',
-      purity: 0.999,
-    });
-    try {
-      const item = await items.save({ item_type: preset, acquisition_date: '2026-01-10' });
-      const buy = await transactions.save({ item, type: 'buy', quantity: 5, effective_date: '2026-01-10' });
-      const blocker = database.createQueryRunner();
-      await blocker.connect();
+  it.each(['sale', 'buy edit', 'sale edit'])(
+    'serializes a sale competing with another %s against the same buy',
+    async (competitor) => {
+      const database = app.get(DataSource);
+      const itemTypes = database.getRepository(ItemType);
+      const items = database.getRepository(Item);
+      const transactions = database.getRepository(Transaction);
+      const preset = await itemTypes.save({
+        name: `Concurrent sale test ${randomUUID()}`,
+        metal: 'silver',
+        weight: 1,
+        weight_unit: 'ozt',
+        purity: 0.999,
+      });
       try {
-        await blocker.startTransaction();
-        await blocker.manager.getRepository(Transaction).findOneOrFail({
-          where: { id: buy.id },
-          lock: { mode: 'pessimistic_write' },
-        });
-        const [{ pid }] = await blocker.query('SELECT pg_backend_pid() AS pid');
-        const competingRequest = competitor === 'sale'
-          ? request(app.getHttpServer()).post(`/inventory/${item.id}/sales`)
-            .send({ buy_id: buy.id, quantity: 3, sale_date: '2026-01-10' })
-          : request(app.getHttpServer()).patch(`/inventory/${item.id}/transactions/${buy.id}`)
-            .send({ quantity: 2 });
-        const responses = Promise.allSettled([
+        const item = await items.save({ item_type: preset, acquisition_date: '2026-01-10' });
+        const buy = await transactions.save({ item, type: 'buy', quantity: 5, effective_date: '2026-01-10' });
+        const existingSale =
+          competitor === 'sale edit'
+            ? await transactions.save({ item, buy, type: 'sell', quantity: 1, effective_date: '2026-01-10' })
+            : undefined;
+        const blocker = database.createQueryRunner();
+        await blocker.connect();
+        try {
+          await blocker.startTransaction();
+          await blocker.manager.getRepository(Transaction).findOneOrFail({
+            where: { id: buy.id },
+            lock: { mode: 'pessimistic_write' },
+          });
+          const [{ pid }] = await blocker.query('SELECT pg_backend_pid() AS pid');
+          const competingRequest =
+            competitor === 'sale'
+              ? request(app.getHttpServer())
+                  .post(`/inventory/${item.id}/sales`)
+                  .send({ buy_id: buy.id, quantity: 3, sale_date: '2026-01-10' })
+              : request(app.getHttpServer())
+                  .patch(`/inventory/${item.id}/transactions/${existingSale?.id ?? buy.id}`)
+                  .send({ quantity: existingSale ? 3 : 2 });
+          const responses = Promise.allSettled([
             request(app.getHttpServer())
               .post(`/inventory/${item.id}/sales`)
               .send({ buy_id: buy.id, quantity: 3, sale_date: '2026-01-10' }),
             competingRequest,
-        ]);
-        try {
-          // Prove both requests overlap at the database before releasing the buy lock.
-          let waiting = 0;
-          const deadline = Date.now() + 3000;
-          while (waiting < 2 && Date.now() < deadline) {
-            const [result] = await database.query(
-              `WITH RECURSIVE blocked(pid) AS (
+          ]);
+          try {
+            // Prove both requests overlap at the database before releasing the buy lock.
+            let waiting = 0;
+            const deadline = Date.now() + 3000;
+            while (waiting < 2 && Date.now() < deadline) {
+              const [result] = await database.query(
+                `WITH RECURSIVE blocked(pid) AS (
                 SELECT pid FROM pg_stat_activity WHERE $1 = ANY(pg_blocking_pids(pid))
                 UNION
                 SELECT activity.pid FROM pg_stat_activity activity
                 JOIN blocked ON blocked.pid = ANY(pg_blocking_pids(activity.pid))
               ) SELECT COUNT(*)::int AS waiting FROM blocked`,
-              [pid],
-            );
-            waiting = result.waiting;
-            if (waiting < 2) await new Promise((resolve) => setTimeout(resolve, 10));
+                [pid],
+              );
+              waiting = result.waiting;
+              if (waiting < 2) await new Promise((resolve) => setTimeout(resolve, 10));
+            }
+            expect(waiting).toBe(2);
+          } finally {
+            await blocker.rollbackTransaction();
+            await responses;
           }
-          expect(waiting).toBe(2);
+          const statuses = (await responses).map((response) => {
+            if (response.status === 'rejected') throw response.reason;
+            return response.value.status;
+          });
+          if (competitor === 'sale') {
+            expect(statuses.sort((a, b) => a - b)).toEqual([201, 400]);
+          } else {
+            // Either serial order is valid; accepting both would leave more sold than bought.
+            expect([
+              [201, 400],
+              [400, 200],
+            ]).toContainEqual(statuses);
+          }
+          const editWon = competitor === 'buy edit' && statuses[1] === 200;
+          if (existingSale) {
+            const saleEditWon = statuses[1] === 200;
+            expect(await transactions.findOneByOrFail({ id: existingSale.id })).toEqual({
+              id: existingSale.id,
+              type: 'sell',
+              quantity: saleEditWon ? 3 : 1,
+              effective_date: existingSale.effective_date,
+              created_at: existingSale.created_at,
+            });
+            const sales = await transactions.findBy({ buy: { id: buy.id } });
+            expect(sales).toHaveLength(saleEditWon ? 1 : 2);
+            expect(sales.reduce((total, sale) => total + sale.quantity, 0)).toBe(saleEditWon ? 3 : 4);
+            expect(await transactions.findOneByOrFail({ id: buy.id })).toEqual(
+              expect.objectContaining({ quantity: 5 }),
+            );
+          } else {
+            expect(await transactions.findBy({ buy: { id: buy.id } })).toEqual(
+              editWon ? [] : [expect.objectContaining({ type: 'sell', quantity: 3 })],
+            );
+            expect((await transactions.findOneByOrFail({ id: buy.id })).quantity).toBe(editWon ? 2 : 5);
+            expect(await transactions.countBy({ item: { id: item.id } })).toBe(editWon ? 1 : 2);
+          }
         } finally {
-          await blocker.rollbackTransaction();
-          await responses;
+          if (blocker.isTransactionActive) await blocker.rollbackTransaction();
+          await blocker.release();
         }
-        const statuses = (await responses).map((response) => {
-          if (response.status === 'rejected') throw response.reason;
-          return response.value.status;
-        });
-        if (competitor === 'sale') {
-          expect(statuses.sort((a, b) => a - b)).toEqual([201, 400]);
-        } else {
-          // Either serial order is valid; accepting both would leave more sold than bought.
-          expect([[201, 400], [400, 200]]).toContainEqual(statuses);
-        }
-        const editWon = competitor === 'buy edit' && statuses[1] === 200;
-        expect(await transactions.findBy({ buy: { id: buy.id } })).toEqual(
-          editWon ? [] : [expect.objectContaining({ type: 'sell', quantity: 3 })],
-        );
-        expect((await transactions.findOneByOrFail({ id: buy.id })).quantity).toBe(editWon ? 2 : 5);
-        expect(await transactions.countBy({ item: { id: item.id } })).toBe(editWon ? 1 : 2);
       } finally {
-        if (blocker.isTransactionActive) await blocker.rollbackTransaction();
-        await blocker.release();
+        for (const item of await items.findBy({ item_type: { id: preset.id } })) {
+          await transactions.delete({ item: { id: item.id } });
+          await items.delete(item.id);
+        }
+        await itemTypes.delete(preset.id);
       }
-    } finally {
-      for (const item of await items.findBy({ item_type: { id: preset.id } })) {
-        await transactions.delete({ item: { id: item.id } });
-        await items.delete(item.id);
-      }
-      await itemTypes.delete(preset.id);
-    }
-  }, 10000);
+    },
+    10000,
+  );
 
   it('keeps two buys under one item and calculates its quantity from transactions', async () => {
     const database = app.get(DataSource);
