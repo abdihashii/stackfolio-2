@@ -186,14 +186,12 @@ export class InventoryService {
         throw new NotFoundException('Transaction not found.');
       }
 
-      if (transaction.type !== 'buy') throw new BadRequestException('Only buy transactions can be updated.');
-
       const transactionDate = updateTransactionDto.effective_date ?? transaction.effective_date;
       const transactionQuantity = updateTransactionDto.quantity ?? transaction.quantity;
 
       // Reject a purchase dated in the future.
       if (transactionDate > new Date().toISOString().slice(0, 10))
-        throw new BadRequestException('Purchase date cannot be in the future.');
+        throw new BadRequestException('Transaction date cannot be in the future.');
 
       if (transaction.type === 'buy') {
         const earliestSale = await transactionRepository.findOne({
@@ -208,6 +206,22 @@ export class InventoryService {
         if (transactionQuantity < totalQuantitySoldForBuy) {
           throw new BadRequestException('Buy quantity cannot be less than the quantity already sold.');
         }
+      } else if (transaction.type === 'sell') {
+        if (transactionDate < buyTransaction.effective_date)
+          throw new BadRequestException('Sale date cannot be before the purchase date.');
+
+        // Get the total sold from its purchase
+        const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, buyId);
+
+        // Exclude this sale's old quantity to count only the other sales linked to the same purchase.
+        const quantitySoldThroughOtherSales = totalQuantitySoldForBuy - transaction.quantity;
+
+        // Calculate how much the edited sale is allowed to use: purchase quantity - quantity sold through other sales
+        const availableQuantityForSale = buyTransaction.quantity - quantitySoldThroughOtherSales;
+
+        // Reject the edit if the sale edit quantity is larger than the available
+        if (transactionQuantity > availableQuantityForSale)
+          throw new BadRequestException('Sale quantity cannot be larger than available quantity.');
       }
 
       // Save the corrected purchase quantity; remaining quantity is calculated from linked sales.
