@@ -153,8 +153,29 @@ export class InventoryService {
   }
 
   async updateTransaction(itemId: string, transactionId: string, updateTransactionDto: UpdateTransactionDto) {
+    /**
+     * The rules of updating transactions:
+     */
+
     return await this.dataSource.transaction(async (manager) => {
       const transactionRepository = manager.getRepository(Transaction);
+
+      // Find either a purchase or sale transaction and include the linked purchase transaction if it's a sale.
+      const transactionToEdit = await transactionRepository.findOne({
+        where: { id: transactionId, item: { id: itemId } },
+        relations: { buy: true },
+      });
+      if (!transactionToEdit) throw new NotFoundException('Transaction not found.');
+
+      const buyId = transactionToEdit.type === 'buy' ? transactionToEdit.id : transactionToEdit.buy?.id;
+      if (!buyId) throw new BadRequestException('Sale must reference a buy transaction.'); // Buys use their own ID so a missing buyId means a sale has no linked purchases.
+
+      // Find and lock the purchase transaction so changes to its sales cannot happen at the same time.
+      const buyTransaction = await transactionRepository.findOne({
+        where: { id: buyId, type: 'buy', item: { id: itemId } },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!buyTransaction) throw new NotFoundException('Purchase transaction not found for this item.');
 
       // find the specific transaction by transactionId and make sure it belongs to this item.
       const transaction = await transactionRepository.findOne({
@@ -174,17 +195,19 @@ export class InventoryService {
       if (transactionDate > new Date().toISOString().slice(0, 10))
         throw new BadRequestException('Purchase date cannot be in the future.');
 
-      const earliestSale = await transactionRepository.findOne({
-        where: { buy: { id: transactionId }, type: 'sell' },
-        order: { effective_date: 'ASC' },
-      });
-      if (earliestSale && transactionDate > earliestSale.effective_date)
-        throw new BadRequestException('Purchase date cannot be after sale date.');
+      if (transaction.type === 'buy') {
+        const earliestSale = await transactionRepository.findOne({
+          where: { buy: { id: transactionId }, type: 'sell' },
+          order: { effective_date: 'ASC' },
+        });
+        if (earliestSale && transactionDate > earliestSale.effective_date)
+          throw new BadRequestException('Purchase date cannot be after sale date.');
 
-      // This asks "how many were sold from the purchase being edited?"
-      const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, transactionId);
-      if (transactionQuantity < totalQuantitySoldForBuy) {
-        throw new BadRequestException('Buy quantity cannot be less than the quantity already sold.');
+        // This asks "how many were sold from the purchase being edited?"
+        const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, transactionId);
+        if (transactionQuantity < totalQuantitySoldForBuy) {
+          throw new BadRequestException('Buy quantity cannot be less than the quantity already sold.');
+        }
       }
 
       // Save the corrected purchase quantity; remaining quantity is calculated from linked sales.
