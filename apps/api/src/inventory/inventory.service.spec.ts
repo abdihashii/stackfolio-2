@@ -36,7 +36,9 @@ describe('InventoryService', () => {
     findOneMock
       .mockReset()
       .mockImplementation(async ({ where }) =>
-        where.type === 'sell' ? null : { type: 'buy', quantity: 5, effective_date: '2020-01-10' },
+        where.type === 'sell'
+          ? null
+          : { id: 'test-transaction-id-1', type: 'buy', quantity: 5, effective_date: '2020-01-10' },
       );
     saveMock.mockReset().mockResolvedValue({ id: 'sale-id' });
     updateMock.mockReset().mockResolvedValue({ affected: 1 });
@@ -242,7 +244,7 @@ describe('InventoryService', () => {
       effective_date: '2020-01-12',
     });
 
-    expect(findOneMock).toHaveBeenNthCalledWith(2, {
+    expect(findOneMock).toHaveBeenNthCalledWith(4, {
       where: { buy: { id: 'test-transaction-id-1' }, type: 'sell' },
       order: { effective_date: 'ASC' },
     });
@@ -254,7 +256,12 @@ describe('InventoryService', () => {
   });
 
   it('should preserve the buy quantity when only its date is corrected', async () => {
-    findOneMock.mockResolvedValueOnce({ type: 'buy', quantity: 5, effective_date: '2020-01-10' });
+    findOneMock.mockResolvedValueOnce({
+      id: 'test-transaction-id-1',
+      type: 'buy',
+      quantity: 5,
+      effective_date: '2020-01-10',
+    });
 
     await expect(
       service.updateTransaction('test-item-id-1', 'test-transaction-id-1', {
@@ -270,7 +277,9 @@ describe('InventoryService', () => {
 
   it('should reject moving a buy after its earliest linked sale without updating', async () => {
     findOneMock
-      .mockResolvedValueOnce({ type: 'buy', quantity: 5, effective_date: '2020-01-10' })
+      .mockResolvedValueOnce({ id: 'test-transaction-id-1', type: 'buy', quantity: 5, effective_date: '2020-01-10' })
+      .mockResolvedValueOnce({ id: 'test-transaction-id-1', type: 'buy', quantity: 5, effective_date: '2020-01-10' })
+      .mockResolvedValueOnce({ id: 'test-transaction-id-1', type: 'buy', quantity: 5, effective_date: '2020-01-10' })
       .mockResolvedValueOnce({ type: 'sell', quantity: 2, effective_date: '2020-01-15' });
 
     await expect(
@@ -285,7 +294,9 @@ describe('InventoryService', () => {
 
   it('should allow moving a buy to the same date as its earliest linked sale', async () => {
     findOneMock
-      .mockResolvedValueOnce({ type: 'buy', quantity: 5, effective_date: '2020-01-10' })
+      .mockResolvedValueOnce({ id: 'test-transaction-id-1', type: 'buy', quantity: 5, effective_date: '2020-01-10' })
+      .mockResolvedValueOnce({ id: 'test-transaction-id-1', type: 'buy', quantity: 5, effective_date: '2020-01-10' })
+      .mockResolvedValueOnce({ id: 'test-transaction-id-1', type: 'buy', quantity: 5, effective_date: '2020-01-10' })
       .mockResolvedValueOnce({ type: 'sell', quantity: 2, effective_date: '2020-01-15' });
     getRawOneMock.mockResolvedValueOnce({ soldQuantity: '2' });
 
@@ -311,7 +322,7 @@ describe('InventoryService', () => {
           quantity: 5,
           effective_date: '2020-01-16',
         }),
-      ).rejects.toThrow(new BadRequestException('Purchase date cannot be in the future.'));
+      ).rejects.toThrow(new BadRequestException('Transaction date cannot be in the future.'));
       expect(updateMock).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
@@ -353,19 +364,123 @@ describe('InventoryService', () => {
 
     expect(findOneMock).toHaveBeenCalledWith({
       where: { id: 'test-transaction-id-1', item: { id: 'test-item-id-1' } },
-      lock: { mode: 'pessimistic_write' },
+      relations: { buy: true },
     });
     expect(updateMock).not.toHaveBeenCalled();
   });
 
-  it('should reject a sell without updating', async () => {
+  it('should reject a sale without a linked purchase without updating', async () => {
     findOneMock.mockResolvedValueOnce({ type: 'sell' });
 
-    await expect(
-      service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity: 4 }),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity: 4 })).rejects.toThrow(
+      'Sale must reference a buy transaction.',
+    );
 
     expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  describe('sale edits', () => {
+    const buy = { id: 'buy-id', type: 'buy', quantity: 5, effective_date: '2020-01-10' };
+    const sale = { id: 'sale-id', type: 'sell', quantity: 2, effective_date: '2020-01-15', buy };
+
+    beforeEach(() => {
+      findOneMock.mockResolvedValueOnce(sale).mockResolvedValueOnce(buy).mockResolvedValueOnce(sale);
+      getRawOneMock.mockResolvedValueOnce({ soldQuantity: '3' });
+    });
+
+    it.each([1, 4])('should allow a sale quantity of %i, excluding its old quantity', async (quantity) => {
+      await expect(service.updateTransaction('item-id', 'sale-id', { quantity })).resolves.toEqual({ affected: 1 });
+
+      expect(findOneMock).toHaveBeenNthCalledWith(1, {
+        where: { id: 'sale-id', item: { id: 'item-id' } },
+        relations: { buy: true },
+      });
+      expect(findOneMock).toHaveBeenNthCalledWith(2, {
+        where: { id: 'buy-id', type: 'buy', item: { id: 'item-id' } },
+        lock: { mode: 'pessimistic_write' },
+      });
+      expect(findOneMock).toHaveBeenNthCalledWith(3, {
+        where: { id: 'sale-id', item: { id: 'item-id' } },
+        lock: { mode: 'pessimistic_write' },
+      });
+      expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith(
+        'transaction.buy_id = :buyId AND transaction.type = :type',
+        {
+          buyId: 'buy-id',
+          type: 'sell',
+        },
+      );
+      expect(updateMock).toHaveBeenCalledExactlyOnceWith('sale-id', {
+        quantity,
+        effective_date: '2020-01-15',
+      });
+    });
+
+    it('should reject a sale quantity exceeding the purchase availability without updating', async () => {
+      await expect(service.updateTransaction('item-id', 'sale-id', { quantity: 5 })).rejects.toThrow(
+        'Sale quantity cannot be larger than available quantity.',
+      );
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
+    it('should allow a date-only edit to the purchase date and preserve sale quantity', async () => {
+      await expect(service.updateTransaction('item-id', 'sale-id', { effective_date: '2020-01-10' })).resolves.toEqual({
+        affected: 1,
+      });
+      expect(updateMock).toHaveBeenCalledExactlyOnceWith('sale-id', {
+        quantity: 2,
+        effective_date: '2020-01-10',
+      });
+    });
+
+    it('should reject a sale date before the purchase without updating', async () => {
+      await expect(service.updateTransaction('item-id', 'sale-id', { effective_date: '2020-01-09' })).rejects.toThrow(
+        'Sale date cannot be before the purchase date.',
+      );
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
+    it('should reject a future sale date without updating', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2020-01-15T23:59:59.000Z'));
+      try {
+        await expect(service.updateTransaction('item-id', 'sale-id', { effective_date: '2020-01-16' })).rejects.toThrow(
+          'Transaction date cannot be in the future.',
+        );
+        expect(updateMock).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('should use the sale quantity reread after locking its purchase', async () => {
+      findOneMock
+        .mockReset()
+        .mockResolvedValueOnce(sale)
+        .mockResolvedValueOnce(buy)
+        .mockResolvedValueOnce({ ...sale, quantity: 1 });
+      // The total is three, including the reread sale of one: only three remain available to this sale.
+      await expect(service.updateTransaction('item-id', 'sale-id', { quantity: 4 })).rejects.toThrow(
+        'Sale quantity cannot be larger than available quantity.',
+      );
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
+    it('should reject a missing purchase without updating', async () => {
+      findOneMock.mockReset().mockResolvedValueOnce(sale).mockResolvedValueOnce(null);
+      await expect(service.updateTransaction('item-id', 'sale-id', { quantity: 1 })).rejects.toThrow(
+        'Purchase transaction not found for this item.',
+      );
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
+    it('should reject a sale missing on the locked reread without updating', async () => {
+      findOneMock.mockReset().mockResolvedValueOnce(sale).mockResolvedValueOnce(buy).mockResolvedValueOnce(null);
+      await expect(service.updateTransaction('item-id', 'sale-id', { quantity: 1 })).rejects.toThrow(
+        'Transaction not found.',
+      );
+      expect(updateMock).not.toHaveBeenCalled();
+    });
   });
 
   it('should report not found when the transaction disappears before the update', async () => {
