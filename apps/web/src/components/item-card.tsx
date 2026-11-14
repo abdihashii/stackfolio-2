@@ -37,8 +37,15 @@ export const ItemCard = ({
 
   const queryClient = useQueryClient();
   const updateTransactionMutation = useMutation({
-    mutationFn: ({ transactionId, quantity }: { transactionId: string; quantity: number }) =>
-      updateTransaction(id, transactionId, quantity),
+    mutationFn: ({
+      transactionId,
+      quantity,
+      effectiveDate,
+    }: {
+      transactionId: string;
+      quantity: number;
+      effectiveDate: string;
+    }) => updateTransaction(id, transactionId, quantity, effectiveDate),
     onSuccess: async () => {
       setEditingTransactionId(null);
       try {
@@ -152,13 +159,25 @@ export const ItemCard = ({
                       event.preventDefault();
                       if (isTransactionBusy) return;
                       const data = new FormData(event.currentTarget);
+                      const effectiveDate = data.get('effective_date');
+                      if (typeof effectiveDate !== 'string') return;
                       updateTransactionMutation.mutate({
                         transactionId: transaction.id,
                         quantity: Number(data.get('quantity')),
+                        effectiveDate,
                       });
                     }}
                   >
-                    <p>Buy on {transaction.effective_date}</p>
+                    <label htmlFor={`effective-date-${transaction.id}`}>Effective date:</label>
+                    <input
+                      id={`effective-date-${transaction.id}`}
+                      name="effective_date"
+                      type="date"
+                      defaultValue={transaction.effective_date}
+                      required
+                      disabled={isTransactionBusy}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2"
+                    />
                     <label htmlFor={`quantity-${transaction.id}`}>Quantity:</label>
                     <input
                       id={`quantity-${transaction.id}`}
@@ -270,21 +289,20 @@ export const ItemCard = ({
                       {transaction.type === 'buy' ? 'Bought' : 'Sold'}: {transaction.quantity}
                     </p>
                     <p>Effective date: {transaction.effective_date}</p>
+                    <button
+                      type="button"
+                      disabled={isTransactionBusy}
+                      className="text-blue-500 hover:cursor-pointer hover:underline"
+                      onClick={() => {
+                        updateTransactionMutation.reset();
+                        setSellingTransactionId(null);
+                        setEditingTransactionId(transaction.id);
+                      }}
+                    >
+                      edit
+                    </button>
                     {transaction.type === 'buy' && (
                       <>
-                        <p>Available: {transaction.remaining_quantity}</p>
-                        <button
-                          type="button"
-                          disabled={isTransactionBusy}
-                          className="text-blue-500 hover:cursor-pointer hover:underline"
-                          onClick={() => {
-                            updateTransactionMutation.reset();
-                            setSellingTransactionId(null);
-                            setEditingTransactionId(transaction.id);
-                          }}
-                        >
-                          edit
-                        </button>
                         <button
                           type="button"
                           disabled={(transaction.remaining_quantity ?? 0) <= 0 || isTransactionBusy}
@@ -297,6 +315,7 @@ export const ItemCard = ({
                         >
                           {transaction.remaining_quantity === 0 ? 'fully sold' : 'sell'}
                         </button>
+                        <p>Available: {transaction.remaining_quantity}</p>
                       </>
                     )}
                   </>
