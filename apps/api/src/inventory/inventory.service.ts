@@ -312,4 +312,6 @@ export class InventoryService {
       });
     });
   }
+
+  async deleteTransaction(itemId: string, transactionId: string) {}
 }

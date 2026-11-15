@@ -75,4 +75,12 @@ export class InventoryController {
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.inventoryService.remove(id);
   }
+
+  @Delete(':itemId/transactions/:transactionId')
+  deleteTransaction(
+    @Param('itemId', new ParseUUIDPipe()) itemId: string,
+    @Param('transactionId', new ParseUUIDPipe()) transactionId: string,
+  ) {
+    return this.inventoryService.deleteTransaction(itemId, transactionId);
+  }
 }

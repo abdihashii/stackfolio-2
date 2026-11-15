@@ -88,7 +88,7 @@ Inventory is empty and the app is not in production; no existing-data conversion
 
 #### 4. Edit and delete transactions
 
-- [x] Offer Edit and Delete actions on buys and sales; no separate correction screen, workflow, or transaction type.
+- [ ] Offer Edit and Delete actions on buys and sales; no separate correction screen, workflow, or transaction type.
 - [ ] Edit a buy or sell’s quantity or effective date while preserving its identity and recorded timestamp.
 - [ ] Reject buy-date edits that move the buy after a linked sale (deferred from Slice 3).
 - [ ] Reject edits that invalidate later sales, with concrete explanations such as “You’ve already sold 2 from this purchase. Quantity must be at least 2.” Rejected edits leave records unchanged.
