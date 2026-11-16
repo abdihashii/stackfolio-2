@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 
 import type { Item } from '@/types/inventory.types';
 
-import { fetchTransactions, recordSale, updateTransaction } from '@/lib/apis';
+import { deleteTransaction, fetchTransactions, recordSale, updateTransaction } from '@/lib/apis';
 import { calculateItemValue, formatUsd } from '@/lib/utils';
 
 type ItemCardProps = {
@@ -79,8 +79,23 @@ export const ItemCard = ({
     queryFn: () => fetchTransactions(id, transactionPage),
     enabled: manageSectionState === 'transactions',
   });
+  const deleteTransactionMutation = useMutation({
+    mutationFn: ({ transactionId }: { transactionId: string }) => deleteTransaction(id, transactionId),
+    onSuccess: async () => {
+      try {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['itemTransactions', id] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
+        ]);
+      } catch {
+        alert('Transaction deleted, but could not refresh. Reload the page.');
+      }
+    },
+  });
 
-  const isTransactionBusy = isBusy || updateTransactionMutation.isPending || saleMutation.isPending;
+  const isTransactionBusy =
+    isBusy || updateTransactionMutation.isPending || saleMutation.isPending || deleteTransactionMutation.isPending;
   const transactionsTotal = itemTransactionsQuery.data?.total ?? 0;
   const totalTransactionPages = Math.max(1, Math.ceil(transactionsTotal / 2));
 
@@ -301,12 +316,22 @@ export const ItemCard = ({
                     >
                       edit
                     </button>
+                    <button
+                      type="button"
+                      disabled={isTransactionBusy}
+                      className="ml-3 text-red-500 hover:cursor-pointer hover:underline"
+                      onClick={() => {
+                        deleteTransactionMutation.mutate({ transactionId: transaction.id });
+                      }}
+                    >
+                      delete
+                    </button>
                     {transaction.type === 'buy' && (
                       <>
                         <button
                           type="button"
                           disabled={(transaction.remaining_quantity ?? 0) <= 0 || isTransactionBusy}
-                          className="ml-3 text-red-500 hover:cursor-pointer hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                          className="ml-3 text-green-500 hover:cursor-pointer hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                           onClick={() => {
                             setEditingTransactionId(null);
                             saleMutation.reset();
@@ -318,6 +343,12 @@ export const ItemCard = ({
                         <p>Available: {transaction.remaining_quantity}</p>
                       </>
                     )}
+                    {deleteTransactionMutation.isError &&
+                      deleteTransactionMutation.variables?.transactionId === transaction.id && (
+                        <p role="alert" className="text-red-500">
+                          {deleteTransactionMutation.error.message}
+                        </p>
+                      )}
                   </>
                 )}
               </div>
