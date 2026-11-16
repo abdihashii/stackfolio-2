@@ -88,12 +88,12 @@ Inventory is empty and the app is not in production; no existing-data conversion
 
 #### 4. Edit and delete transactions
 
-- [ ] Offer Edit and Delete actions on buys and sales; no separate correction screen, workflow, or transaction type.
-- [ ] Edit a buy or sell’s quantity or effective date while preserving its identity and recorded timestamp.
-- [ ] Reject buy-date edits that move the buy after a linked sale (deferred from Slice 3).
-- [ ] Reject edits that invalidate later sales, with concrete explanations such as “You’ve already sold 2 from this purchase. Quantity must be at least 2.” Rejected edits leave records unchanged.
-- [ ] Allow deleting an accidental sale or a buy with no linked sales.
-- [ ] Block deleting a buy with linked sales and explain: “Delete its sales first.” Never silently delete linked sales; rejected removals leave records unchanged.
+- [x] Offer Edit and Delete actions on buys and sales; no separate correction screen, workflow, or transaction type.
+- [x] Edit a buy or sell’s quantity or effective date while preserving its identity and recorded timestamp.
+- [x] Reject buy-date edits that move the buy after a linked sale (deferred from Slice 3).
+- [x] Reject edits that invalidate later sales, with concrete explanations such as “You’ve already sold 2 from this purchase. Quantity must be at least 2.” Rejected edits leave records unchanged.
+- [x] Allow deleting an accidental sale or a buy with no linked sales.
+- [x] Block deleting a buy with linked sales and explain: “Delete its sales first.” Never silently delete linked sales; rejected removals leave records unchanged.
 
 **Verify:** Buy three, sell one, then edit the buy to four: three remain after reload, with its identity and recorded timestamp unchanged. Reducing that buy below the sold quantity or moving its date after the sale is rejected without changes and explains why. Deleting the buy is blocked until its sale is deleted. Delete the sale to restore quantity four, then delete the buy; verify both removals persist after reload. Exercise quantity and date edits on sales, including an edit that exceeds the linked buy’s quantity.
 
