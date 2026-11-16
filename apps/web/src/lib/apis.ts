@@ -120,3 +120,12 @@ export const recordSale = async (
     throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not record sale.');
   }
 };
+
+export const deleteTransaction = async (itemId: string, transactionId: string): Promise<void> => {
+  const res = await fetch(`${backendUrlPath}/inventory/${itemId}/transactions/${transactionId}`, { method: 'DELETE' });
+  const data = await res.json();
+  if (!res.ok) {
+    const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
+    throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not delete transaction.');
+  }
+};
