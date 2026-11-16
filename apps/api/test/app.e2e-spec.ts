@@ -38,6 +38,87 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
   });
 
+  it('deletes sales before their purchase and preserves unrelated transactions', async () => {
+    const database = app.get(DataSource);
+    const itemTypes = database.getRepository(ItemType);
+    const items = database.getRepository(Item);
+    const transactions = database.getRepository(Transaction);
+    const preset = await itemTypes.save({
+      name: `Transaction deletion test ${randomUUID()}`,
+      metal: 'silver',
+      weight: 1,
+      weight_unit: 'ozt',
+      purity: 0.999,
+    });
+    const presetIds = [preset.id];
+    try {
+      const item = await items.save({ item_type: preset });
+      const otherPreset = await itemTypes.save({
+        name: `Unrelated deletion test ${randomUUID()}`,
+        metal: 'silver',
+        weight: 1,
+        weight_unit: 'ozt',
+        purity: 0.999,
+      });
+      presetIds.push(otherPreset.id);
+      const otherItem = await items.save({ item_type: otherPreset });
+      const buy = await transactions.save({ item, type: 'buy', quantity: 5, effective_date: '2025-04-02' });
+      const sale = await transactions.save({ item, buy, type: 'sell', quantity: 3, effective_date: '2025-04-04' });
+      const unrelated = await transactions.save({
+        item: otherItem,
+        type: 'buy',
+        quantity: 7,
+        effective_date: '2025-04-02',
+      });
+      const before = await transactions.find({ where: { item: { id: item.id } }, order: { id: 'ASC' } });
+      const buyPath = `/inventory/${item.id}/transactions/${buy.id}`;
+      const salePath = `/inventory/${item.id}/transactions/${sale.id}`;
+
+      const rejected = await request(app.getHttpServer()).delete(buyPath).expect(400);
+      expect(rejected.body.message).toBe('Sales must be deleted first.');
+      for (const [path, status] of [
+        [`/inventory/${otherItem.id}/transactions/${sale.id}`, 404],
+        [`/inventory/${item.id}/transactions/${randomUUID()}`, 404],
+        [`/inventory/invalid/transactions/${sale.id}`, 400],
+        [`/inventory/${item.id}/transactions/invalid`, 400],
+      ] as const) {
+        await request(app.getHttpServer()).delete(path).expect(status);
+      }
+      expect(await transactions.find({ where: { item: { id: item.id } }, order: { id: 'ASC' } })).toEqual(before);
+
+      const deletedSale = await request(app.getHttpServer()).delete(salePath).expect(200);
+      expect(deletedSale.body.affected).toBe(1);
+      expect(await transactions.findOneBy({ id: sale.id })).toBeNull();
+      const history = await request(app.getHttpServer()).get(`/inventory/${item.id}/transactions`).expect(200);
+      expect(history.body.transactions).toEqual([
+        expect.objectContaining({ id: buy.id, quantity: 5, remaining_quantity: 5 }),
+      ]);
+      await request(app.getHttpServer()).delete(salePath).expect(404);
+
+      const deletedBuy = await request(app.getHttpServer()).delete(buyPath).expect(200);
+      expect(deletedBuy.body.affected).toBe(1);
+      expect(await transactions.countBy({ item: { id: item.id } })).toBe(0);
+      expect(await items.existsBy({ id: item.id })).toBe(true);
+      await request(app.getHttpServer()).delete(buyPath).expect(404);
+      expect(await transactions.findOneByOrFail({ id: unrelated.id })).toEqual(
+        expect.objectContaining({
+          id: unrelated.id,
+          quantity: 7,
+          effective_date: unrelated.effective_date,
+          created_at: unrelated.created_at,
+        }),
+      );
+    } finally {
+      for (const presetId of presetIds) {
+        for (const item of await items.findBy({ item_type: { id: presetId } })) {
+          await transactions.delete({ item: { id: item.id } });
+          await items.delete(item.id);
+        }
+        await itemTypes.delete(presetId);
+      }
+    }
+  });
+
   it('persists buy and sale corrections and leaves rejected edits unchanged', async () => {
     const database = app.get(DataSource);
     const itemTypes = database.getRepository(ItemType);
@@ -400,7 +481,7 @@ describe('AppController (e2e)', () => {
     }
   });
 
-  it.each(['sale', 'buy edit', 'sale edit'])(
+  it.each(['sale', 'buy edit', 'sale edit', 'buy deletion'])(
     'serializes a sale competing with another %s against the same buy',
     async (competitor) => {
       const database = app.get(DataSource);
@@ -431,13 +512,15 @@ describe('AppController (e2e)', () => {
           });
           const [{ pid }] = await blocker.query('SELECT pg_backend_pid() AS pid');
           const competingRequest =
-            competitor === 'sale'
-              ? request(app.getHttpServer())
-                  .post(`/inventory/${item.id}/sales`)
-                  .send({ buy_id: buy.id, quantity: 3, sale_date: '2026-01-10' })
-              : request(app.getHttpServer())
-                  .patch(`/inventory/${item.id}/transactions/${existingSale?.id ?? buy.id}`)
-                  .send({ quantity: existingSale ? 3 : 2 });
+            competitor === 'buy deletion'
+              ? request(app.getHttpServer()).delete(`/inventory/${item.id}/transactions/${buy.id}`)
+              : competitor === 'sale'
+                ? request(app.getHttpServer())
+                    .post(`/inventory/${item.id}/sales`)
+                    .send({ buy_id: buy.id, quantity: 3, sale_date: '2026-01-10' })
+                : request(app.getHttpServer())
+                    .patch(`/inventory/${item.id}/transactions/${existingSale?.id ?? buy.id}`)
+                    .send({ quantity: existingSale ? 3 : 2 });
           const responses = Promise.allSettled([
             request(app.getHttpServer())
               .post(`/inventory/${item.id}/sales`)
@@ -470,6 +553,17 @@ describe('AppController (e2e)', () => {
             if (response.status === 'rejected') throw response.reason;
             return response.value.status;
           });
+          if (competitor === 'buy deletion') {
+            expect([
+              [201, 400],
+              [404, 200],
+            ]).toContainEqual(statuses);
+            const deletionWon = statuses[1] === 200;
+            expect(await transactions.existsBy({ id: buy.id })).toBe(!deletionWon);
+            expect(await transactions.countBy({ item: { id: item.id } })).toBe(deletionWon ? 0 : 2);
+            expect(await items.existsBy({ id: item.id })).toBe(true);
+            return;
+          }
           if (competitor === 'sale') {
             expect(statuses.sort((a, b) => a - b)).toEqual([201, 400]);
           } else {

@@ -313,5 +313,46 @@ export class InventoryService {
     });
   }
 
-  async deleteTransaction(itemId: string, transactionId: string) {}
+  async deleteTransaction(itemId: string, transactionId: string) {
+    return await this.dataSource.transaction(async (manager) => {
+      const transactionRepository = manager.getRepository(Transaction);
+      const transactionToDelete = await transactionRepository.findOne({
+        where: { id: transactionId, item: { id: itemId } },
+        relations: { buy: true },
+      });
+      if (!transactionToDelete) throw new NotFoundException('Transaction not found.');
+
+      const buyId = transactionToDelete.type === 'buy' ? transactionToDelete.id : transactionToDelete.buy?.id;
+      if (!buyId) throw new BadRequestException('Sale must reference a buy transaction');
+
+      // Find and lock the purchase transaction so changes to its sales cannot happen at the same time.
+      const buyTransaction = await transactionRepository.findOne({
+        where: { id: buyId, type: 'buy', item: { id: itemId } },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!buyTransaction) throw new NotFoundException('Purchase transaction not found for this item.');
+
+      // Reread and lock the transaction being deleted. Another request could have deleted the sale while this
+      // request waited for the purchase lock.
+      const transaction = await transactionRepository.findOne({
+        where: { id: transactionId, item: { id: itemId } },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found.');
+      }
+
+      if (transaction.type === 'buy') {
+        // Check whether any sales reference it.
+        const salesForBuyTransactionExists = await transactionRepository.existsBy({
+          type: 'sell',
+          buy: { id: transaction.id },
+        });
+        if (salesForBuyTransactionExists) throw new BadRequestException('Sales must be deleted first.');
+      }
+
+      // Delete the locked transaction
+      return await transactionRepository.delete(transaction.id);
+    });
+  }
 }
