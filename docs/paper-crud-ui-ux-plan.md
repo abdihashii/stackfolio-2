@@ -1,8 +1,25 @@
 # StackFolio: item and transaction UI/UX design plan
 
-Status: Stage 1 complete after design audit and corrections. Stages 2–4 remain proposed. No application changes, commits, or deployment performed.
+Status: Stages 1 and 2 complete in Paper after visual verification. Stages 3–4 remain proposed. Stage 2 documentation awaits commit sign-off. No application changes or deployment performed.
 
 Research date: 2026-11-17 UTC.
+
+### Stage 2 delivery and verification
+
+Completed 2026-11-17 UTC in [Paper Pages](https://app.paper.design/file/01M70ZZP8J0JMJ457JD4K0QC1T/p-2-0). Existing Stage 1 screens remain intact.
+
+- **Transactions / 01–04:** Add purchase, Sell older purchase, Edit purchase and Edit sale, each over the existing item page. Sell and Edit purchase retain the January purchase on history page 2; Edit sale starts from the June sale on page 1.
+- **Transaction dialogs / States**, on [Components](https://app.paper.design/file/01M70ZZP8J0JMJ457JD4K0QC1T/p-1-0): four ready forms, purchase validation, sale availability rejection, linked-sale purchase rejection, sale-date rejection, saving, result unknown, dirty dismissal and saved/refresh-failed feedback. Shared lifecycle annotations apply to all four mutations; four additional long-copy specimens verify wrapping. Pages retains the contextual screens and walkthrough guide.
+- **Transactions / 05–06:** confirmed purchase edit with refreshed summary/history and approved success toast; confirmed save with persistent stale-data warning and read-only refresh recovery.
+- **Stage 2 guide:** independent acceptance walkthroughs, exact request field/endpoint mappings, UTC rules, server-only linked-sale constraints, focus/error associations, dirty/pending dismissal, unknown-result review and explicit retry, removed-record recovery, refresh boundaries and stage exclusions.
+- Reused existing quantity/date fields, neutral feedback, toast and item-page compositions. New dialog geometry: 480px width, 28px padding, 24px section gaps, 46px fields, 48px actions, 12px radius and charcoal scrim at 32%. Darkened new field boundaries to `#85888C`; error fields retain the neutral focus ring.
+- Corrected the shared Date input's optional-value and feedback annotations: omitted purchase date uses the server's recorded UTC date; transaction edits require the stored effective date. No preset picker, reassignment, price, proceeds or P/L fields were added.
+
+Verification: inspected screenshots of all four contextual dialogs, twelve state specimens, four long-copy variants, two outcome pages, the guide and corrected date annotations. Spacing, hierarchy, contrast, action alignment, wrapping and fit passed after fixing a toast/action overlap, banner-to-summary spacing and the sale-date error focus cue. Containers grow with their content. Request fields and routes were checked against the transaction DTOs and inventory controller. The successful edit fixture shows 4 owned, 4 ozt and $120 at the illustrative $30 quote, with 2 of 4 remaining in the January purchase and unchanged recorded time. The guide traces repeat purchase and partial-sale outcomes independently.
+
+Limits: static desktop design verification only. Focus, dirty dismissal, request bounds, retry gates and server responses are specified behavior, not wired interactions. Browser accessibility, real network behavior, mobile/reflow and API tests remain later implementation work. No application suite was run because no application code changed. Stage 3 deletion confirmations and Stage 4 responsive layouts were not started.
+
+Proposed commit, awaiting explicit sign-off: `docs(design): specify purchase sale and edit flows`. No commit or push performed in this stage.
 
 ### Stage 1 audit
 
