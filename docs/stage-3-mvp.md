@@ -44,9 +44,11 @@ The sale drops value from **$210 to $180** at an unchanged spot price. The remai
 
 #### 1. Verify historical prices
 
-- [ ] Check the live daily-history response: date coverage, timestamp units, ordering, missing metals, and USD per troy ounce.
+- [x] Check the live daily-history response: date coverage, timestamp units, ordering, missing metals, and USD per troy ounce.
 - [ ] Preserve partial quotes and empty history. Reject malformed responses, wrong metadata, invalid prices, and unusable timestamps.
 - [ ] Add missing contract tests; change the existing client only where needed.
+
+**AC1 evidence (2026-11-17):** Live response spans 2017-01-02 through 2026-11-17 UTC, with strictly ascending Unix-second timestamps and both metals present in every entry. The upstream collector requests USD per troy ounce; history omits unit metadata. Dates are missing, including 2024-12-25 through 2025-01-01; the MVP uses the last available quote. Gap causes and older imported prices' provenance remain unverified.
 
 **Verify:** Inspect [the history endpoint](https://api.stackfolio.app/api/spot-price/history?range=ALL&granularity=daily), record its coverage, and run `rtk bun run --cwd apps/api test spot-prices.service.spec.ts`. Repeatable tests use fixtures, not live requests.
 
