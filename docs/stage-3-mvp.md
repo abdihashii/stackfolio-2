@@ -54,7 +54,7 @@ The sale drops value from **$210 to $180** at an unchanged spot price. The remai
 
 #### 2. Calculate daily stack values
 
-- [ ] Calculate one UTC date's value from transactions and supplied prices, following the valuation rules above.
+- [x] Calculate one UTC date's value from transactions and supplied prices, following the valuation rules above.
 - [ ] Generate ordered daily values and quote timestamps through today. Include pre-range history; carry each metal's latest prior quote, never a future quote.
 - [ ] Test the two-year example, same-day trades, liquidation, missing/carried/future quotes, pre-range history, grams, purity, leap day, and corrections.
 
@@ -99,7 +99,7 @@ Integration tests need local PostgreSQL and HTTP listener access. Give user-run 
 
 **Existing groundwork:** The price collector in `~/dev/stackfolio/` runs hourly on UTC weekdays. The existing client requests `ALL`/`daily`; the source returns the last timestamp's row per day. A later partial row can omit a metal, so carry its prior returned quote. Live coverage remains unverified.
 
-The old `historical-value.ts` uses current quantity, an item acquisition date, and purity multiplication. Replace that model. Use transaction effective dates; saved transactions do not identify whether a date was defaulted or entered explicitly.
+`historical-value.ts` now nets transaction quantities per item through the cutoff date before converting to fine-metal weight and applying supplied prices. This preserves exact zero after full liquidation. Daily points and quote selection remain in Slice 2 AC2. Saved transactions do not identify whether a date was defaulted or entered explicitly.
 
 **Proposed API:** `GET /inventory/history?range=30D|1Y|ALL`, default `ALL`, through the existing API base path. Register before `:id`. Return `currency: 'USD'`, `range`, and `points` with `date`, `totalValue: number | null`, and per-metal `quoteTimestamps`.
 
