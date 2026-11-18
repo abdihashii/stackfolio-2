@@ -4,6 +4,20 @@ Status: Stages 1–3 complete in Paper after visual verification and recovery au
 
 Research date: 2026-11-17 UTC.
 
+### Dialog primitive follow-up, 2026-11-18 UTC
+
+Added **Components → Primitives → 05 · Overlays → Dialog** as the shared design source for transaction and deletion dialogs. Both state galleries reference it. The primitive defines Overlay, Surface, Header, Body and Actions, with a neutral shell specimen and standard, destructive, stacked Close for now, and single-action footer specimens cloned from the existing controls.
+
+The shared geometry remains 480px maximum width, 28px padding, 24px section gaps, 12px radius, 32% charcoal overlay and 48px action targets. Header descriptions are optional; task content and feedback compose inside the body. Only Close for now recovery states use stacked full-width actions. Forms, confirmations and recovery retain their existing content and state rules.
+
+The primitive records modal labeling, inert background, focus containment and restoration, task-specific initial focus, dirty dismissal, bounded pending behavior and body scrolling at short heights. Backdrop clicks do not dismiss; explicit Cancel and Escape follow the documented clean/dirty/pending rules. Product compositions own validation, consequences and mutation recovery. Paper specimens remain editable design compositions, not linked runtime components.
+
+Structure applied to all **43 existing dialogs**: 18 transaction specimens, 16 deletion specimens and 9 contextual dialogs on Pages. Every surface now has exactly **Dialog / Header → Dialog / Body → Dialog / Actions**. Existing context, fields and inline feedback were moved into Body frames with the same 24px gaps; original content nodes and action groups were preserved. Contextual scrims are named **Dialog / Overlay · Background inert**. The saved/refresh-failed page-feedback specimen remains outside this modal structure because it represents feedback after the dialog closes.
+
+Structure verification checked all 43 surfaces for the three ordered sections and exact preservation of body child IDs/order. No issues found. All 34 gallery dialogs retained their measured heights. Screenshots rechecked ready forms, long-copy variants, uncertain/failed-read recovery, deletion confirmations, large quantities and representative full-page dialogs: no changes to spacing, typography, contrast, alignment, wrapping or fit. Existing inline, stacked and single-action layouts remain intact. This applies the shared design anatomy; the eventual application will implement the reusable dialog component.
+
+Verification: screenshot review of the shell, all four action layouts and the complete primitive; typography/style comparison with existing dialogs; canvas fit and spacing check. Spacing, hierarchy, contrast, alignment, wrapping and fit passed. No existing product screen was redesigned, no new artboard or application code was added, and Stage 4 remains untouched. Proposed commit: `docs(design): define shared dialog primitive`.
+
 ### Stage 3 delivery and visual audit, 2026-11-18 UTC
 
 Completed in [Paper Pages](https://app.paper.design/file/01M70ZZP8J0JMJ457JD4K0QC1T/p-2-0) and [Components](https://app.paper.design/file/01M70ZZP8J0JMJ457JD4K0QC1T/p-1-0). Completion was recorded only after screenshot review and corrections. Existing Stage 1 and Stage 2 artwork is preserved; no guide artboards were recreated.
