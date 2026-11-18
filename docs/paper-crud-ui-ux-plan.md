@@ -1,8 +1,50 @@
 # StackFolio: item and transaction UI/UX design plan
 
-Status: Stages 1 and 2 complete in Paper after visual verification and recovery audit fixes. Stages 3–4 remain proposed. User authorized committing and pushing the Stage 2 documentation on 2026-11-18 UTC. No application changes or deployment performed.
+Status: Stages 1–3 complete in Paper after visual verification and recovery audit fixes. Stage 4 remains proposed and was not started. User authorized committing and pushing the Stage 2 documentation on 2026-11-18 UTC; Stage 3 has not been committed or pushed. No application changes or deployment performed.
 
 Research date: 2026-11-17 UTC.
+
+### Stage 3 delivery and visual audit, 2026-11-18 UTC
+
+Completed in [Paper Pages](https://app.paper.design/file/01M70ZZP8J0JMJ457JD4K0QC1T/p-2-0) and [Components](https://app.paper.design/file/01M70ZZP8J0JMJ457JD4K0QC1T/p-1-0). Completion was recorded only after screenshot review and corrections. Existing Stage 1 and Stage 2 artwork is preserved; no guide artboards were recreated.
+
+**Pages:** twelve new desktop screens, named **Deletion / 01–12**, below Stage 2. Pages now has 31 artboards.
+
+| Screens | Visible behavior |
+| --- | --- |
+| 01 Delete purchase; 02 Delete sale; 03 Delete item permanently | Separate consequences and explicit irreversible actions. Cancel receives initial focus. Item deletion remains separate from history-row actions. |
+| 04 Purchase blocked | January purchase has linked sales. Close only, no destructive confirmation, cascade shortcut, or linked-sales navigation. |
+| 05 Sale deleted | June sale removed; March and January purchases remain. Quantity 5, weight 5 ozt, value $150; January has 3 of 3 remaining. |
+| 06 Purchase deleted | March purchase removed; June sale and January purchase remain. Quantity 1, weight 1 ozt, value $30. |
+| 07 Final transaction removed | Item retained at zero quantity with no transactions, Add purchase available, and history-heading focus. |
+| 08 Item deleted / Stack empty | Independent fixture with this as the only item. Return to Stack, zero items, removed history, focus on Your stack. New purchase remains available. |
+| 09 Last history page clamped | Independent fixture: January purchase 3, February purchase 1, March purchase 2, no sales. Delete January, the sole row on page 2. Page 1 of 1 now shows March and February; quantity 3, weight 3 ozt, value $90. Focus moves to the history heading. |
+| 10 Review uncertain deletion | Persistent notice retains the June sale target while paginated history is usable. Refresh history and Return to deletion review are available. Cached quantities are explicitly unconfirmed. |
+| 11 Deleted but refresh failed | Confirmed June deletion, persistent stale-data warning, read-only refresh recovery. The cached sale row says Deleted and has no Edit/Delete action. |
+| 12 Last transaction confirmation | Independent fixture with only the March purchase of 2 units. Warns before confirming that deletion leaves an empty retained item; leads to screen 07. |
+
+**Components:** **Deletion dialogs / States** contains sixteen specimens: purchase, sale and item confirmations; linked-sale block; deleting; confirmed transient rejection; unknown transaction and item deletion; reviewed/still-present sale; failed history read; missing sale; confirmed deletion with failed refresh; final purchase; reviewed/still-present item; missing item; and a large-quantity wrapping check. The gallery sits beside Transaction dialogs with a 160px canvas gap. Components now has six artboards.
+
+Reused the existing dialog geometry, item-page compositions, neutral/error feedback and approved success toast. Destructive fills use `#8A3030`; controls retain the neutral focus ring. At the user's request, **only states containing Close for now** use stacked, full-width actions (unknown transaction, unknown item, failed history read). All other deletion dialogs retain side-by-side actions. The 2,147,483,647-unit specimen tests wrapping, not a change to the standard fixture.
+
+Deletion interaction details for implementation:
+
+- Use the existing `DELETE /inventory/:itemId/transactions/:transactionId` and `DELETE /inventory/:itemId` contracts. Preserve the target's stable IDs and displayed identity through recovery; never substitute a new item of the same preset. No application endpoint or data-model change was made.
+- Enter irreversible confirmations on Cancel; enter the blocked state on Close. Use a labeled dialog, inert background and contained keyboard navigation. Clean Escape/Cancel restores the trigger. During a bounded pending request, keep focus stable, prevent duplicate submission and prevent dismissal until success, rejection or unknown recovery resolves the pending state.
+- Cached remaining quantity may identify an already-blocked purchase, but the server remains authoritative. A new linked-sale rejection replaces the confirmation with the blocked state. Do not infer precise sale links from dates, quantities or history order.
+- Unknown responses never automatically resend deletion. Review history/stack closes the modal and focuses a persistent recovery notice; keep the target in the current app session through app navigation. Reload persistence is not guaranteed. Close for now also leaves recovery available. Return to deletion review does not submit.
+- Enable an explicit **I've checked, delete sale/item** only after successful reads establish that the same target still exists and the user reviews the consequence again. A target absent from one paginated result is not proof of removal: inspect all relevant pages by stable ID, or use a reliable authoritative item read once the documented API prerequisite is met. A failed read keeps retry unavailable and provides a safe exit to the persistent refresh action. Missing records get neutral recovery, not an attributed success or a validation error.
+- The immediate retry specimen applies only to an explicitly transient, confirmed rejection that guarantees this request made no change. A lost response or ambiguous server failure uses unknown recovery instead. Shared purchase deletion recovery uses the same identity/read gates, plus the linked-sale block.
+- After confirmed transaction deletion, refresh item, history, inventory and valuation; clamp an emptied history page to the last valid page and focus its heading. If no transactions remain, hide pagination and retain the item. After item deletion, return to the retained Stack page, clamp it if necessary, and focus Your stack when its triggering row is gone. Zero items uses the empty Stack state.
+- Confirmed deletion followed by failed reads stays acknowledged as deleted, with persistent stale-data feedback and a read-only retry. Never enable mutation actions on the known-deleted target. The same rule applies to item deletion on Stack. Successful non-action toasts use the existing eight-second/pause behavior and do not take focus; no Undo is offered.
+
+**Audit findings corrected before completion:** reserved space below the item-delete entry so toasts cannot cover it; rendered the post-delete focus cue on a frame around the heading; stacked only Close for now action groups to prevent wrapping; retained a visible focus cue while deletion is pending; disabled the final-transaction page's Previous action; and removed mutation actions from the confirmed-deleted cached sale. The cloned empty Stack purchase form uses the established stronger field boundaries and UTC blank-date helper.
+
+**Verification:** screenshots of all twelve contextual screens, all sixteen states and the full gallery; targeted rechecks after corrections; hierarchy/style inspection; canvas coordinates; and source checks of transaction deletion, item removal, entity cascade, frontend refresh behavior and existing deletion test cases. Spacing, heading/body hierarchy, action alignment, wrapping, contrast and artboard fit passed. Contrast calculations: destructive text/white 8.25:1, error text/tint 7.67:1, supporting text/neutral feedback 7.00:1, and field boundary/white 3.56:1. The gallery and page rows do not overlap. Ownership, paging, focus destinations, retained-empty versus removed-item outcomes, and no-Undo/no-cascade/no-linked-sales-shortcut constraints match the plan.
+
+Limits: static desktop design verification only. Keyboard behavior, recovery persistence, network classification, authoritative refresh and cascade behavior were specified or checked against source, not exercised at runtime. The single-item read prerequisite remains future implementation work. No application test suite was run because only Paper and this document changed. Stage 4 responsive work was not started.
+
+Proposed commit, awaiting explicit sign-off: `docs(design): specify deletion safeguards and recovery`. No Stage 3 commit or push performed.
 
 ### Paper guide consolidation, 2026-11-18 UTC
 
