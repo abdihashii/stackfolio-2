@@ -1,8 +1,99 @@
 # StackFolio: item and transaction UI/UX design plan
 
-Status: Stages 1–3 complete in Paper after visual verification and recovery audit fixes. Stage 4 remains proposed and was not started. User authorized committing and pushing the Stage 2 documentation on 2026-11-18 UTC; Stage 3 has not been committed or pushed. No application changes or deployment performed.
+Status: Stages 1–4 complete in Paper after visual verification. Stage 4 documentation is uncommitted and ready for review. Stage 3 documentation was committed as `5bd6de7`; the Dialog follow-up was committed as `365d65e`. Neither was pushed. This session changed only Paper and this plan, with no application implementation, commit, push, or deployment. The unrelated existing change in `apps/api/src/inventory/historical-value.ts` was left untouched.
 
 Research date: 2026-11-17 UTC.
+
+### Stage 4 delivery and visual audit, 2026-11-18 UTC
+
+Completed twelve **Responsive / 01–12** artboards in [Paper Pages](https://app.paper.design/file/01M70ZZP8J0JMJ457JD4K0QC1T/p-2-0). Pages now has 43 artboards; Components retains its six existing artboards. Completion notes were written after screenshot review and corrections. No guide artboards, application files, dependencies, or new design system were added.
+
+| Responsive screen | Size | Reviewable result |
+| --- | --- | --- |
+| 01 Item history | 390px | Fixture summary, June sale and March purchase, visible aligned row actions, two-row pagination, separate item deletion. |
+| 02 Older purchase | 390px | Page 2 of 2, January purchase with 1 of 3 remaining, Sell/Edit/Delete; Previous enabled and Next disabled. |
+| 03 Add purchase | 390px | Read-only preset, quantity focus, optional acquisition date with UTC fallback, full-width Cancel/Add purchase. |
+| 04 Sell older purchase | 390px | January purchase identity and availability, quantity focus, sale-date bounds, Cancel/Record sale. |
+| 05 Edit purchase rejected | 390px | Draft quantity 1 retained, 2 already sold, persistent multiline rejection and neutral focus ring around the invalid field. |
+| 06 Delete item | 390px | Entire-history irreversible consequence, initial Cancel focus, explicit Delete item permanently. |
+| 07 Tablet history | 768px | 24px page insets, three summary columns, labeled history rows instead of a squeezed desktop table. |
+| 08 Long name reflow | 320px | Illustrative expanded item name wraps to three lines; metadata, actions and pagination remain inside 16px insets. Name is a typography stress fixture, not a new editable preset field. |
+| 09 Edit sale | 390px | Required effective date, original purchase unchanged, no invented availability bound or purchase navigation, quantity focus. |
+| 10 Recovery long copy | 320px | Unknown sale plus failed history refresh; draft retained, Retry sale unavailable, Close for now and Review history again. Full content remains visible on a content-sized artboard. |
+| 11 Delete sale | 390px | Restores 2 owned units and original purchase availability; safe Cancel focus; distinct from whole-item deletion. |
+| 12 Short viewport | 390 × 444px | Reduced-height task surface with focused quantity and both 48px actions visible. Body viewport and illustrative scrollbar express scrolling above a software keyboard; complete content is preserved in screen 04. |
+
+Responsive geometry: 16px page and task-surface outer insets at 390/320px; 24px page insets at 768px. Mobile dialogs use 20px inner padding, 24px section gaps and the existing 12px radius. Screen 12 uses 16px inner padding/gaps and square corners to recover vertical room. Fields remain 46px, dialog actions 48px, row actions at least 44px, and mobile pagination 44px. Typography and semantic colors are cloned from the established system. Disabled Overview/Settings placeholders are omitted in the compact header; Stack and Back to your stack remain available outside modal states.
+
+All eight new dialog surfaces preserve **Surface → Header / Body / Actions**. A fresh structural check passed all **51** product dialog surfaces, including the original 43. The short-height Body has a descriptive layer-name suffix but retains its position and role. The existing desktop footer arrangements and transaction recovery layouts were not changed. Stacking the new narrow-screen actions is a responsive adaptation, not a change to the desktop rule that only Close for now deletion recovery states stack.
+
+**Visual audit:** reviewed all twelve responsive screens and rechecked corrected variants, plus representative original desktop sale and item-deletion dialogs. Spacing, typography, contrast, alignment, wrapping, action lanes and artboard fit passed. Corrected the sale row's missing empty action lane, an inherited flex basis that collapsed the mobile Edit sale submit button, pagination target sizes, and compact-header width at 320px. Required field boundaries and neutral focus rings retain the established colors and contrast; errors use explicit text, not color alone. Exact JSX/computed styles confirmed insets, field/button heights, focus shadows and the shared hierarchy. No desktop action layout was restyled.
+
+Canvas audit: new page checks begin at y=12400, below the previous row's maximum reviewed bottom at y=12200. New task screens begin at y=14300, below the 320px page's bottom at y=14134. Horizontal gaps are at least 80px. Content-sized artboards preserve long recovery text. Screen 12 deliberately shows a body viewport, not a truncated replacement for screen 04.
+
+#### Screen status index
+
+These classifications apply to every named screen in the file. **Existing** means existing Paper reference, not a claim of implemented visual/interaction parity. **Proposed** means new client behavior using supported contracts. **API dependent** means the routed item context additionally needs prerequisite 1 in section 7.
+
+| Screen family | Status and boundary |
+| --- | --- |
+| Original Stack: Populated Desktop; First-use empty; Initial loading; Holdings load failure | Existing design references. Retain the previously documented date/value-copy corrections; the current app does not implement every designed control/state. |
+| Original Stack: Partial pricing | Existing artwork, unsupported by the current all-or-nothing valuation response. Not an implementation acceptance target. Use Value unavailable instead. |
+| Item management 01–11 | API dependent. Includes populated/older purchase, fully sold/empty, and separate item/history/value availability states. |
+| Transactions 01–07 | API-dependent contextual pages; their composed dialogs and lifecycle behavior are proposed frontend work. |
+| Deletion 01–07 and 09–12 | API-dependent contextual pages; deletion endpoints already exist, confirmations/recovery/focus behavior are proposed. |
+| Deletion 08 Item deleted / Stack empty | Proposed outcome on the existing Stack route; no single-item read needed for this destination. |
+| Responsive 01, 02, 07, 08 | API dependent, as marked in artboard names. |
+| Responsive 03–06, 09–12 | Proposed task compositions, as marked in names. When entered from a reloadable item route, their surrounding context shares the single-item prerequisite. |
+| Transaction dialogs / States, all 18 modal specimens plus Saved refresh failed page feedback | Proposed; ready, validation, pending, dirty, unknown, long-copy and review variants share the lifecycle below. |
+| Deletion dialogs / States, all 16 specimens | Proposed confirmations and recovery, including blocked, pending, absent target and final-record states. |
+| Foundations, Primitives, Compositions and Product components | Existing design library with proposed Table, item-management and Dialog additions documented by Stages 1–3. These are specimens, not additional routed screens or implemented runtime components. |
+
+#### Compact interaction/state index
+
+| State / interaction | Canonical specimen and responsive application | Implementation focus / behavior |
+| --- | --- | --- |
+| Read, page, navigate | Item management 01–02; Responsive 01–02/07–08 | Real links for Stack/Back/Manage; buttons for pagination. Preserve parent page. Item name H1, history H2, transaction rows grouped and labeled. Desktop uses appropriate table semantics. |
+| Ready / dirty | Transaction ready forms; Dirty dismiss shared state; Responsive 03–04/09 | Quantity receives initial focus. No autosave. Clean Cancel/Escape restores its trigger; dirty dismissal uses the existing in-dialog discard state, never another stacked modal. |
+| Invalid / server rejection | Purchase validation, Sale availability changed, Linked-sale rejection, Sale date rejection; Responsive 05 | Preserve draft. Associate label/helper/error with the field; invalid fields use `aria-invalid` and described-by error text. Focus first invalid field after submit; announce the rejection once. |
+| Saving / deleting | Shared Saving and Deleting specimens | Stable-size pending label, no duplicate mutation, stable focus, bounded dismissal lock. Resolve into confirmed success, explicit rejection or unknown recovery. |
+| Confirmed save / refresh failure | Transactions 05–06; Saved refresh failed page feedback | Close only after persistence; refresh authoritative reads. Saved-but-stale remains persistent with read-only refresh, never a second submit. |
+| Unknown / review / failed read | Transactions 07; Result unknown, Returned draft, History read failed, Availability refreshed; Responsive 10 | No automatic mutation retry. Preserve target/draft through in-app navigation. Review closes dialog and focuses persistent notice. Failed read keeps retry unavailable; explicit checked retry requires successful authoritative review. |
+| Destructive confirmation / blocked | Deletion 01–04/12; Responsive 06/11 | Initial Cancel focus, or Close for blocked purchase. Item deletion is separate from row deletion. No Undo, implicit cascade shortcut or fabricated linked-sales navigation. |
+| Deletion unknown / reviewed / absent / refresh failure | Deletion 10–11 and corresponding gallery recovery states | Read by stable target identity across relevant pages. Missing is neutral, not attributed success. Known-deleted targets have no mutation actions. Safe exit retains recovery. |
+| Successful deletion / focus restoration | Deletion 05–09 | Refresh and clamp history; removed trigger falls back to history heading. Deleted item returns to Stack and focuses Your stack. Empty retained item differs from absent item. |
+| Item / history / value loading or unavailable | Item management 05–11 | Separate regions and read retries. Never render missing data as real zero or empty history. Announce status politely, not the entire history after refetch. |
+| Fully sold / empty retained item | Item management 03–04; Deletion 07 | Keep Add purchase. Fully sold retains history and disables Sell; no transactions hides pagination. |
+| Short height / keyboard / zoom | Responsive 08/10/12 and complete form 04 | Keep Header/Actions outside a scrollable Body when they fit; scroll focused fields into view. If zoom leaves insufficient body room, allow the whole task surface to scroll so all content/actions remain reachable. No toast over a focused field or action. |
+
+All modal variants require a title-linked dialog, inert background, contained Tab/Shift+Tab, and task-specific focus restoration. Give repeated row buttons transaction-specific accessible names, such as “Edit purchase, 10 Jan 2026.” On submit, scroll the invalid field and its linked message into view. Preserve the neutral focus ring even when the border is red. Do not rely on autofocus to open a software keyboard; verify actual device behavior. Respect reduced motion with immediate state changes and no required animation. Shared toast timing remains eight seconds with pause on hover/focus; actionable or uncertain feedback remains persistent.
+
+#### Acceptance coverage, independent fixture resets
+
+Every section 8 scenario has an assigned design reference and outcome. Shared state specimens apply at each viewport rather than duplicating every permutation.
+
+| Scenario | Design reference and review outcome |
+| --- | --- |
+| Add same preset again | Transactions 01 / Responsive 03 plus shared confirmed-success lifecycle: same item, another purchase, quantity increases. |
+| Omit acquisition date | Responsive 03 visibly states UTC-today fallback; no unknown/null date invention. |
+| Sell 1 from January | Responsive 02 → 04; original 1 remaining becomes fully sold, March remains available. Reset fixture for the next scenario. |
+| Sell more than remaining | Sale availability changed and Availability refreshed specimens; reuse narrow layout from 04/05, preserve draft and require correction. |
+| Edit January 3 → 4 | Transactions 03 → 05: quantity 4, identity/recorded time preserved. Responsive 05 uses the same fields when corrected. |
+| Edit January to 1 with 2 sold | Responsive 05 and Linked-sale rejection: retained input, no saved change. |
+| Invalid purchase/sale date order | Linked-sale rejection / Sale date rejection; Responsive 05/09 establish narrow field/error wrapping. Server remains authoritative. |
+| Delete purchase with linked sale | Deletion 04 / blocked specimen: Close only, no destructive confirmation. |
+| Delete June sale | Responsive 11 / Deletion 02 → 05: ownership 5, January availability 3. |
+| Delete final transaction | Deletion 12 → 07: retained empty item and Add purchase. |
+| Fully sell all purchases | Item management 03: zero owned with history, no active Sell. |
+| Delete item | Responsive 06 / Deletion 03 → 08: explicit irreversible cascade, Stack destination. |
+| Lost purchase/sale response | Shared Result unknown and Transactions 07; Responsive 10 shows failed-read branch with no resend. |
+| Save succeeds, refresh fails | Transactions 06 / Saved refresh failed specimen: saved acknowledged, only read retry. |
+| Missing pricing / history / item | Item management 05–11, distinct from real zero/empty states. |
+| Delete last row on last page | Deletion 09: last-valid-page clamp and history-heading focus; Responsive 01–02 preserve the same two-row paging contract. |
+
+**Verification limits:** Paper static layout and design coverage are complete. Paper normalizes requested scroll overflow to a clip; screen 12's scrollbar is illustrative. Its complete form remains on screen 04, so no field, helper or action was removed to make the short view fit. Actual scrolling, software keyboards, 200% browser zoom, screen-reader announcements, Tab/Escape behavior, reduced motion, persistence and network/database outcomes were not executed. Implement and manually verify these in the browser, including 320px CSS reflow and 200% zoom at both desktop and narrow widths. The single-item API prerequisite remains outstanding. No application test suite was run for this Paper/document-only stage.
+
+Proposed documentation commit: `docs(design): finalize responsive CRUD states and acceptance`. Stop here for review; no commit, push or application implementation is authorized by this completion note.
 
 ### Dialog primitive follow-up, 2026-11-18 UTC
 
@@ -16,7 +107,7 @@ Structure applied to all **43 existing dialogs**: 18 transaction specimens, 16 d
 
 Structure verification checked all 43 surfaces for the three ordered sections and exact preservation of body child IDs/order. No issues found. All 34 gallery dialogs retained their measured heights. Screenshots rechecked ready forms, long-copy variants, uncertain/failed-read recovery, deletion confirmations, large quantities and representative full-page dialogs: no changes to spacing, typography, contrast, alignment, wrapping or fit. Existing inline, stacked and single-action layouts remain intact. This applies the shared design anatomy; the eventual application will implement the reusable dialog component.
 
-Verification: screenshot review of the shell, all four action layouts and the complete primitive; typography/style comparison with existing dialogs; canvas fit and spacing check. Spacing, hierarchy, contrast, alignment, wrapping and fit passed. No existing product screen was redesigned, no new artboard or application code was added, and Stage 4 remains untouched. Proposed commit: `docs(design): define shared dialog primitive`.
+Verification: screenshot review of the shell, all four action layouts and the complete primitive; typography/style comparison with existing dialogs; canvas fit and spacing check. Spacing, hierarchy, contrast, alignment, wrapping and fit passed. No existing product screen was redesigned, no new artboard or application code was added during this follow-up. Stage 4 was untouched at that point and is now recorded above. Committed as `365d65e`, `docs(design): define shared dialog primitive`; not pushed.
 
 ### Stage 3 delivery and visual audit, 2026-11-18 UTC
 
@@ -58,7 +149,7 @@ Deletion interaction details for implementation:
 
 Limits: static desktop design verification only. Keyboard behavior, recovery persistence, network classification, authoritative refresh and cascade behavior were specified or checked against source, not exercised at runtime. The single-item read prerequisite remains future implementation work. No application test suite was run because only Paper and this document changed. Stage 4 responsive work was not started.
 
-Proposed commit, awaiting explicit sign-off: `docs(design): specify deletion safeguards and recovery`. No Stage 3 commit or push performed.
+Committed after explicit sign-off as `5bd6de7`, `docs(design): specify deletion safeguards and recovery`; not pushed.
 
 ### Paper guide consolidation, 2026-11-18 UTC
 
