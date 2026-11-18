@@ -54,9 +54,9 @@ The sale drops value from **$210 to $180** at an unchanged spot price. The remai
 
 #### 2. Calculate daily stack values
 
-- [ ] Replace the old item-based helper with transaction-derived daily ownership and the valuation rules above.
-- [ ] Return ordered dates, values, and selected quote timestamps, including holdings and quotes from before the requested range.
-- [ ] Cover the two-year example, same-day buys/sales, full liquidation, missing metal prices, carried quotes, gram conversion, leap day, and corrections.
+- [ ] **AC1: Single-date valuation.** Replace the old item-based helper with a helper accepting transactions, one UTC cutoff date, and already-selected per-metal prices. Include buys and subtract sales effective on or before the cutoff; value fine-metal weight in troy ounces without applying purity again. Return $0 for zero holdings and `null` if any held metal lacks a price. Daily point generation and quote selection belong to AC2.
+- [ ] **AC2: Daily history and quote selection.** Return one ordered point per UTC date in the requested range, including today, with values and selected per-metal quote timestamps. Include transactions and quotes from before the range. For each held metal, use its latest available quote on or before the point's date, with no age cutoff; never use future quotes. Apply the valuation and correction rules above across the history.
+- [ ] **AC3: Regression coverage.** Cover the two-year example, same-day buys/sales, full liquidation, missing metal prices, carried quotes, rejection of future quotes, opening holdings and quotes from before the range, gram conversion, fine-metal purity handling, leap day, and corrections. Tests may be added while implementing AC1 and AC2; this criterion confirms the complete slice's coverage.
 
 **Verify:** `rtk bun run --cwd apps/api test historical-value.spec.ts`. Assert every example value, especially the $210 → $180 sale. One 1 ozt Gold Eagle at a $3,000 gold quote must equal $3,000 despite .9167 purity.
 
