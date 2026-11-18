@@ -53,7 +53,13 @@ export class SpotPricesService {
     }
 
     for (const price of data.prices) {
-      if (price === null || typeof price !== 'object' || !Number.isSafeInteger(price.ts) || price.ts < 0) {
+      if (
+        price === null ||
+        typeof price !== 'object' ||
+        !Number.isSafeInteger(price.ts) ||
+        !Number.isFinite(new Date(price.ts * 1_000).getTime()) || // check if the ts in ms is a valid time. safe integer seconds can still exceed Date's range.
+        price.ts < 0
+      ) {
         throw new BadGatewayException('Invalid historical price timestamp.');
       }
       for (const value of [price.gold, price.silver]) {

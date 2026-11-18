@@ -125,4 +125,80 @@ describe('SpotPricesService', () => {
 
     await expect(service.getSpotPrices()).rejects.toThrow('Live spot prices unavailable.');
   });
+
+  it('rejects a historical timestamp outside the JavaScript Date range.', async () => {
+    const data = {
+      prices: [{ ts: Number.MAX_SAFE_INTEGER, gold: 3_000, silver: 30 }],
+      meta: { range: 'ALL', granularity: 'daily' },
+    };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(data), { status: 200 }));
+
+    await expect(service.getHistoricalSpotPrices()).rejects.toThrow('Invalid historical price timestamp.');
+  });
+
+  it('preserves empty historical prices.', async () => {
+    const data = {
+      prices: [],
+      meta: { range: 'ALL', granularity: 'daily' },
+    };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(data), { status: 200 }));
+
+    await expect(service.getHistoricalSpotPrices()).resolves.toEqual([]);
+  });
+
+  it('rejects non-daily history granularity.', async () => {
+    const data = {
+      prices: [],
+      meta: { range: 'ALL', granularity: 'hourly' },
+    };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(data), { status: 200 }));
+
+    await expect(service.getHistoricalSpotPrices()).rejects.toThrow('Invalid spot price history metadata.');
+  });
+
+  it('rejects history ranges other than ALL.', async () => {
+    const data = {
+      prices: [],
+      meta: { range: '1Y', granularity: 'daily' },
+    };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(data), { status: 200 }));
+
+    await expect(service.getHistoricalSpotPrices()).rejects.toThrow('Invalid spot price history metadata.');
+  });
+
+  it('rejects a null historical prices array.', async () => {
+    const data = {
+      prices: null,
+      meta: { range: 'ALL', granularity: 'daily' },
+    };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(data), { status: 200 }));
+
+    await expect(service.getHistoricalSpotPrices()).rejects.toThrow('Invalid spot price history response.');
+  });
+
+  it('rejects a null history response', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(null), { status: 200 }));
+
+    await expect(service.getHistoricalSpotPrices()).rejects.toThrow('Invalid spot price history response.');
+  });
+
+  it('rejects fractional historical timestamps.', async () => {
+    const data = {
+      prices: [{ ts: 10.5 }],
+      meta: { range: 'ALL', granularity: 'daily' },
+    };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(data), { status: 200 }));
+
+    await expect(service.getHistoricalSpotPrices()).rejects.toThrow('Invalid historical price timestamp.');
+  });
+
+  it('rejects negative historical timestamps.', async () => {
+    const data = {
+      prices: [{ ts: -10 }],
+      meta: { range: 'ALL', granularity: 'daily' },
+    };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(data), { status: 200 }));
+
+    await expect(service.getHistoricalSpotPrices()).rejects.toThrow('Invalid historical price timestamp.');
+  });
 });
