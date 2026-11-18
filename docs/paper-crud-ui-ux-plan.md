@@ -1,10 +1,28 @@
 # StackFolio: item and transaction UI/UX design plan
 
-Status: Stages 1 and 2 complete in Paper after visual verification. Stages 3–4 remain proposed. Stage 2 documentation awaits commit sign-off. No application changes or deployment performed.
+Status: Stages 1 and 2 complete in Paper after visual verification and recovery audit fixes. Stages 3–4 remain proposed. User authorized committing and pushing the Stage 2 documentation on 2026-11-18 UTC. No application changes or deployment performed.
 
 Research date: 2026-11-17 UTC.
 
+### Paper guide consolidation, 2026-11-18 UTC
+
+The Stage 1 and Stage 2 guide artboards were removed at the user's request after their notes were reconciled here. Historical delivery/audit references to those guides below describe the earlier review, not current Paper contents. Pages now contains screens only; reusable dialog states remain in Components.
+
+Carry-forward details from the removed guides:
+
+- Stack → Manage opens item management. Back restores the inventory page; history Next/Previous changes only history pagination. After adding a transaction, retain and refresh the current history page even if its rows shift.
+- Independent fixture outcomes: add 1 with a blank date yields 4 owned and a separate server-UTC-dated purchase; sell January's remaining 1 yields 2 owned, January fully sold and March's 2 still available. Editing January from 3 to 4 yields 4 owned, 4 ozt and $120 at the illustrative quote, with identity and recorded timestamp unchanged.
+- Request mapping: purchase uses `POST /inventory` with fixed `item_type_id`, `quantity`, optional `acquisition_date` (omit blank); sale uses `POST /inventory/:itemId/sales` with row `buy_id`, `quantity`, `sale_date`; edit uses `PATCH /inventory/:itemId/transactions/:transactionId` with `quantity`, `effective_date`. Quantities are positive integers no greater than 2,147,483,647.
+- Dialog initial focus goes to quantity; dirty-dismiss initial focus goes to Keep editing. Explicit Cancel discards; dirty Escape/navigation asks before discarding. Returning from history focuses the recovery heading; if a trigger row moved, restore focus to the history heading. At short viewport heights retain 24px outer space and scroll the dialog body.
+- If refreshed sale availability is zero, explain fully sold and offer Cancel. Failed reads preserve inputs and keep submission unavailable. Removed records disable saving and offer Refresh history. Never resend a confirmed submission.
+
+All other guide rules, screen inventories, visual values, accessibility requirements and implementation boundaries are retained in the delivery notes and sections 3–8 below.
+
 ### Stage 2 delivery and verification
+
+Audit follow-up: both recovery findings corrected in Paper and visually rechecked. Unknown-result **Review history** closes the modal while retaining the draft in the current app session, focuses a persistent page banner, and makes paginated history usable. **Return to draft** restores inputs; after successful reads, an explicit **I've checked, retry sale** action resubmits once. **Already recorded, close draft** resolves without resubmitting. A failed-read specimen disables retry and offers **Close for now** or **Review history again**. App navigation retains the draft/banner; reload persistence is not guaranteed. These shared rules also apply to purchases. Components now includes three additional recovery specimens; Pages adds **Transactions / 07 Review uncertain sale**.
+
+Availability recovery now separates cached guidance from authoritative reads: rejection shows **Last checked: 2 remaining** and generic insufficient-availability copy; refresh shows **Refreshed: 1 remaining**, preserving quantity 2 for correction. Submission stays unavailable until refresh succeeds and the quantity is valid. Zero availability and failed-read behavior are annotated. The rejection response itself is never treated as a fresh count. Screenshots checked the revised rejection, refreshed availability, returned draft, failed-read exit and contextual review page for wrapping, alignment, contrast and fit. Both audit findings are closed at the static design level; runtime guarantees remain untested.
 
 Completed 2026-11-17 UTC in [Paper Pages](https://app.paper.design/file/01M70ZZP8J0JMJ457JD4K0QC1T/p-2-0). Existing Stage 1 screens remain intact.
 
