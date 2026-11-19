@@ -2,9 +2,10 @@ import { randomUUID } from 'node:crypto';
 
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
-import { DataSource } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 import { ItemType } from '../src/inventory/entities/item-type.entity.js';
 import { Item } from '../src/inventory/entities/item.entity.js';
@@ -20,9 +21,7 @@ describe('AppController (e2e)', () => {
     unit: 'toz',
     prices: { gold: 2000, silver: 25 },
   };
-  const getHistoricalSpotPrices = vi.fn(async () => [
-    { ts: Date.UTC(2026, 0, 1) / 1000, ...quote.prices },
-  ]);
+  const getHistoricalSpotPrices = vi.fn(async () => [{ ts: Date.UTC(2026, 0, 1) / 1000, ...quote.prices }]);
 
   beforeEach(async () => {
     getHistoricalSpotPrices.mockClear();
@@ -79,6 +78,36 @@ describe('AppController (e2e)', () => {
       await items.delete({ item_type: { id: preset.id } });
       await itemTypes.delete(preset.id);
     }
+  });
+
+  it('returns empty history without fetching prices for an empty stack', async () => {
+    const transactions = app.get<Repository<Transaction>>(getRepositoryToken(Transaction));
+    vi.spyOn(transactions, 'find').mockResolvedValueOnce([]);
+
+    await request(app.getHttpServer())
+      .get('/inventory/history')
+      .expect(200)
+      .expect({ currency: 'USD', range: 'ALL', points: [] });
+    expect(getHistoricalSpotPrices).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { label: 'quoted', pricesAvailable: true, buyValue: 25 },
+    { label: 'unquoted', pricesAvailable: false, buyValue: null },
+  ])('preserves $label history and returns zero after full liquidation', async ({ pricesAvailable, buyValue }) => {
+    const transactions = app.get<Repository<Transaction>>(getRepositoryToken(Transaction));
+    const item = { id: randomUUID(), item_type: { metal: 'silver' as const, weight: 1, weight_unit: 'ozt' as const } };
+    const buy = transactions.create({ item, type: 'buy', quantity: 1, effective_date: '2026-01-01' });
+    const sale = transactions.create({ item, type: 'sell', quantity: 1, effective_date: '2026-01-02' });
+    vi.spyOn(transactions, 'find').mockResolvedValueOnce([buy, sale]);
+    if (!pricesAvailable) getHistoricalSpotPrices.mockResolvedValueOnce([]);
+
+    const history = await request(app.getHttpServer()).get('/inventory/history?range=ALL').expect(200);
+    expect(history.body.points[0]).toMatchObject({ date: '2026-01-01', totalValue: buyValue });
+    expect(history.body.points[1]).toMatchObject({ date: '2026-01-02', totalValue: 0 });
+    expect(history.body.points.slice(1).every((point: { totalValue: number | null }) => point.totalValue === 0)).toBe(
+      true,
+    );
   });
 
   it('deletes sales before their purchase and preserves unrelated transactions', async () => {
@@ -944,6 +973,7 @@ describe('AppController (e2e)', () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     await app.close();
   });
 });

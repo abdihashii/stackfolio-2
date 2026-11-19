@@ -63,7 +63,7 @@ The sale drops value from **$210 to $180** at an unchanged spot price. The remai
 #### 3. Expose the history API
 
 - [x] Add one history endpoint using all transactions, independent of list pagination, and one historical-price fetch per request.
-- [ ] Support the three ranges; reject invalid ranges. Return empty history for no transactions, zeros after full liquidation, and unavailable values or safe errors when prices cannot be used.
+- [x] Support the three ranges; reject invalid ranges. Return empty history for no transactions, zeros after full liquidation, and unavailable values or safe errors when prices cannot be used.
 - [ ] Reflect buys, sales, edits, transaction deletions, and item deletions on the next request. Preserve existing mutation validation.
 - [ ] Add deterministic API/integration coverage and update price-service test doubles. Clean up test fixtures without changing unrelated inventory.
 
