@@ -20,13 +20,17 @@ describe('AppController (e2e)', () => {
     unit: 'toz',
     prices: { gold: 2000, silver: 25 },
   };
+  const getHistoricalSpotPrices = vi.fn(async () => [
+    { ts: Date.UTC(2026, 0, 1) / 1000, ...quote.prices },
+  ]);
 
   beforeEach(async () => {
+    getHistoricalSpotPrices.mockClear();
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
       .overrideProvider(SpotPricesService)
-      .useValue({ getSpotPrices: async () => quote })
+      .useValue({ getSpotPrices: async () => quote, getHistoricalSpotPrices })
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -36,6 +40,45 @@ describe('AppController (e2e)', () => {
 
   it('/ (GET)', () => {
     return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
+  });
+
+  it('values transactions beyond the first page with one historical price fetch', async () => {
+    const database = app.get(DataSource);
+    const itemTypes = database.getRepository(ItemType);
+    const items = database.getRepository(Item);
+    const transactions = database.getRepository(Transaction);
+    const today = new Date().toISOString().slice(0, 10);
+    const path = '/inventory/history?range=30D';
+    const baseline = await request(app.getHttpServer()).get(path).expect(200);
+    getHistoricalSpotPrices.mockClear();
+
+    const preset = await itemTypes.save({
+      name: `History test ${randomUUID()}`,
+      metal: 'silver',
+      weight: 1,
+      weight_unit: 'ozt',
+      purity: 0.999,
+    });
+
+    try {
+      const item = await items.save({ item_type: preset });
+      await transactions.save(
+        [1, 2, 3].map((quantity) => ({ item, type: 'buy' as const, quantity, effective_date: today })),
+      );
+
+      const firstPage = await request(app.getHttpServer()).get(`/inventory/${item.id}/transactions`).expect(200);
+      expect(firstPage.body.total).toBe(3);
+      expect(firstPage.body.transactions).toHaveLength(2);
+
+      const history = await request(app.getHttpServer()).get(path).expect(200);
+      const before = baseline.body.points.find((point: { date: string }) => point.date === today);
+      const after = history.body.points.find((point: { date: string }) => point.date === today);
+      expect(after.totalValue - (before?.totalValue ?? 0)).toBeCloseTo(150, 6);
+      expect(getHistoricalSpotPrices).toHaveBeenCalledTimes(1);
+    } finally {
+      await items.delete({ item_type: { id: preset.id } });
+      await itemTypes.delete(preset.id);
+    }
   });
 
   it('deletes sales before their purchase and preserves unrelated transactions', async () => {

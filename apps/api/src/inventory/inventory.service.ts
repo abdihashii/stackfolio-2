@@ -9,9 +9,16 @@ import { UpdateTransactionDto } from './dto/update-transaction.dto.js';
 import { ItemType } from './entities/item-type.entity.js';
 import { Item } from './entities/item.entity.js';
 import { Transaction } from './entities/transaction.entity.js';
+import { calculateDailyStackValues } from './historical-value.js';
 
 export interface ItemWithQuantity extends Item {
   quantity: number;
+}
+
+export enum HistoryRange {
+  Last30Days = '30D',
+  LastYear = '1Y',
+  ALL = 'ALL',
 }
 
 async function getTotalQuantitySoldForBuy(
@@ -354,5 +361,41 @@ export class InventoryService {
       // Delete the locked transaction
       return await transactionRepository.delete(transaction.id);
     });
+  }
+
+  async getHistory(range: HistoryRange) {
+    const transactions = await this.transactionRepository.find({
+      relations: { item: { item_type: true } },
+      order: { effective_date: 'ASC', created_at: 'ASC', id: 'ASC' },
+    });
+    if (transactions.length === 0) {
+      return {
+        currency: 'USD',
+        range,
+        points: [],
+      };
+    }
+
+    const historicalSpotPrices = await this.spotPricesService.getHistoricalSpotPrices();
+
+    const windowEnd = new Date();
+    let windowStart = new Date(transactions[0].effective_date);
+
+    if (range !== HistoryRange.ALL) {
+      windowStart = new Date(windowEnd);
+      const days = range === HistoryRange.Last30Days ? 29 : 364;
+      windowStart.setUTCDate(windowStart.getUTCDate() - days);
+    }
+
+    const startDate = windowStart.toISOString().slice(0, 10);
+    const endDate = windowEnd.toISOString().slice(0, 10);
+
+    const dailyStackValues = calculateDailyStackValues(transactions, startDate, endDate, historicalSpotPrices);
+
+    return {
+      currency: 'USD',
+      range,
+      points: dailyStackValues,
+    };
   }
 }

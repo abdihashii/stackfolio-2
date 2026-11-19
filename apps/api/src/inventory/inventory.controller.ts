@@ -6,6 +6,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseEnumPipe,
   ParseIntPipe,
   ParseUUIDPipe,
   Patch,
@@ -16,7 +17,7 @@ import {
 import { RecordBuyDto } from './dto/record-buy.dto.js';
 import { RecordSaleDto } from './dto/record-sale.dto.js';
 import { UpdateTransactionDto } from './dto/update-transaction.dto.js';
-import { InventoryService } from './inventory.service.js';
+import { HistoryRange, InventoryService } from './inventory.service.js';
 
 @Controller('inventory')
 export class InventoryController {
@@ -41,6 +42,13 @@ export class InventoryController {
   @Get('valuation')
   getValuation() {
     return this.inventoryService.getValuation();
+  }
+
+  @Get('history')
+  getHistory(
+    @Query('range', new DefaultValuePipe(HistoryRange.ALL), new ParseEnumPipe(HistoryRange)) range: HistoryRange,
+  ) {
+    return this.inventoryService.getHistory(range);
   }
 
   @Get(':id')
