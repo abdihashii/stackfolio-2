@@ -110,6 +110,72 @@ describe('AppController (e2e)', () => {
     );
   });
 
+  it('reflects inventory mutations in the next history response', async () => {
+    const database = app.get(DataSource);
+    const itemTypes = database.getRepository(ItemType);
+    const items = database.getRepository(Item);
+    const transactions = database.getRepository(Transaction);
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    now.setUTCDate(now.getUTCDate() - 1);
+    const yesterday = now.toISOString().slice(0, 10);
+    const historyValues = async () => {
+      const history = await request(app.getHttpServer()).get('/inventory/history?range=30D').expect(200);
+      const points: { date: string; totalValue: number | null }[] = history.body.points;
+      if (points.length === 0) return [0, 0];
+      return [yesterday, today].map((date) => {
+        const totalValue = points.find((point) => point.date === date)?.totalValue;
+        expect(typeof totalValue).toBe('number');
+        return totalValue!;
+      });
+    };
+    const baseline = await historyValues();
+    const expectChange = async (yesterdayDelta: number, todayDelta: number) => {
+      const values = await historyValues();
+      expect(values[0] - baseline[0]).toBeCloseTo(yesterdayDelta, 6);
+      expect(values[1] - baseline[1]).toBeCloseTo(todayDelta, 6);
+    };
+    const preset = await itemTypes.save({
+      name: `History mutation test ${randomUUID()}`,
+      metal: 'silver',
+      weight: 1,
+      weight_unit: 'ozt',
+      purity: 0.999,
+    });
+
+    try {
+      const purchase = await request(app.getHttpServer())
+        .post('/inventory')
+        .send({ item_type_id: preset.id, quantity: 3, acquisition_date: yesterday })
+        .expect(201);
+      const itemId: string = purchase.body.id;
+      const buy = await transactions.findOneByOrFail({ item: { id: itemId }, type: 'buy' });
+      await expectChange(75, 75);
+
+      const sale = await request(app.getHttpServer())
+        .post(`/inventory/${itemId}/sales`)
+        .send({ buy_id: buy.id, quantity: 1, sale_date: today })
+        .expect(201);
+      const salePath = `/inventory/${itemId}/transactions/${sale.body.id}`;
+      await expectChange(75, 50);
+
+      await request(app.getHttpServer()).patch(salePath).send({ quantity: 2 }).expect(200);
+      await expectChange(75, 25);
+
+      await request(app.getHttpServer()).patch(salePath).send({ quantity: 4 }).expect(400);
+      await expectChange(75, 25);
+
+      await request(app.getHttpServer()).delete(salePath).expect(200);
+      await expectChange(75, 75);
+
+      await request(app.getHttpServer()).delete(`/inventory/${itemId}`).expect(200);
+      await expectChange(0, 0);
+    } finally {
+      await items.delete({ item_type: { id: preset.id } });
+      await itemTypes.delete(preset.id);
+    }
+  });
+
   it('deletes sales before their purchase and preserves unrelated transactions', async () => {
     const database = app.get(DataSource);
     const itemTypes = database.getRepository(ItemType);
