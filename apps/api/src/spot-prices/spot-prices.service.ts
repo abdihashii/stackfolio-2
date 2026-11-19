@@ -2,7 +2,7 @@ import { BadGatewayException, Injectable } from '@nestjs/common';
 
 const STACKFOLIO_API_URL = 'https://api.stackfolio.app/api';
 
-type HistoricalSpotPrice = {
+export type HistoricalSpotPrice = {
   ts: number;
   gold?: number;
   silver?: number;

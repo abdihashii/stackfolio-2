@@ -1,7 +1,7 @@
 import type { Item } from './entities/item.entity.js';
 import type { Transaction } from './entities/transaction.entity.js';
 
-import { calculateHistoricalValue } from './historical-value.js';
+import { calculateDailyStackValues, calculateHistoricalValue } from './historical-value.js';
 
 describe('calculateHistoricalValue', () => {
   it('returns zero after selling three 5-gram bars individually without prices', () => {
@@ -297,5 +297,206 @@ describe('calculateHistoricalValue', () => {
 
     // Two fine-metal troy ounces × three items × $3,000.
     expect(calculateHistoricalValue([buy], '2026-01-02', { gold: 3000 })).toBeCloseTo(18000, 2);
+  });
+});
+
+describe('calculateDailyStackValues', () => {
+  it('recalculates daily values after correcting a purchase quantity', () => {
+    const item: Item = {
+      id: 'test-silver',
+      created_at: new Date('2026-01-01T00:00:00Z'),
+      acquisition_date: '2026-01-01',
+      item_type: {
+        id: 'test-silver-type',
+        name: 'Test silver',
+        metal: 'silver',
+        weight_unit: 'ozt',
+        weight: 1,
+        purity: 0.999,
+      },
+    };
+    const buy: Transaction = {
+      id: 'test-buy',
+      created_at: new Date('2026-01-01T00:00:00Z'),
+      effective_date: '2026-01-01',
+      type: 'buy',
+      quantity: 2,
+      item,
+      buy: null,
+    };
+    const ts = Date.parse('2026-01-01T12:00:00Z') / 1_000;
+    const prices = [{ ts, silver: 30 }];
+
+    expect(calculateDailyStackValues([buy], '2026-01-01', '2026-01-02', prices)).toEqual([
+      { date: '2026-01-01', totalValue: 60, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-02', totalValue: 60, quoteTimestamps: { silver: ts } },
+    ]);
+
+    buy.quantity = 3;
+
+    expect(calculateDailyStackValues([buy], '2026-01-01', '2026-01-02', prices)).toEqual([
+      { date: '2026-01-01', totalValue: 90, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-02', totalValue: 90, quoteTimestamps: { silver: ts } },
+    ]);
+  });
+
+  it('includes leap day between February 28 and March 1', () => {
+    const item: Item = {
+      id: 'test-silver',
+      created_at: new Date('2024-02-28T00:00:00Z'),
+      acquisition_date: '2024-02-28',
+      item_type: {
+        id: 'test-silver-type',
+        name: 'Test silver',
+        metal: 'silver',
+        weight_unit: 'ozt',
+        weight: 1,
+        purity: 0.999,
+      },
+    };
+    const buy: Transaction = {
+      id: 'test-buy',
+      created_at: new Date('2024-02-28T00:00:00Z'),
+      effective_date: '2024-02-28',
+      type: 'buy',
+      quantity: 2,
+      item,
+      buy: null,
+    };
+    const ts = Date.parse('2024-02-28T12:00:00Z') / 1_000;
+
+    expect(calculateDailyStackValues([buy], '2024-02-28', '2024-03-01', [{ ts, silver: 30 }])).toEqual([
+      { date: '2024-02-28', totalValue: 60, quoteTimestamps: { silver: ts } },
+      { date: '2024-02-29', totalValue: 60, quoteTimestamps: { silver: ts } },
+      { date: '2024-03-01', totalValue: 60, quoteTimestamps: { silver: ts } },
+    ]);
+  });
+
+  it('uses holdings and the latest quote from before the requested range', () => {
+    const item: Item = {
+      id: 'test-silver',
+      created_at: new Date('2025-12-30T00:00:00Z'),
+      acquisition_date: '2025-12-30',
+      item_type: {
+        id: 'test-silver-type',
+        name: 'Test silver',
+        metal: 'silver',
+        weight_unit: 'ozt',
+        weight: 1,
+        purity: 0.999,
+      },
+    };
+    const buy: Transaction = {
+      id: 'test-buy',
+      created_at: new Date('2025-12-30T00:00:00Z'),
+      effective_date: '2025-12-30',
+      type: 'buy',
+      quantity: 2,
+      item,
+      buy: null,
+    };
+    const ts = Date.parse('2026-01-01T12:00:00Z') / 1_000;
+    const olderTs = Date.parse('2025-12-31T12:00:00Z') / 1_000;
+
+    expect(
+      calculateDailyStackValues([buy], '2026-01-05', '2026-01-06', [
+        { ts, silver: 30 },
+        { ts: olderTs, silver: 25 },
+      ]),
+    ).toEqual([
+      { date: '2026-01-05', totalValue: 60, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-06', totalValue: 60, quoteTimestamps: { silver: ts } },
+    ]);
+  });
+
+  it('carries silver independently when only gold updates and preserves earlier timestamps', () => {
+    const gold: Item = {
+      id: 'test-gold',
+      created_at: new Date('2025-12-30T00:00:00Z'),
+      acquisition_date: '2025-12-30',
+      item_type: {
+        id: 'test-gold-type',
+        name: 'Test gold',
+        metal: 'gold',
+        weight_unit: 'ozt',
+        weight: 1,
+        purity: 0.9167,
+      },
+    };
+    const silver: Item = {
+      id: 'test-silver',
+      created_at: new Date('2025-12-30T00:00:00Z'),
+      acquisition_date: '2025-12-30',
+      item_type: {
+        id: 'test-silver-type',
+        name: 'Test silver',
+        metal: 'silver',
+        weight_unit: 'ozt',
+        weight: 1,
+        purity: 0.999,
+      },
+    };
+    const transactions: Transaction[] = [gold, silver].map((item) => ({
+      id: `buy-${item.id}`,
+      created_at: new Date('2025-12-30T00:00:00Z'),
+      effective_date: '2025-12-30',
+      type: 'buy',
+      quantity: 1,
+      item,
+      buy: null,
+    }));
+    const firstTs = Date.parse('2026-01-01T12:00:00Z') / 1_000;
+    const secondTs = Date.parse('2026-01-02T12:00:00Z') / 1_000;
+
+    expect(
+      calculateDailyStackValues(transactions, '2026-01-01', '2026-01-02', [
+        { ts: firstTs, gold: 3000, silver: 30 },
+        { ts: secondTs, gold: 3100 },
+      ]),
+    ).toEqual([
+      {
+        date: '2026-01-01',
+        totalValue: 3030,
+        quoteTimestamps: { gold: firstTs, silver: firstTs },
+      },
+      {
+        date: '2026-01-02',
+        totalValue: 3130,
+        quoteTimestamps: { gold: secondTs, silver: firstTs },
+      },
+    ]);
+  });
+
+  it('values pre-range holdings without future quotes and carries the first available quote forward', () => {
+    const item: Item = {
+      id: 'test-silver',
+      created_at: new Date('2025-12-30T00:00:00Z'),
+      acquisition_date: '2025-12-30',
+      item_type: {
+        id: 'test-silver-type',
+        name: 'Test silver',
+        metal: 'silver',
+        weight_unit: 'ozt',
+        weight: 1,
+        purity: 0.999,
+      },
+    };
+    const buy: Transaction = {
+      id: 'test-buy',
+      created_at: new Date('2025-12-30T00:00:00Z'),
+      effective_date: '2025-12-30',
+      type: 'buy',
+      quantity: 2,
+      item,
+      buy: null,
+    };
+    const ts = Date.parse('2026-01-01T12:00:00Z') / 1_000;
+
+    expect(calculateDailyStackValues([buy], '2025-12-31', '2026-01-03', [{ ts, silver: 30 }])).toEqual([
+      { date: '2025-12-31', totalValue: null, quoteTimestamps: {} },
+      { date: '2026-01-01', totalValue: 60, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-02', totalValue: 60, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-03', totalValue: 60, quoteTimestamps: { silver: ts } },
+    ]);
   });
 });
