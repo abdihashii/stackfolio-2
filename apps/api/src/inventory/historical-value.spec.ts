@@ -301,7 +301,68 @@ describe('calculateHistoricalValue', () => {
 });
 
 describe('calculateDailyStackValues', () => {
-  it('recalculates daily values after correcting a purchase quantity', () => {
+  it('matches every value in the two-year silver example', () => {
+    const purchases = [
+      { date: '2024-01-01', name: 'Silver Eagle', quantity: 3 },
+      { date: '2024-07-01', name: 'Silver Maple', quantity: 2 },
+      { date: '2025-01-01', name: 'Silver Eagle', quantity: 2 },
+    ];
+    const buys: Transaction[] = purchases.map(({ date, name, quantity }) => ({
+      id: `buy-${date}`,
+      created_at: new Date(date),
+      effective_date: date,
+      type: 'buy',
+      quantity,
+      buy: null,
+      item: {
+        id: `item-${date}`,
+        created_at: new Date(date),
+        acquisition_date: date,
+        item_type: {
+          id: name,
+          name,
+          metal: 'silver',
+          weight_unit: 'ozt',
+          weight: 1,
+          purity: 0.999,
+        },
+      },
+    }));
+    const firstBuy = buys[0]!;
+    const sale: Transaction = {
+      id: 'sell-first-eagle',
+      created_at: new Date('2025-07-01'),
+      effective_date: '2025-07-01',
+      type: 'sell',
+      quantity: 1,
+      item: firstBuy.item,
+      buy: firstBuy,
+    };
+    const prices = Object.entries({
+      '2024-01-01': 24,
+      '2024-06-30': 30,
+      '2024-12-31': 28,
+      '2025-01-01': 32,
+      '2025-06-30': 30,
+      '2025-12-31': 40,
+    }).map(([date, silver]) => ({ ts: Date.parse(date) / 1_000, silver }));
+
+    const points = calculateDailyStackValues([...buys, sale], '2024-01-01', '2025-12-31', prices);
+    const valuesByDate = Object.fromEntries(points.map(({ date, totalValue }) => [date, totalValue]));
+
+    expect(valuesByDate).toMatchObject({
+      '2024-01-01': 72,
+      '2024-06-30': 90,
+      '2024-07-01': 150,
+      '2024-12-31': 140,
+      '2025-01-01': 224,
+      '2025-06-30': 210,
+      '2025-07-01': 180,
+      '2025-12-31': 240,
+    });
+  });
+
+  it('recalculates daily values after correcting a purchase quantity and effective date', () => {
     const item: Item = {
       id: 'test-silver',
       created_at: new Date('2026-01-01T00:00:00Z'),
@@ -336,6 +397,13 @@ describe('calculateDailyStackValues', () => {
 
     expect(calculateDailyStackValues([buy], '2026-01-01', '2026-01-02', prices)).toEqual([
       { date: '2026-01-01', totalValue: 90, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-02', totalValue: 90, quoteTimestamps: { silver: ts } },
+    ]);
+
+    buy.effective_date = '2026-01-02';
+
+    expect(calculateDailyStackValues([buy], '2026-01-01', '2026-01-02', prices)).toEqual([
+      { date: '2026-01-01', totalValue: 0, quoteTimestamps: { silver: ts } },
       { date: '2026-01-02', totalValue: 90, quoteTimestamps: { silver: ts } },
     ]);
   });

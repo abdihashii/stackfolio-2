@@ -56,7 +56,7 @@ The sale drops value from **$210 to $180** at an unchanged spot price. The remai
 
 - [x] Calculate one UTC date's value from transactions and supplied prices, following the valuation rules above.
 - [x] Generate ordered daily values and quote timestamps through today. Include pre-range history; carry each metal's latest prior quote, never a future quote.
-- [ ] Test the two-year example, same-day trades, liquidation, missing/carried/future quotes, pre-range history, grams, purity, leap day, and corrections.
+- [x] Test the two-year example, same-day trades, liquidation, missing/carried/future quotes, pre-range history, grams, purity, leap day, and corrections.
 
 **Verify:** `rtk bun run --cwd apps/api test historical-value.spec.ts`. Assert every example value, especially the $210 → $180 sale. One 1 ozt Gold Eagle at a $3,000 gold quote must equal $3,000 despite .9167 purity.
 
