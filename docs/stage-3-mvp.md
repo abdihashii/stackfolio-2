@@ -73,13 +73,15 @@ The sale drops value from **$210 to $180** at an unchanged spot price. The remai
 
 - [x] Add the chart, range buttons, point details, and states described above.
 - [x] Refresh history after every successful ownership change, including corrections and deletions. Failed changes preserve saved history.
-- [ ] Add the purchase-date hint: "Leave blank to use today's UTC date."
+- [x] Add the purchase-date hint: "Leave blank to use today's UTC date."
 
 **Verify:** Run `rtk bun run --cwd apps/web build`. In the browser, reproduce the example with fixed test quotes, switch ranges, correct and delete transactions, then reload. Check mobile layout, keyboard/touch details, zero holdings, a single point, and missing-price gaps.
 
 **AC1 evidence (`8085c85`).** Firefox checks covered range switching, 365 points for `1Y`, narrow layout, and point details by pointer, keyboard, and emulated touch. Fixtures verified a visible single point and a gap for a missing value. Loading, empty, unavailable, and error/retry states were checked. Workspace typecheck, lint, and the web production build passed. Vite warned that the minified routes chunk was 531 kB. Screen-reader output and large-value axis labels remain unverified in the browser. API suites remain part of the Slice 4 gate.
 
 **AC2 evidence.** Firefox showed history refetches after all five ownership changes. An intermittent upstream 502 blocked checking the chart value after transaction deletion. Code review verified that failed writes skip history invalidation. A controlled check with the installed TanStack Query version verified that a pending pre-write history response cannot overwrite the refreshed value.
+
+**AC3 evidence.** The browser check confirmed the hint appears below the optional acquisition date field. The final Stage 3 gate passed workspace typecheck, lint, the web production build, 92 API tests, and 18 API end-to-end tests. Vite reported a 531 kB minified routes chunk.
 
 **Stage gate:** Complete one slice at a time. Run the checks below after each slice and at completion; demonstrate the chart and report actual results. Show the diff and proposed commit, then wait for commit sign-off. Pushing needs separate approval.
 

@@ -79,9 +79,14 @@ export const Form = ({ form, onSubmit, creatingItemError, isBusy, itemTypes }: F
           disabled={isSubmitting}
           className="w-full rounded-md border border-gray-300 px-3 py-2"
           aria-invalid={!!errors.acquisition_date}
-          aria-describedby={errors.acquisition_date ? 'acquisition-date-error' : undefined}
+          aria-describedby={
+            errors.acquisition_date ? 'acquisition-date-hint acquisition-date-error' : 'acquisition-date-hint'
+          }
           max={new Date().toISOString().slice(0, 10)}
         />
+        <p id="acquisition-date-hint" className="text-sm text-gray-600">
+          Leave blank to use today's UTC date.
+        </p>
         <p id="acquisition-date-error" role="alert" className="text-sm text-red-500">
           {errors.acquisition_date?.message}
         </p>
