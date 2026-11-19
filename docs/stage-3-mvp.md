@@ -65,7 +65,7 @@ The sale drops value from **$210 to $180** at an unchanged spot price. The remai
 - [x] Add one history endpoint using all transactions, independent of list pagination, and one historical-price fetch per request.
 - [x] Support the three ranges; reject invalid ranges. Return empty history for no transactions, zeros after full liquidation, and unavailable values or safe errors when prices cannot be used.
 - [x] Reflect buys, sales, edits, transaction deletions, and item deletions on the next request. Preserve existing mutation validation.
-- [ ] Add deterministic API/integration coverage and update price-service test doubles. Clean up test fixtures without changing unrelated inventory.
+- [x] Add deterministic API/integration coverage and update price-service test doubles. Clean up test fixtures without changing unrelated inventory.
 
 **Verify:** Run API tests, then inspect `rtk curl -fsS 'http://localhost:8787/inventory/history?range=30D'` with the local API running. Change a fixture and confirm the affected value changes. Complete this smoke before adding the chart.
 
