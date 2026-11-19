@@ -32,3 +32,18 @@ export interface Transaction {
   quantity: number;
   remaining_quantity?: number;
 }
+
+export type HistoryRange = '30D' | '1Y' | 'ALL';
+
+export interface HistoryResponse {
+  currency: 'USD';
+  range: HistoryRange;
+  points: {
+    date: string;
+    totalValue: number | null;
+    quoteTimestamps: {
+      gold?: number;
+      silver?: number;
+    };
+  }[];
+}

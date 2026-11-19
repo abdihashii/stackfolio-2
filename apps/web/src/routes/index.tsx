@@ -1,14 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
+import { Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { Form } from '@/components/form';
 import { H2 } from '@/components/h2';
 import { ItemCard } from '@/components/item-card';
 import { useCreateItem } from '@/hooks/use-create-item';
 import { useDeleteItem } from '@/hooks/use-delete-item';
-import { fetchInventory, fetchItemTypes, fetchValuation } from '@/lib/apis';
+import { fetchHistory, fetchInventory, fetchItemTypes, fetchValuation } from '@/lib/apis';
 import { formatUsd } from '@/lib/utils';
+import { HistoryRange } from '@/types/inventory.types';
 
 const pageSize = 12;
 
@@ -18,6 +20,7 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   const [page, setPage] = useState(1);
+  const [range, setRange] = useState<HistoryRange>('ALL');
 
   const inventoryQuery = useQuery({
     queryKey: ['inventory', page, pageSize],
@@ -27,6 +30,10 @@ function Home() {
   const valuationQuery = useQuery({
     queryKey: ['valuation'],
     queryFn: () => fetchValuation(),
+  });
+  const historyQuery = useQuery({
+    queryKey: ['history', range],
+    queryFn: () => fetchHistory(range),
   });
 
   const { form, createItemMutation, onCreateItem } = useCreateItem(inventoryQuery.isPending, setPage);
@@ -60,6 +67,98 @@ function Home() {
         <p className="text-gray-500">
           Based on weight, purity, quantity, and spot price. Actual resale value may differ.
         </p>
+      </div>
+
+      <fieldset className="flex gap-1">
+        <legend>Chart range</legend>
+        <label className="rounded border border-black px-2 py-1 hover:cursor-pointer has-checked:bg-gray-900 has-checked:text-white has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-gray-900">
+          30D
+          <input
+            name="history-range"
+            type="radio"
+            checked={range === '30D'}
+            onChange={() => setRange('30D')}
+            className="sr-only"
+          />
+        </label>
+
+        <label className="rounded border border-black px-2 py-1 hover:cursor-pointer has-checked:bg-gray-900 has-checked:text-white has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-gray-900">
+          1Y
+          <input
+            name="history-range"
+            type="radio"
+            checked={range === '1Y'}
+            onChange={() => setRange('1Y')}
+            className="sr-only"
+          />
+        </label>
+
+        <label className="rounded border border-black px-2 py-1 hover:cursor-pointer has-checked:bg-gray-900 has-checked:text-white has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-gray-900">
+          All
+          <input
+            name="history-range"
+            type="radio"
+            checked={range === 'ALL'}
+            onChange={() => setRange('ALL')}
+            className="sr-only"
+          />
+        </label>
+      </fieldset>
+
+      <div>
+        {historyQuery.isPending ? (
+          <p role="status">Loading history...</p>
+        ) : historyQuery.isError ? (
+          <>
+            <p role="alert">{historyQuery.error.message}</p>
+            <button type="button" onClick={() => historyQuery.refetch()}>
+              retry
+            </button>
+          </>
+        ) : historyQuery.data.points.length === 0 ? (
+          <p>No history. Record your first purchase to see it here.</p>
+        ) : historyQuery.data.points.every((point) => point.totalValue === null) ? (
+          <p role="alert">Historical values are unavailable for this range.</p>
+        ) : (
+          <LineChart
+            title="Historical stack value"
+            data={historyQuery.data.points}
+            responsive
+            width="100%"
+            height={280}
+          >
+            <XAxis dataKey="date" />
+            <YAxis width="auto" tickFormatter={(value) => `$${value}`} />
+            <Line dataKey="totalValue" type="linear" />
+            <Tooltip
+              filterNull={false}
+              content={({ active, label }) => {
+                if (!active) return null;
+
+                const point = historyQuery.data.points.find(({ date }) => date === label);
+                if (!point) return null;
+
+                return (
+                  <div role="status" className="rounded border border-gray-300 bg-white p-2 text-sm">
+                    <p className="font-semibold">{point.date}</p>
+                    <p>Stack value: {point.totalValue === null ? 'Unavailable' : formatUsd(point.totalValue)}</p>
+                    {(['gold', 'silver'] as const).map((metal) => {
+                      const timestamp = point.quoteTimestamps[metal];
+                      if (timestamp === undefined) return null;
+
+                      return (
+                        <p key={metal}>
+                          <span className="capitalize">{metal}</span> quote:{' '}
+                          {new Date(timestamp * 1000).toISOString().slice(0, 10)}
+                        </p>
+                      );
+                    })}
+                  </div>
+                );
+              }}
+            />
+          </LineChart>
+        )}
       </div>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">

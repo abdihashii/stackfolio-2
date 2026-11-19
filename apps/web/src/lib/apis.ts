@@ -1,6 +1,6 @@
 import { BuyFormValues } from '@/types/form.schema';
 
-import type { Item, ItemType, Transaction } from '../types/inventory.types';
+import type { HistoryRange, HistoryResponse, Item, ItemType, Transaction } from '../types/inventory.types';
 
 const backendUrlPath = import.meta.env.VITE_API_URL;
 
@@ -128,4 +128,12 @@ export const deleteTransaction = async (itemId: string, transactionId: string): 
     const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
     throw new Error(typeof message === 'string' && message.trim() ? message : 'Could not delete transaction.');
   }
+};
+
+export const fetchHistory = async (range: HistoryRange): Promise<HistoryResponse> => {
+  const res = await fetch(`${backendUrlPath}/inventory/history?range=${range}`);
+  if (!res.ok) {
+    throw new Error('Could not fetch history.');
+  }
+  return await res.json();
 };
