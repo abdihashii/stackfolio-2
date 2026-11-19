@@ -9,10 +9,12 @@ export const useDeleteItem = (isBusy: boolean) => {
     mutationFn: deleteItem,
     onSuccess: async () => {
       try {
+        await queryClient.cancelQueries({ queryKey: ['history'] });
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
           queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
           queryClient.invalidateQueries({ queryKey: ['itemTransactions'] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['history'] }),
         ]);
       } catch {
         alert('Item deleted, but could not refresh. Reload the page.');

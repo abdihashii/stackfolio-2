@@ -49,10 +49,12 @@ export const ItemCard = ({
     onSuccess: async () => {
       setEditingTransactionId(null);
       try {
+        await queryClient.cancelQueries({ queryKey: ['history'] });
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ['itemTransactions', id] }, { throwOnError: true }),
           queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
           queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['history'] }),
         ]);
       } catch {
         alert('Transaction saved, but could not refresh. Reload the page.');
@@ -64,10 +66,12 @@ export const ItemCard = ({
     onSuccess: async () => {
       setSellingTransactionId(null);
       try {
+        await queryClient.cancelQueries({ queryKey: ['history'] });
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ['itemTransactions', id] }, { throwOnError: true }),
           queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
           queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['history'] }),
         ]);
       } catch {
         alert('Sale saved, but could not refresh. Reload the page.');
@@ -83,10 +87,12 @@ export const ItemCard = ({
     mutationFn: ({ transactionId }: { transactionId: string }) => deleteTransaction(id, transactionId),
     onSuccess: async () => {
       try {
+        await queryClient.cancelQueries({ queryKey: ['history'] });
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ['itemTransactions', id] }, { throwOnError: true }),
           queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
           queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
+          queryClient.invalidateQueries({ queryKey: ['history'] }),
         ]);
       } catch {
         alert('Transaction deleted, but could not refresh. Reload the page.');
