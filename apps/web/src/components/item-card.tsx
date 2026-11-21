@@ -1,9 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
 import type { Item, Transaction } from '@/types/inventory.types';
 
-import { deleteTransaction, fetchTransactions, recordSale, updateTransaction } from '@/lib/apis';
+import { useTransactionMutations } from '@/hooks/use-transaction-mutations';
+import { fetchTransactions } from '@/lib/apis';
 import { calculateItemValue, formatUsd } from '@/lib/utils';
 
 type ItemCardProps = {
@@ -35,71 +36,14 @@ export const ItemCard = ({
   const [transactionPage, setTransactionPage] = useState<number>(1);
   const [sellingTransactionId, setSellingTransactionId] = useState<string | null>(null);
 
-  const queryClient = useQueryClient();
-  const updateTransactionMutation = useMutation({
-    mutationFn: ({
-      transactionId,
-      body: { quantity, effectiveDate, totalPaid },
-    }: {
-      transactionId: string;
-      body: {
-        quantity?: number;
-        effectiveDate?: string;
-        totalPaid?: string | null;
-      };
-    }) => updateTransaction(id, transactionId, { quantity, effective_date: effectiveDate, total_paid: totalPaid }),
-    onSuccess: async () => {
-      setEditingTransaction(null);
-      try {
-        await queryClient.cancelQueries({ queryKey: ['history'] });
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ['itemTransactions', id] }, { throwOnError: true }),
-          queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
-          queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
-          queryClient.invalidateQueries({ queryKey: ['history'] }),
-        ]);
-      } catch {
-        alert('Transaction saved, but could not refresh. Reload the page.');
-      }
-    },
-  });
-  const saleMutation = useMutation({
-    mutationFn: (payload: Parameters<typeof recordSale>[1]) => recordSale(id, payload),
-    onSuccess: async () => {
-      setSellingTransactionId(null);
-      try {
-        await queryClient.cancelQueries({ queryKey: ['history'] });
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ['itemTransactions', id] }, { throwOnError: true }),
-          queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
-          queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
-          queryClient.invalidateQueries({ queryKey: ['history'] }),
-        ]);
-      } catch {
-        alert('Sale saved, but could not refresh. Reload the page.');
-      }
-    },
+  const { updateTransactionMutation, saleMutation, deleteTransactionMutation } = useTransactionMutations(id, {
+    onTransactionUpdated: () => setEditingTransaction(null),
+    onSaleRecorded: () => setSellingTransactionId(null),
   });
   const itemTransactionsQuery = useQuery({
     queryKey: ['itemTransactions', id, transactionPage],
     queryFn: () => fetchTransactions(id, transactionPage),
     enabled: manageSectionState === 'transactions',
-  });
-  const deleteTransactionMutation = useMutation({
-    mutationFn: ({ transactionId }: { transactionId: string }) => deleteTransaction(id, transactionId),
-    onSuccess: async () => {
-      try {
-        await queryClient.cancelQueries({ queryKey: ['history'] });
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ['itemTransactions', id] }, { throwOnError: true }),
-          queryClient.invalidateQueries({ queryKey: ['inventory'] }, { throwOnError: true }),
-          queryClient.invalidateQueries({ queryKey: ['valuation'] }, { throwOnError: true }),
-          queryClient.invalidateQueries({ queryKey: ['history'] }),
-        ]);
-      } catch {
-        alert('Transaction deleted, but could not refresh. Reload the page.');
-      }
-    },
   });
 
   const isTransactionBusy =
@@ -195,7 +139,10 @@ export const ItemCard = ({
                       // Omit effective date from the PATCH unless the user changed it.
                       const rawEffectiveDate = data.get('effective_date');
                       let effectiveDate: string | undefined;
-                      if (typeof rawEffectiveDate === 'string' && rawEffectiveDate !== editingTransaction.effective_date) {
+                      if (
+                        typeof rawEffectiveDate === 'string' &&
+                        rawEffectiveDate !== editingTransaction.effective_date
+                      ) {
                         effectiveDate = rawEffectiveDate;
                       }
 
@@ -212,8 +159,8 @@ export const ItemCard = ({
                         transactionId: transaction.id,
                         body: {
                           quantity,
-                          effectiveDate,
-                          totalPaid,
+                          effective_date: effectiveDate,
+                          total_paid: totalPaid,
                         },
                       });
                     }}
