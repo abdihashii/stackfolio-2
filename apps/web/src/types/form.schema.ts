@@ -1,6 +1,6 @@
 import * as z from 'zod';
 
-import { itemCategories, metals, weightUnits } from './inventory.types';
+import { isReceiptAmount, itemCategories, metals, weightUnits } from './inventory.types';
 
 export const schema = z.object({
   metal: z.enum(metals),
@@ -22,5 +22,13 @@ export const buySchema = z.object({
     .refine((date) => date === null || date <= new Date().toISOString().slice(0, 10), {
       error: 'Acquisition date cannot be in the future.',
     }),
+  total_paid: z
+    .string()
+    .trim()
+    .refine((raw) => raw === '' || isReceiptAmount(raw), {
+      message: 'Enter a nonnegative USD amount with at most two decimal places.',
+    })
+    .transform((raw) => (raw === '' ? undefined : raw)),
 });
+export type BuyFormInput = z.input<typeof buySchema>;
 export type BuyFormValues = z.infer<typeof buySchema>;

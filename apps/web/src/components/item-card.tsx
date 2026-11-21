@@ -347,6 +347,9 @@ export const ItemCard = ({
                           {transaction.remaining_quantity === 0 ? 'fully sold' : 'sell'}
                         </button>
                         <p>Available: {transaction.remaining_quantity}</p>
+                        <p>
+                          Total paid: {transaction.total_paid == null ? 'Unknown' : formatUsd(transaction.total_paid)}
+                        </p>
                       </>
                     )}
                     {deleteTransactionMutation.isError &&

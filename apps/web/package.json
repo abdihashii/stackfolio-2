@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "bun test",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint src/",
     "lint:fix": "oxlint --fix src/",

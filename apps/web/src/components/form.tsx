@@ -1,12 +1,12 @@
 import type { SubmitHandler, UseFormReturn } from 'react-hook-form';
 
-import type { BuyFormValues } from '@/types/form.schema';
+import type { BuyFormInput, BuyFormValues } from '@/types/form.schema';
 import type { ItemType } from '@/types/inventory.types';
 
 import { H2 } from './h2';
 
 type FormProps = {
-  form: UseFormReturn<BuyFormValues>;
+  form: UseFormReturn<BuyFormInput, undefined, BuyFormValues>;
   onSubmit: SubmitHandler<BuyFormValues>;
   creatingItemError: string;
   isBusy: boolean;
@@ -67,6 +67,25 @@ export const Form = ({ form, onSubmit, creatingItemError, isBusy, itemTypes }: F
         />
         <p id="quantity-error" role="alert" className="text-sm text-red-500">
           {errors.quantity?.message}
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label htmlFor="total-paid">Total paid (USD, optional):</label>
+        <input
+          id="total-paid"
+          type="text"
+          {...register('total_paid')}
+          disabled={isSubmitting}
+          className="w-full rounded-md border border-gray-300 px-3 py-2"
+          aria-invalid={!!errors.total_paid}
+          aria-describedby={errors.total_paid ? 'total-paid-hint total-paid-error' : 'total-paid-hint'}
+        />
+        <p id="total-paid-hint" className="text-sm text-gray-600">
+          Enter the total for this purchase. Leave blank if the amount is unknown. Enter 0 if you paid nothing.
+        </p>
+        <p id="total-paid-error" role="alert" className="text-sm text-red-500">
+          {errors.total_paid?.message}
         </p>
       </div>
 

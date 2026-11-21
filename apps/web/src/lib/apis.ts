@@ -1,6 +1,7 @@
 import { BuyFormValues } from '@/types/form.schema';
 
 import type { HistoryRange, HistoryResponse, Item, ItemType, Transaction } from '../types/inventory.types';
+import { transactionListSchema } from '../types/inventory.types';
 
 const backendUrlPath = import.meta.env.VITE_API_URL;
 
@@ -67,7 +68,7 @@ export const fetchTransactions = async (
   if (!res.ok) {
     throw new Error('Could not fetch transactions.');
   }
-  return await res.json();
+  return transactionListSchema.parse(await res.json());
 };
 
 export const updateTransaction = async (

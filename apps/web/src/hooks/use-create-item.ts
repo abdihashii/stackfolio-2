@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 
-import type { BuyFormValues } from '@/types/form.schema';
+import type { BuyFormInput, BuyFormValues } from '@/types/form.schema';
 
 import { recordBuy } from '@/lib/apis';
 import { buySchema } from '@/types/form.schema';
@@ -13,7 +13,7 @@ import { buySchema } from '@/types/form.schema';
 export const useCreateItem = (inventoryIsPending: boolean, setPage: React.Dispatch<React.SetStateAction<number>>) => {
   const queryClient = useQueryClient();
 
-  const form = useForm<BuyFormValues>({
+  const form = useForm<BuyFormInput, undefined, BuyFormValues>({
     resolver: zodResolver(buySchema),
     defaultValues: { quantity: 1, acquisition_date: null },
   });

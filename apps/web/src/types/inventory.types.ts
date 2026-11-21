@@ -1,3 +1,5 @@
+import * as z from 'zod';
+
 export const metals = ['gold', 'silver'] as const;
 export type Metal = (typeof metals)[number];
 
@@ -24,14 +26,20 @@ export interface Item {
   acquisition_date: string | null;
 }
 
-export interface Transaction {
-  id: string;
-  created_at: string;
-  effective_date: string;
-  type: 'buy' | 'sell';
-  quantity: number;
-  remaining_quantity?: number;
-}
+export const isReceiptAmount = (value: string): value is `${number}` => /^(?:\d+|\d*\.\d{1,2})$/.test(value);
+
+const transactionSchema = z.object({
+  id: z.string(),
+  created_at: z.string(),
+  effective_date: z.string(),
+  type: z.enum(['buy', 'sell']),
+  quantity: z.number(),
+  remaining_quantity: z.number().optional(),
+  total_paid: z.string().refine(isReceiptAmount).nullable(),
+});
+export type Transaction = z.infer<typeof transactionSchema>;
+
+export const transactionListSchema = z.object({ transactions: z.array(transactionSchema), total: z.number() });
 
 export type HistoryRange = '30D' | '1Y' | 'ALL';
 

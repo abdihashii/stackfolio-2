@@ -5,7 +5,11 @@ export const gramsToTroyOunces = (gramWeightUnit: number) => {
   return gramWeightUnit / 31.1034768;
 };
 
-export const formatUsd = (value: number) => {
+export const formatUsd = (value: number | `${number}`) => {
+  if (typeof value === 'string') {
+    const [dollars, cents = ''] = value.split('.');
+    return `$${BigInt(dollars || '0').toLocaleString('en-US')}.${cents.padEnd(2, '0')}`;
+  }
   return Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
