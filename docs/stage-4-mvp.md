@@ -9,6 +9,7 @@
 - Add **Total paid (USD, optional)** to the buy form and buy editor. Enter one receipt total for the purchase, including premiums, tax, and shipping.
 - Accept nonnegative USD amounts to the cent. Blank means unknown, including for existing buys. Users can add, correct, or clear the amount later.
 - Edit quantity, date, and total paid independently. When quantity changes on a buy with a recorded cost, show this hint beside Total paid: “Check the purchase total. We’ll divide it across the updated quantity.”
+- In a buy PATCH, send only changed fields. Omitted fields keep their saved values. Send `total_paid: null` to clear the receipt total. Reject `effective_date: null` because every transaction needs a date.
 - A cost-only edit affects gain/loss. Current and historical Stack Value continue to use holdings and spot prices.
 
 ### Ledger
@@ -27,7 +28,7 @@ Show each buy’s total paid, remaining quantity, cost of the remaining coins, c
 #### 1. Record purchase cost
 
 - [x] Save a buy with $100 paid and reload. It still shows $100. A blank amount shows as unknown, and an entered $0 stays $0.
-- [ ] Open an older buy, add a cost, correct it, then clear it. Each change survives reload.
+- [x] Open an older buy, add a cost, correct it, then clear it. Each change survives reload. Verified on the 2026-11-01 buy with quantity 2. After each reload, the total showed $80.21, then $80.25, then Unknown. Quantity and date stayed the same.
 - [ ] Change a buy from 3 coins to 4. The $100 total stays in the editor and the reminder appears. Changing only the date leaves the total alone.
 - [ ] Try saving a negative amount or an amount with more than two decimal places. The app explains the problem and keeps the last saved amount.
 
