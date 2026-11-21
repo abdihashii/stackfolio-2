@@ -31,8 +31,6 @@ Show each buy’s total paid, remaining quantity, cost of the remaining coins, c
 - [ ] Change a buy from 3 coins to 4. The $100 total stays in the editor and the reminder appears. Changing only the date leaves the total alone.
 - [ ] Try saving a negative amount or an amount with more than two decimal places. The app explains the problem and keeps the last saved amount.
 
-Proposed commit: `feat: record optional total paid on buys`.
-
 #### 2. Calculate remaining cost and gain/loss
 
 - [ ] Buy 3 one-ounce coins for $100 and sell 1. At $40/oz, the remaining coins cost $66.67, are worth $80, and show a $13.33 gain. Delete the sale and the remaining cost returns to $100.
@@ -40,15 +38,11 @@ Proposed commit: `feat: record optional total paid on buys`.
 - [ ] A held coin with an unknown cost or missing spot price makes the stack’s gain/loss unavailable. Once fully sold, that buy contributes $0.
 - [ ] Buy 3 one-ounce coins for $100 twice. Sell 2 coins from each buy. At $40/oz, each buy shows a $6.67 gain and the stack shows a $13.33 gain after rounding the total.
 
-Proposed commit: `feat(api): calculate unrealized gain on remaining holdings`.
-
 #### 3. Show the ledger and stack total
 
 - [ ] Open a buy in the ledger. See what you paid, how many coins remain, what those coins cost, what they are worth today, and the gain or loss on them.
 - [ ] See the whole-stack gain/loss beside Stack Value. A held buy with unknown cost still shows its spot value, and the dashboard shows that gain/loss is unavailable.
 - [ ] With just the two remaining coins from the first example, correct the purchase total from $100 to $90. The ledger and dashboard both show a $20 gain after saving and reloading. Stack Value stays $80 and the history chart keeps the same values at the same quotes.
-
-Proposed commit: `feat(web): show purchase and stack unrealized gain`.
 
 **Stage gate:** Demonstrate the example and correction in the browser. Run workspace typecheck, lint, API tests, API end-to-end tests, and the web production build.
 
