@@ -225,6 +225,21 @@ describe('InventoryService', () => {
     expect(buy.quantity).toBe(5);
   });
 
+  it.each([
+    { patch: { quantity: 3 }, expectedQuantity: 3, expectedTotal: '80.21' },
+    { patch: { total_paid: null }, expectedQuantity: 2, expectedTotal: null },
+  ])('applies $patch to a buy with a saved receipt', async ({ patch, expectedQuantity, expectedTotal }) => {
+    const buy = { id: 'buy-id', type: 'buy', quantity: 2, effective_date: '2020-01-10', total_paid: '80.21' };
+    findOneMock.mockResolvedValueOnce(buy).mockResolvedValueOnce(buy).mockResolvedValueOnce(buy);
+
+    await service.updateTransaction('item-id', buy.id, patch);
+    expect(updateMock).toHaveBeenCalledWith(buy.id, {
+      quantity: expectedQuantity,
+      effective_date: buy.effective_date,
+      total_paid: expectedTotal,
+    });
+  });
+
   it("should update a buy's quantity", async () => {
     const result = await service.updateTransaction('test-item-id-1', 'test-transaction-id-1', { quantity: 4 });
 
@@ -387,6 +402,11 @@ describe('InventoryService', () => {
     beforeEach(() => {
       findOneMock.mockResolvedValueOnce(sale).mockResolvedValueOnce(buy).mockResolvedValueOnce(sale);
       getRawOneMock.mockResolvedValueOnce({ soldQuantity: '3' });
+    });
+
+    it.each(['80.21', null])('rejects a receipt edit of %s on a sale', async (total_paid) => {
+      await expect(service.updateTransaction('item-id', sale.id, { total_paid })).rejects.toThrow(BadRequestException);
+      expect(updateMock).not.toHaveBeenCalled();
     });
 
     it.each([1, 4])('should allow a sale quantity of %i, excluding its old quantity', async (quantity) => {

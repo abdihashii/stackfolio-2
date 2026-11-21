@@ -197,6 +197,8 @@ export class InventoryService {
 
       const transactionDate = updateTransactionDto.effective_date ?? transaction.effective_date;
       const transactionQuantity = updateTransactionDto.quantity ?? transaction.quantity;
+      const transactionTotalPaid =
+        updateTransactionDto.total_paid === undefined ? transaction.total_paid : updateTransactionDto.total_paid;
 
       // Reject a purchase dated in the future.
       if (transactionDate > new Date().toISOString().slice(0, 10))
@@ -219,6 +221,10 @@ export class InventoryService {
         if (transactionDate < buyTransaction.effective_date)
           throw new BadRequestException('Sale date cannot be before the purchase date.');
 
+        // Receipt totals belongs to buys, so even clearing one on a sale is invalid.
+        if (updateTransactionDto.total_paid !== undefined)
+          throw new BadRequestException('Updates to Total Paid are not allowed for sales transactions.');
+
         // Get the total sold from its purchase
         const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, buyId);
 
@@ -233,10 +239,12 @@ export class InventoryService {
           throw new BadRequestException('Sale quantity cannot be larger than available quantity.');
       }
 
-      // Save the corrected purchase quantity; remaining quantity is calculated from linked sales.
+      // Save the corrected purchase quantity, effective_date, and total_paid;
+      // remaining quantity is calculated from linked sales.
       const updateResult = await transactionRepository.update(transactionId, {
         quantity: transactionQuantity,
         effective_date: transactionDate,
+        total_paid: transactionTotalPaid,
       });
       if (updateResult.affected === 0) {
         throw new NotFoundException('Transaction not found.');

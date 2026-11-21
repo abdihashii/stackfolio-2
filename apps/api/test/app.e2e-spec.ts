@@ -80,6 +80,41 @@ describe('AppController (e2e)', () => {
     }
   });
 
+  it('reloads an older buy after adding, correcting, and clearing its receipt total', async () => {
+    const database = app.get(DataSource);
+    const itemTypes = database.getRepository(ItemType);
+    const items = database.getRepository(Item);
+    const preset = await itemTypes.save({
+      name: `Receipt edit test ${randomUUID()}`,
+      metal: 'silver',
+      weight: 1,
+      weight_unit: 'ozt',
+      purity: 0.999,
+    });
+
+    try {
+      const http = request(app.getHttpServer());
+      const date = '2020-01-10';
+      const purchase = await http
+        .post('/inventory')
+        .send({ item_type_id: preset.id, quantity: 2, acquisition_date: date })
+        .expect(201);
+      const path = `/inventory/${purchase.body.id}/transactions`;
+      const ledger = await http.get(path).expect(200);
+      const [buy] = ledger.body.transactions;
+      expect(buy.total_paid).toBeNull();
+
+      for (const total_paid of ['80.21', '80.25', null]) {
+        await http.patch(`${path}/${buy.id}`).send({ total_paid }).expect(200);
+        const reload = await http.get(path).expect(200);
+        expect(reload.body.transactions[0]).toMatchObject({ id: buy.id, quantity: 2, effective_date: date, total_paid });
+      }
+    } finally {
+      await items.delete({ item_type: { id: preset.id } });
+      await itemTypes.delete(preset.id);
+    }
+  });
+
   it('returns empty history without fetching prices for an empty stack', async () => {
     const transactions = app.get<Repository<Transaction>>(getRepositoryToken(Transaction));
     vi.spyOn(transactions, 'find').mockResolvedValueOnce([]);
