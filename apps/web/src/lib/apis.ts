@@ -1,6 +1,7 @@
 import { BuyFormValues } from '@/types/form.schema';
 
 import type { HistoryRange, HistoryResponse, Item, ItemType, Transaction } from '../types/inventory.types';
+
 import { transactionListSchema } from '../types/inventory.types';
 
 const backendUrlPath = import.meta.env.VITE_API_URL;
@@ -74,15 +75,18 @@ export const fetchTransactions = async (
 export const updateTransaction = async (
   itemId: string,
   transactionId: string,
-  newQuantity?: number,
-  newDate?: string,
+  body: {
+    quantity?: number;
+    effective_date?: string;
+    total_paid?: string | null;
+  },
 ): Promise<void> => {
   const res = await fetch(`${backendUrlPath}/inventory/${itemId}/transactions/${transactionId}`, {
     method: 'PATCH',
     headers: {
       'Content-type': 'application/json',
     },
-    body: JSON.stringify({ quantity: newQuantity, effective_date: newDate }),
+    body: JSON.stringify(body),
   });
   const data = await res.json();
   if (!res.ok) {

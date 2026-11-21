@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
-import type { Item } from '@/types/inventory.types';
+import type { Item, Transaction } from '@/types/inventory.types';
 
 import { deleteTransaction, fetchTransactions, recordSale, updateTransaction } from '@/lib/apis';
 import { calculateItemValue, formatUsd } from '@/lib/utils';
@@ -31,7 +31,7 @@ export const ItemCard = ({
   const [manageSectionState, setManageSectionState] = useState<'closed' | 'manage' | 'transactions' | 'delete'>(
     'closed',
   );
-  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [transactionPage, setTransactionPage] = useState<number>(1);
   const [sellingTransactionId, setSellingTransactionId] = useState<string | null>(null);
 
@@ -39,15 +39,17 @@ export const ItemCard = ({
   const updateTransactionMutation = useMutation({
     mutationFn: ({
       transactionId,
-      quantity,
-      effectiveDate,
+      body: { quantity, effectiveDate, totalPaid },
     }: {
       transactionId: string;
-      quantity: number;
-      effectiveDate: string;
-    }) => updateTransaction(id, transactionId, quantity, effectiveDate),
+      body: {
+        quantity?: number;
+        effectiveDate?: string;
+        totalPaid?: string | null;
+      };
+    }) => updateTransaction(id, transactionId, { quantity, effective_date: effectiveDate, total_paid: totalPaid }),
     onSuccess: async () => {
-      setEditingTransactionId(null);
+      setEditingTransaction(null);
       try {
         await queryClient.cancelQueries({ queryKey: ['history'] });
         await Promise.all([
@@ -173,19 +175,46 @@ export const ItemCard = ({
           ) : itemTransactionsQuery.data.transactions.length > 0 ? (
             itemTransactionsQuery.data.transactions.map((transaction) => (
               <div key={transaction.id}>
-                {editingTransactionId === transaction.id ? (
+                {editingTransaction?.id === transaction.id ? (
                   <form
                     className="flex flex-col gap-2"
                     onSubmit={(event) => {
                       event.preventDefault();
+
                       if (isTransactionBusy) return;
+
                       const data = new FormData(event.currentTarget);
-                      const effectiveDate = data.get('effective_date');
-                      if (typeof effectiveDate !== 'string') return;
+
+                      // Omit quantity from the PATCH unless the user changed it.
+                      const rawQuantity = Number(data.get('quantity'));
+                      let quantity: number | undefined;
+                      if (rawQuantity !== editingTransaction.quantity) {
+                        quantity = rawQuantity;
+                      }
+
+                      // Omit effective date from the PATCH unless the user changed it.
+                      const rawEffectiveDate = data.get('effective_date');
+                      let effectiveDate: string | undefined;
+                      if (typeof rawEffectiveDate === 'string' && rawEffectiveDate !== editingTransaction.effective_date) {
+                        effectiveDate = rawEffectiveDate;
+                      }
+
+                      // Leave totalPaid undefined to omit it from the PATCH when the field is absent or unchanged.
+                      // If the user clears a saved amount, send null so it shows as Unknown.
+                      const rawTotalPaid = data.get('total_paid');
+                      let totalPaid: string | null | undefined;
+                      if (typeof rawTotalPaid === 'string') {
+                        const trimmed = rawTotalPaid.trim();
+                        if (trimmed !== (editingTransaction.total_paid ?? '')) totalPaid = trimmed || null;
+                      }
+
                       updateTransactionMutation.mutate({
                         transactionId: transaction.id,
-                        quantity: Number(data.get('quantity')),
-                        effectiveDate,
+                        body: {
+                          quantity,
+                          effectiveDate,
+                          totalPaid,
+                        },
                       });
                     }}
                   >
@@ -194,17 +223,33 @@ export const ItemCard = ({
                       id={`effective-date-${transaction.id}`}
                       name="effective_date"
                       type="date"
-                      defaultValue={transaction.effective_date}
+                      defaultValue={editingTransaction.effective_date}
                       required
                       disabled={isTransactionBusy}
                       className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
+
+                    {transaction.type === 'buy' && (
+                      <>
+                        <label htmlFor={`total-paid-${transaction.id}`}>Total paid:</label>
+                        <input
+                          id={`total-paid-${transaction.id}`}
+                          name="total_paid"
+                          type="text"
+                          inputMode="decimal"
+                          defaultValue={editingTransaction.total_paid ?? ''}
+                          disabled={isTransactionBusy}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2"
+                        />
+                      </>
+                    )}
+
                     <label htmlFor={`quantity-${transaction.id}`}>Quantity:</label>
                     <input
                       id={`quantity-${transaction.id}`}
                       name="quantity"
                       type="number"
-                      defaultValue={transaction.quantity}
+                      defaultValue={editingTransaction.quantity}
                       min="1"
                       max="2147483647"
                       step="1"
@@ -212,6 +257,7 @@ export const ItemCard = ({
                       disabled={isTransactionBusy}
                       className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
+
                     <div className="flex gap-3">
                       <button
                         type="submit"
@@ -224,7 +270,7 @@ export const ItemCard = ({
                         type="button"
                         disabled={isTransactionBusy}
                         onClick={() => {
-                          setEditingTransactionId(null);
+                          setEditingTransaction(null);
                           updateTransactionMutation.reset();
                         }}
                         className="text-red-500 hover:cursor-pointer hover:underline"
@@ -232,6 +278,7 @@ export const ItemCard = ({
                         Cancel edit
                       </button>
                     </div>
+
                     {updateTransactionMutation.isError && (
                       <p role="alert" className="text-red-500">
                         {updateTransactionMutation.error.message}
@@ -317,7 +364,7 @@ export const ItemCard = ({
                       onClick={() => {
                         updateTransactionMutation.reset();
                         setSellingTransactionId(null);
-                        setEditingTransactionId(transaction.id);
+                        setEditingTransaction(transaction);
                       }}
                     >
                       edit
@@ -339,7 +386,7 @@ export const ItemCard = ({
                           disabled={(transaction.remaining_quantity ?? 0) <= 0 || isTransactionBusy}
                           className="ml-3 text-green-500 hover:cursor-pointer hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                           onClick={() => {
-                            setEditingTransactionId(null);
+                            setEditingTransaction(null);
                             saleMutation.reset();
                             setSellingTransactionId(transaction.id);
                           }}
@@ -373,7 +420,7 @@ export const ItemCard = ({
                 disabled={transactionPage <= 1 || isTransactionBusy}
                 className="hover:cursor-pointer disabled:text-gray-300 disabled:hover:cursor-not-allowed"
                 onClick={() => {
-                  setEditingTransactionId(null);
+                  setEditingTransaction(null);
                   setSellingTransactionId(null);
                   updateTransactionMutation.reset();
                   setTransactionPage((prevPage) => Math.max(prevPage - 1, 1));
@@ -390,7 +437,7 @@ export const ItemCard = ({
                 disabled={transactionPage >= totalTransactionPages || isTransactionBusy}
                 className="hover:cursor-pointer disabled:text-gray-300 disabled:hover:cursor-not-allowed"
                 onClick={() => {
-                  setEditingTransactionId(null);
+                  setEditingTransaction(null);
                   setSellingTransactionId(null);
                   updateTransactionMutation.reset();
                   setTransactionPage((prevPage) => Math.min(totalTransactionPages, prevPage + 1));
@@ -435,7 +482,7 @@ export const ItemCard = ({
           className="text-blue-500 hover:cursor-pointer hover:underline"
           type="button"
           onClick={() => {
-            setEditingTransactionId(null);
+            setEditingTransaction(null);
             setSellingTransactionId(null);
             updateTransactionMutation.reset();
             setManageSectionState((prevState) => (prevState === 'closed' ? 'manage' : 'closed'));
