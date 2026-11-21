@@ -26,7 +26,7 @@ Show each buy’s total paid, remaining quantity, cost of the remaining coins, c
 
 #### 1. Record purchase cost
 
-- [ ] Save a buy with $100 paid and reload. It still shows $100. A blank amount shows as unknown, and an entered $0 stays $0.
+- [x] Save a buy with $100 paid and reload. It still shows $100. A blank amount shows as unknown, and an entered $0 stays $0.
 - [ ] Open an older buy, add a cost, correct it, then clear it. Each change survives reload.
 - [ ] Change a buy from 3 coins to 4. The $100 total stays in the editor and the reminder appears. Changing only the date leaves the total alone.
 - [ ] Try saving a negative amount or an amount with more than two decimal places. The app explains the problem and keeps the last saved amount.
