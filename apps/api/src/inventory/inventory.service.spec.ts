@@ -134,6 +134,7 @@ describe('InventoryService', () => {
         });
         expect(saveMock).toHaveBeenCalledExactlyOnceWith({
           effective_date: acquisition_date ?? '2026-11-07',
+          total_paid: null,
           type: 'buy',
           item: { id: 'item-id' },
           quantity: 1,

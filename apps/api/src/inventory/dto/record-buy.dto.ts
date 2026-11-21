@@ -13,4 +13,10 @@ export class RecordBuyDto {
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
   @IsDateString({ strict: true })
   acquisition_date?: string | null;
+
+  @IsOptional()
+  @Matches(/^(?:\d+|\d*\.\d{1,2})$/, {
+    message: 'Enter a nonnegative USD amount with at most two decimal places.',
+  })
+  total_paid?: string | null;
 }

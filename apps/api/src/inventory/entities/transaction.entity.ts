@@ -26,4 +26,7 @@ export class Transaction {
 
   @Column()
   quantity: number;
+
+  @Column({ type: 'numeric', nullable: true })
+  total_paid: string | null;
 }

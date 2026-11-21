@@ -24,6 +24,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: '2026-01-01',
       type: 'buy',
       quantity: 3,
+      total_paid: null,
       item,
       buy: null,
     };
@@ -33,6 +34,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: `2026-01-0${day}`,
       type: 'sell',
       quantity: 1,
+      total_paid: null,
       item,
       buy,
     }));
@@ -63,6 +65,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: '2026-01-01',
       type: 'buy',
       quantity: 3,
+      total_paid: null,
       item,
       buy: null,
     };
@@ -72,6 +75,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: '2026-01-01',
       type: 'sell',
       quantity: 1,
+      total_paid: null,
       item,
       buy,
     };
@@ -101,6 +105,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: '2026-01-01',
       type: 'buy',
       quantity: 3,
+      total_paid: null,
       item,
       buy: null,
     };
@@ -110,6 +115,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: '2026-03-01',
       type: 'sell',
       quantity: 1,
+      total_paid: null,
       item,
       buy,
     };
@@ -140,6 +146,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: '2026-01-01',
       type: 'buy',
       quantity: 3,
+      total_paid: null,
       item,
       buy: null,
     };
@@ -149,6 +156,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: '2026-03-01',
       type: 'sell',
       quantity: 3,
+      total_paid: null,
       item,
       buy,
     };
@@ -181,6 +189,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: '2026-01-02',
       type: 'buy',
       quantity: 1,
+      total_paid: null,
       item,
       buy: null,
     };
@@ -210,6 +219,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: '2026-01-05',
       type: 'buy',
       quantity: 1,
+      total_paid: null,
       item,
       buy: null,
     };
@@ -252,6 +262,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: '2026-01-02',
       type: 'buy',
       quantity: 1,
+      total_paid: null,
       item: gold,
       buy: null,
     };
@@ -261,6 +272,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: '2026-01-05',
       type: 'buy',
       quantity: 1,
+      total_paid: null,
       item: silver,
       buy: null,
     };
@@ -291,6 +303,7 @@ describe('calculateHistoricalValue', () => {
       effective_date: '2026-01-02',
       type: 'buy',
       quantity: 3,
+      total_paid: null,
       item,
       buy: null,
     };
@@ -313,6 +326,7 @@ describe('calculateDailyStackValues', () => {
       effective_date: date,
       type: 'buy',
       quantity,
+      total_paid: null,
       buy: null,
       item: {
         id: `item-${date}`,
@@ -335,6 +349,7 @@ describe('calculateDailyStackValues', () => {
       effective_date: '2025-07-01',
       type: 'sell',
       quantity: 1,
+      total_paid: null,
       item: firstBuy.item,
       buy: firstBuy,
     };
@@ -382,6 +397,7 @@ describe('calculateDailyStackValues', () => {
       effective_date: '2026-01-01',
       type: 'buy',
       quantity: 2,
+      total_paid: null,
       item,
       buy: null,
     };
@@ -428,6 +444,7 @@ describe('calculateDailyStackValues', () => {
       effective_date: '2024-02-28',
       type: 'buy',
       quantity: 2,
+      total_paid: null,
       item,
       buy: null,
     };
@@ -460,6 +477,7 @@ describe('calculateDailyStackValues', () => {
       effective_date: '2025-12-30',
       type: 'buy',
       quantity: 2,
+      total_paid: null,
       item,
       buy: null,
     };
@@ -510,6 +528,7 @@ describe('calculateDailyStackValues', () => {
       effective_date: '2025-12-30',
       type: 'buy',
       quantity: 1,
+      total_paid: null,
       item,
       buy: null,
     }));
@@ -555,6 +574,7 @@ describe('calculateDailyStackValues', () => {
       effective_date: '2025-12-30',
       type: 'buy',
       quantity: 2,
+      total_paid: null,
       item,
       buy: null,
     };

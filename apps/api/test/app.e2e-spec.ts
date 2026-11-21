@@ -356,6 +356,7 @@ describe('AppController (e2e)', () => {
         type: buy.type,
         created_at: buy.created_at,
         quantity: 4,
+        total_paid: null,
         effective_date: '2026-01-11',
       });
 
@@ -371,6 +372,7 @@ describe('AppController (e2e)', () => {
       ).toEqual({
         id: updatedSale.id,
         type: updatedSale.type,
+        total_paid: null,
         quantity: updatedSale.quantity,
         created_at: updatedSale.created_at,
         item: updatedSale.item,
@@ -399,6 +401,7 @@ describe('AppController (e2e)', () => {
         created_at: buy.created_at,
         effective_date: buy.effective_date,
         quantity: 4,
+        total_paid: null,
       });
       expect(await transactions.countBy({ item: { id: buyResponse.body.id } })).toBe(2);
     } finally {
@@ -439,10 +442,13 @@ describe('AppController (e2e)', () => {
           item_type_id: preset.id,
           quantity: 5,
           acquisition_date: '2026-01-10',
+          total_paid: '100000000000000.01',
         })
         .expect(201);
 
       expect(await items.existsBy({ id: buyResponse.body.id, item_type: { id: preset.id } })).toBe(true);
+      const ledger = await request(app.getHttpServer()).get(`/inventory/${buyResponse.body.id}/transactions`).expect(200);
+      expect(ledger.body.transactions[0].total_paid).toBe('100000000000000.01');
       const buy = await transactions.findOneByOrFail({
         item: { id: buyResponse.body.id },
         type: 'buy',
@@ -718,6 +724,7 @@ describe('AppController (e2e)', () => {
               id: existingSale.id,
               type: 'sell',
               quantity: saleEditWon ? 3 : 1,
+              total_paid: null,
               effective_date: existingSale.effective_date,
               created_at: existingSale.created_at,
             });

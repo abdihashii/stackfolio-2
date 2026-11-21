@@ -75,6 +75,7 @@ export class InventoryService {
 
       await transactionRepository.save({
         effective_date: recordBuyDto.acquisition_date ?? new Date().toISOString().slice(0, 10),
+        total_paid: recordBuyDto.total_paid ?? null,
         type: 'buy',
         item,
         quantity: recordBuyDto.quantity,
@@ -142,7 +143,7 @@ export class InventoryService {
 
         const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(this.transactionRepository, transaction.id);
 
-        const { id, created_at, effective_date, type, quantity, item, buy } = transaction;
+        const { id, created_at, effective_date, type, quantity, item, buy, total_paid } = transaction;
         return {
           id,
           created_at,
@@ -151,7 +152,8 @@ export class InventoryService {
           quantity,
           item,
           buy,
-          remaining_quantity: transaction.quantity - totalQuantitySoldForBuy,
+          remaining_quantity: quantity - totalQuantitySoldForBuy,
+          total_paid,
         };
       }),
     );
