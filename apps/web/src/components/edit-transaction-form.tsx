@@ -1,4 +1,4 @@
-import type { SubmitEventHandler } from 'react';
+import { type SubmitEventHandler, useState } from 'react';
 
 import type { updateTransaction } from '@/lib/apis';
 import type { Transaction } from '@/types/inventory.types';
@@ -24,6 +24,9 @@ export const EditTransactionForm = ({
   onSave,
   onCancel,
 }: EditTransactionFormProps) => {
+  const initialQuantity = submittedChanges?.quantity ?? transaction.quantity;
+  const [quantityChange, setQuantityChanged] = useState(initialQuantity !== transaction.quantity);
+
   const handleSubmit: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
 
@@ -88,6 +91,9 @@ export const EditTransactionForm = ({
             disabled={disabled}
             className="w-full rounded-md border border-gray-300 px-3 py-2"
           />
+          {quantityChange && transaction.total_paid !== null && (
+            <p>Check the purchase total. We’ll divide it across the updated quantity.</p>
+          )}
         </>
       )}
 
@@ -96,13 +102,16 @@ export const EditTransactionForm = ({
         id={`quantity-${transaction.id}`}
         name="quantity"
         type="number"
-        defaultValue={submittedChanges?.quantity ?? transaction.quantity}
+        defaultValue={initialQuantity}
         min="1"
         max="2147483647"
         step="1"
         required
         disabled={disabled}
         className="w-full rounded-md border border-gray-300 px-3 py-2"
+        onChange={(e) => {
+          setQuantityChanged(e.currentTarget.valueAsNumber !== transaction.quantity);
+        }}
       />
 
       <div className="flex gap-3">
