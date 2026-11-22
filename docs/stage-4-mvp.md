@@ -35,7 +35,7 @@ Show each buy’s total paid, remaining quantity, cost of the remaining coins, c
 #### 2. Calculate remaining cost and gain/loss
 
 - [x] Buy 3 one-ounce coins for $100 and sell 1. At $40/oz, the remaining coins cost $66.67, are worth $80, and show a $13.33 gain. Delete the sale and the remaining cost returns to $100.
-- [ ] Buy another coin of the same type for $45. At $40/oz, that buy shows a $5 loss. Selling from the first buy leaves the second buy’s figures alone.
+- [x] Buy another coin of the same type for $45. At $40/oz, that buy shows a $5 loss. Selling from the first buy leaves the second buy’s figures alone.
 - [ ] A held coin with an unknown cost or missing spot price makes the stack’s gain/loss unavailable. Once fully sold, that buy contributes $0.
 - [ ] Buy 3 one-ounce coins for $100 twice. Sell 2 coins from each buy. At $40/oz, each buy shows a $6.67 gain and the stack shows a $13.33 gain after rounding the total.
 
