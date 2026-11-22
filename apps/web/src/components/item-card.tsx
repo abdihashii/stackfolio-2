@@ -60,6 +60,17 @@ export const ItemCard = ({
     }
   }, [itemTransactionsQuery.isSuccess, transactionPage, totalTransactionPages]);
 
+  const clearActiveForm = () => {
+    setEditingTransaction(null);
+    setSellingTransactionId(null);
+    updateTransactionMutation.reset();
+  };
+
+  const changeTransactionPage = (page: number) => {
+    clearActiveForm();
+    setTransactionPage(page);
+  };
+
   return (
     <>
       <h3 className="text-lg font-semibold capitalize">{name}</h3>
@@ -214,12 +225,7 @@ export const ItemCard = ({
                 type="button"
                 disabled={transactionPage <= 1 || isTransactionBusy}
                 className="hover:cursor-pointer disabled:text-gray-300 disabled:hover:cursor-not-allowed"
-                onClick={() => {
-                  setEditingTransaction(null);
-                  setSellingTransactionId(null);
-                  updateTransactionMutation.reset();
-                  setTransactionPage((prevPage) => Math.max(prevPage - 1, 1));
-                }}
+                onClick={() => changeTransactionPage(Math.max(transactionPage - 1, 1))}
                 aria-label="Previous page"
               >
                 {'<'}
@@ -231,12 +237,7 @@ export const ItemCard = ({
                 type="button"
                 disabled={transactionPage >= totalTransactionPages || isTransactionBusy}
                 className="hover:cursor-pointer disabled:text-gray-300 disabled:hover:cursor-not-allowed"
-                onClick={() => {
-                  setEditingTransaction(null);
-                  setSellingTransactionId(null);
-                  updateTransactionMutation.reset();
-                  setTransactionPage((prevPage) => Math.min(totalTransactionPages, prevPage + 1));
-                }}
+                onClick={() => changeTransactionPage(Math.min(totalTransactionPages, transactionPage + 1))}
                 aria-label="Next page"
               >
                 {'>'}
@@ -277,9 +278,7 @@ export const ItemCard = ({
           className="text-blue-500 hover:cursor-pointer hover:underline"
           type="button"
           onClick={() => {
-            setEditingTransaction(null);
-            setSellingTransactionId(null);
-            updateTransactionMutation.reset();
+            clearActiveForm();
             setManageSectionState((prevState) => (prevState === 'closed' ? 'manage' : 'closed'));
           }}
           disabled={isTransactionBusy}
