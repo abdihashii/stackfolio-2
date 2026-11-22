@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { isReceiptAmount, type Item } from '../types/inventory.types';
 
-import { calculateBuySpotValue, calculateUnrealizedGain, formatUsd } from './utils';
+import { calculateBuySpotValue, calculateStackUnrealizedGain, calculateUnrealizedGain, formatUsd } from './utils';
 
 test('currency formatting preserves the final cent of an exact receipt amount', () => {
   expect(formatUsd('0')).toBe('$0.00');
@@ -29,3 +29,13 @@ test('buy spot value uses the remaining quantity', () => {
 test('unrealized gain preserves a one-cent loss on a large receipt', () => {
   expect(calculateUnrealizedGain(100_000_000_000_000, '100000000000000.01')).toBe('-0.01');
 });
+
+for (const field of ['remaining_purchase_cost', 'spotValue'] as const) {
+  test(`missing ${field} makes stack gain unavailable until the buy is fully sold`, () => {
+    const knownBuy = { remaining_quantity: 1, remaining_purchase_cost: '45', spotValue: '40' };
+    const incompleteBuy = { ...knownBuy, [field]: null };
+
+    expect(calculateStackUnrealizedGain([knownBuy, incompleteBuy])).toBeNull();
+    expect(calculateStackUnrealizedGain([{ ...incompleteBuy, remaining_quantity: 0 }, knownBuy])).toBe('-5');
+  });
+}
