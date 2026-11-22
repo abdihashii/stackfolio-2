@@ -20,6 +20,7 @@ describe('InventoryService', () => {
   const updateMock = vi.fn().mockResolvedValue({ affected: 1 });
   const getRawManyMock = vi.fn();
   const getRawOneMock = vi.fn();
+  const salesJoinMock = vi.fn();
   const salesWhereMock = vi.fn();
   const salesQueryBuilderMock = vi.fn();
   const createQueryBuilderMock = vi.fn();
@@ -44,8 +45,12 @@ describe('InventoryService', () => {
     updateMock.mockReset().mockResolvedValue({ affected: 1 });
     getRawManyMock.mockReset().mockResolvedValue([]);
     getRawOneMock.mockReset().mockResolvedValue({ soldQuantity: null });
+    salesJoinMock.mockReset().mockReturnThis();
     salesWhereMock.mockReset().mockReturnThis();
     salesQueryBuilderMock.mockReset().mockReturnValue({
+      leftJoin: salesJoinMock,
+      addSelect: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
       where: salesWhereMock,
       getRawOne: getRawOneMock,
@@ -72,7 +77,12 @@ describe('InventoryService', () => {
           provide: getRepositoryToken(Transaction),
           useValue: {
             find: findMock,
-            findAndCount: findAndCountMock,
+            manager: {
+              transaction: (isolation: string, read: (manager: unknown) => Promise<unknown>) => {
+                expect(isolation).toBe('REPEATABLE READ');
+                return read({ getRepository: () => ({ findAndCount: findAndCountMock, createQueryBuilder: salesQueryBuilderMock }) });
+              },
+            },
             createQueryBuilder: createQueryBuilderMock,
           },
         },
@@ -209,7 +219,6 @@ describe('InventoryService', () => {
   it('should return remaining buy availability without changing the purchased quantity', async () => {
     const buy = { id: 'buy-id', type: 'buy', quantity: 5 };
     findAndCountMock.mockResolvedValueOnce([[buy], 3]);
-    createQueryBuilderMock.mockReturnValueOnce(salesQueryBuilderMock());
     getRawOneMock.mockResolvedValueOnce({ soldQuantity: '2' });
 
     const result = await service.findAllTransactions('item-id', 1);
@@ -218,9 +227,9 @@ describe('InventoryService', () => {
       transactions: [expect.objectContaining({ id: 'buy-id', type: 'buy', quantity: 5, remaining_quantity: 3 })],
       total: 3,
     });
-    expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith('transaction.buy_id = :buyId AND transaction.type = :type', {
-      buyId: 'buy-id',
-      type: 'sell',
+    expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith('buy.id = :buyId', { buyId: 'buy-id' });
+    expect(salesJoinMock).toHaveBeenCalledWith(Transaction, 'sale', 'sale.buy_id = buy.id AND sale.type = :saleType', {
+      saleType: 'sell',
     });
     expect(buy.quantity).toBe(5);
   });
@@ -352,9 +361,9 @@ describe('InventoryService', () => {
       'Buy quantity cannot be less than the quantity already sold.',
     );
 
-    expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith('transaction.buy_id = :buyId AND transaction.type = :type', {
-      buyId: 'test-transaction-id-1',
-      type: 'sell',
+    expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith('buy.id = :buyId', { buyId: 'test-transaction-id-1' });
+    expect(salesJoinMock).toHaveBeenCalledWith(Transaction, 'sale', 'sale.buy_id = buy.id AND sale.type = :saleType', {
+      saleType: 'sell',
     });
     expect(updateMock).not.toHaveBeenCalled();
   });
@@ -424,13 +433,10 @@ describe('InventoryService', () => {
         where: { id: 'sale-id', item: { id: 'item-id' } },
         lock: { mode: 'pessimistic_write' },
       });
-      expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith(
-        'transaction.buy_id = :buyId AND transaction.type = :type',
-        {
-          buyId: 'buy-id',
-          type: 'sell',
-        },
-      );
+      expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith('buy.id = :buyId', { buyId: 'buy-id' });
+      expect(salesJoinMock).toHaveBeenCalledWith(Transaction, 'sale', 'sale.buy_id = buy.id AND sale.type = :saleType', {
+        saleType: 'sell',
+      });
       expect(updateMock).toHaveBeenCalledExactlyOnceWith('sale-id', {
         quantity,
         effective_date: '2020-01-15',
@@ -527,9 +533,9 @@ describe('InventoryService', () => {
       where: { id: 'buy-id', item: { id: 'item-id' } },
       lock: { mode: 'pessimistic_write' },
     });
-    expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith('transaction.buy_id = :buyId AND transaction.type = :type', {
-      buyId: 'buy-id',
-      type: 'sell',
+    expect(salesWhereMock).toHaveBeenCalledExactlyOnceWith('buy.id = :buyId', { buyId: 'buy-id' });
+    expect(salesJoinMock).toHaveBeenCalledWith(Transaction, 'sale', 'sale.buy_id = buy.id AND sale.type = :saleType', {
+      saleType: 'sell',
     });
     expect(saveMock).toHaveBeenCalledExactlyOnceWith({
       type: 'sell',

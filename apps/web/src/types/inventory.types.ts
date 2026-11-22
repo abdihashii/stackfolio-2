@@ -36,6 +36,7 @@ const transactionSchema = z.object({
   quantity: z.number(),
   remaining_quantity: z.number().optional(),
   total_paid: z.string().refine(isReceiptAmount).nullable(),
+  remaining_purchase_cost: z.string().nullable().optional(),
 });
 export type Transaction = z.infer<typeof transactionSchema>;
 

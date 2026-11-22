@@ -21,16 +21,27 @@ export enum HistoryRange {
   ALL = 'ALL',
 }
 
-async function getTotalQuantitySoldForBuy(
+async function getBuyBalance(
   transactionRepository: Repository<Transaction>,
   buyId: string,
-): Promise<number> {
+): Promise<{ soldQuantity: number; remainingPurchaseCost: string | null }> {
   const salesTotalResult = await transactionRepository
-    .createQueryBuilder('transaction')
-    .select('SUM(transaction.quantity)', 'soldQuantity')
-    .where('transaction.buy_id = :buyId AND transaction.type = :type', { buyId, type: 'sell' })
+    .createQueryBuilder('buy')
+    // Keep the buy in the result even after its last sale is deleted.
+    .leftJoin(Transaction, 'sale', 'sale.buy_id = buy.id AND sale.type = :saleType', { saleType: 'sell' })
+    .select('COALESCE(SUM(sale.quantity), 0)', 'soldQuantity')
+    // Set a fractional scale before division so even large whole-dollar receipts retain sub-cent precision.
+    .addSelect(
+      'round(buy.total_paid, 32) * (buy.quantity - COALESCE(SUM(sale.quantity), 0)) / buy.quantity',
+      'remainingPurchaseCost',
+    )
+    .where('buy.id = :buyId', { buyId })
+    .groupBy('buy.id')
     .getRawOne();
-  return salesTotalResult.soldQuantity === null ? 0 : Number(salesTotalResult.soldQuantity);
+  return {
+    soldQuantity: Number(salesTotalResult.soldQuantity),
+    remainingPurchaseCost: salesTotalResult.remainingPurchaseCost,
+  };
 }
 
 @Injectable()
@@ -130,35 +141,26 @@ export class InventoryService {
   async findAllTransactions(id: string, page: number): Promise<{ transactions: Transaction[]; total: number }> {
     const skip = (page - 1) * 2;
 
-    const [transactions, total] = await this.transactionRepository.findAndCount({
-      where: { item: { id } },
-      order: { effective_date: 'DESC', created_at: 'DESC', id: 'DESC' },
-      take: 2,
-      skip,
+    return this.transactionRepository.manager.transaction('REPEATABLE READ', async (manager) => {
+      const repository = manager.getRepository(Transaction);
+      const [transactions, total] = await repository.findAndCount({
+        where: { item: { id } },
+        order: { effective_date: 'DESC', created_at: 'DESC', id: 'DESC' },
+        take: 2,
+        skip,
+      });
+
+      for (const transaction of transactions) {
+        if (transaction.type === 'buy') {
+          const balance = await getBuyBalance(repository, transaction.id);
+          Object.assign(transaction, {
+            remaining_quantity: transaction.quantity - balance.soldQuantity,
+            remaining_purchase_cost: balance.remainingPurchaseCost,
+          });
+        }
+      }
+      return { transactions, total };
     });
-
-    const transactionsWithAvailability = await Promise.all(
-      transactions.map(async (transaction) => {
-        if (transaction.type !== 'buy') return transaction;
-
-        const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(this.transactionRepository, transaction.id);
-
-        const { id, created_at, effective_date, type, quantity, item, buy, total_paid } = transaction;
-        return {
-          id,
-          created_at,
-          effective_date,
-          type,
-          quantity,
-          item,
-          buy,
-          remaining_quantity: quantity - totalQuantitySoldForBuy,
-          total_paid,
-        };
-      }),
-    );
-
-    return { transactions: transactionsWithAvailability, total };
   }
 
   async updateTransaction(itemId: string, transactionId: string, updateTransactionDto: UpdateTransactionDto) {
@@ -213,7 +215,7 @@ export class InventoryService {
           throw new BadRequestException('Purchase date cannot be after sale date.');
 
         // This asks "how many were sold from the purchase being edited?"
-        const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, transactionId);
+        const { soldQuantity: totalQuantitySoldForBuy } = await getBuyBalance(transactionRepository, transactionId);
         if (transactionQuantity < totalQuantitySoldForBuy) {
           throw new BadRequestException('Buy quantity cannot be less than the quantity already sold.');
         }
@@ -226,7 +228,7 @@ export class InventoryService {
           throw new BadRequestException('Updates to Total Paid are not allowed for sales transactions.');
 
         // Get the total sold from its purchase
-        const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, buyId);
+        const { soldQuantity: totalQuantitySoldForBuy } = await getBuyBalance(transactionRepository, buyId);
 
         // Exclude this sale's old quantity to count only the other sales linked to the same purchase.
         const quantitySoldThroughOtherSales = totalQuantitySoldForBuy - transaction.quantity;
@@ -312,7 +314,10 @@ export class InventoryService {
       if (recordSaleDto.sale_date < buyTransaction.effective_date)
         throw new BadRequestException('Sale date cannot be before the buy date.');
 
-      const totalQuantitySoldForBuy = await getTotalQuantitySoldForBuy(transactionRepository, recordSaleDto.buy_id);
+      const { soldQuantity: totalQuantitySoldForBuy } = await getBuyBalance(
+        transactionRepository,
+        recordSaleDto.buy_id,
+      );
 
       const remainingQuantity = buyTransaction.quantity - totalQuantitySoldForBuy;
 

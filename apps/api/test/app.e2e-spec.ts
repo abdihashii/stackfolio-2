@@ -115,6 +115,82 @@ describe('AppController (e2e)', () => {
     }
   });
 
+  it.each([
+    { receipt: '100.00', sold: 1, partialCost: /^66\.6666666666/, restoredCost: /^100(?:\.0+)?$/ },
+    {
+      receipt: '100000000000000000000',
+      sold: 2,
+      partialCost: /^33333333333333333333\.3333333333/,
+      restoredCost: /^100000000000000000000(?:\.0+)?$/,
+    },
+  ])('prorates a $receipt buy and restores its cost after deleting the sale', async ({ receipt, sold, partialCost, restoredCost }) => {
+    const database = app.get(DataSource);
+    const itemTypes = database.getRepository(ItemType);
+    const preset = await itemTypes.save({
+      name: `Partial sale cost ${randomUUID()}`, metal: 'silver', weight: 1, weight_unit: 'ozt', purity: 1,
+    });
+    try {
+      const http = request(app.getHttpServer());
+      const purchase = await http.post('/inventory')
+        .send({ item_type_id: preset.id, acquisition_date: '2020-01-10', quantity: 3, total_paid: receipt })
+        .expect(201);
+      const itemPath = `/inventory/${purchase.body.id}`;
+      const ledgerPath = `${itemPath}/transactions`;
+      const readBuy = async () => {
+        const ledger = await http.get(ledgerPath).expect(200);
+        return ledger.body.transactions.find((row: Transaction) => row.type === 'buy');
+      };
+      const original = await readBuy();
+      const sale = await http.post(`${itemPath}/sales`)
+        .send({ buy_id: original.id, quantity: sold, sale_date: '2020-01-11' })
+        .expect(201);
+      const partial = await readBuy();
+      expect(partial).toMatchObject({ id: original.id, remaining_quantity: 3 - sold, total_paid: receipt });
+      expect(partial.remaining_purchase_cost).toMatch(partialCost);
+
+      await http.delete(`${ledgerPath}/${sale.body.id}`).expect(200);
+      expect(await readBuy()).toMatchObject({
+        id: original.id, remaining_quantity: 3, total_paid: receipt, remaining_purchase_cost: expect.stringMatching(restoredCost),
+      });
+    } finally {
+      await database.getRepository(Item).delete({ item_type: { id: preset.id } });
+      await itemTypes.delete(preset.id);
+    }
+  });
+
+  it('reads one ledger snapshot when a buy is deleted between loading the row and calculating its cost', async () => {
+    const db = app.get(DataSource);
+    const types = db.getRepository(ItemType);
+    const items = db.getRepository(Item);
+    const transactions = db.getRepository(Transaction);
+    const preset = await types.save({
+      name: `Concurrent ledger read ${randomUUID()}`, metal: 'silver', weight: 1, weight_unit: 'ozt', purity: 1,
+    });
+    try {
+      const item = await items.save({ item_type: preset });
+      const buy = await transactions.save({ item, type: 'buy', quantity: 3, total_paid: '100', effective_date: '2020-01-10' });
+      const subscriber = {
+        listenTo: () => Transaction,
+        afterLoad: async (row: Transaction) => {
+          if (row.id === buy.id) await transactions.delete(buy.id);
+        },
+      };
+      db.subscribers.push(subscriber);
+      try {
+        const response = await request(app.getHttpServer()).get(`/inventory/${item.id}/transactions`).expect(200);
+        expect(response.body.transactions).toEqual([expect.objectContaining({
+          id: buy.id, remaining_quantity: 3, remaining_purchase_cost: expect.stringMatching(/^100(?:\.0+)?$/),
+        })]);
+        expect(await transactions.countBy({ id: buy.id })).toBe(0);
+      } finally {
+        db.subscribers.splice(db.subscribers.indexOf(subscriber), 1);
+      }
+    } finally {
+      await items.delete({ item_type: { id: preset.id } });
+      await types.delete(preset.id);
+    }
+  });
+
   it.each(['-1', '12.345'])('rejects receipt total %s and preserves the saved buy', async (invalidTotal) => {
     const database = app.get(DataSource);
     const itemTypes = database.getRepository(ItemType);

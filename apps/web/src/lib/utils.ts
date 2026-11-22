@@ -1,8 +1,11 @@
+import Decimal from 'decimal.js-light';
+
 import type { Item } from '../types/inventory.types';
 
+const gramsPerTroyOunce = 31.1034768;
+
 export const gramsToTroyOunces = (gramWeightUnit: number) => {
-  // 1 troy ounce = 31.1034768 grams
-  return gramWeightUnit / 31.1034768;
+  return gramWeightUnit / gramsPerTroyOunce;
 };
 
 export const formatUsd = (value: number | `${number}`) => {
@@ -21,4 +24,19 @@ export const calculateItemValue = ({ item_type, quantity }: Item, spotPrice: num
   const fineMetalWeightOzt = weight_unit === 'gram' ? gramsToTroyOunces(weight) : weight;
 
   return fineMetalWeightOzt * quantity * spotPrice;
+};
+
+// Two finite JS number inputs and an integer quantity require at most 44 significant digits for the product.
+const SpotDecimal = Decimal.clone({ precision: 64 });
+
+export const calculateBuySpotValue = ({ item_type }: Item, remainingQuantity: number, spotPrice: number): string => {
+  const value = new SpotDecimal(item_type.weight).times(remainingQuantity).times(spotPrice);
+  return (item_type.weight_unit === 'gram' ? value.div(gramsPerTroyOunce) : value).toFixed();
+};
+
+export const calculateUnrealizedGain = (spotValue: number | string, remainingPurchaseCost: string): string => {
+  const spot = new Decimal(spotValue).toFixed();
+  // Keep all input digits even when a large receipt is paired with a fractional spot value.
+  const Money = Decimal.clone({ precision: spot.length + remainingPurchaseCost.length });
+  return new Money(spot).minus(remainingPurchaseCost).toFixed();
 };
