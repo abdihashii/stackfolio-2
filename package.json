@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "scripts": {
+    "test": "bun run --workspaces --if-present test",
     "typecheck": "bun run --cwd apps/api typecheck && bun run --cwd apps/web typecheck",
     "lint": "bun run --workspaces --if-present lint",
     "lint:fix": "bun run --workspaces --if-present lint:fix",
