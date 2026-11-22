@@ -115,6 +115,38 @@ describe('AppController (e2e)', () => {
     }
   });
 
+  it.each(['-1', '12.345'])('rejects receipt total %s and preserves the saved buy', async (invalidTotal) => {
+    const database = app.get(DataSource);
+    const itemTypes = database.getRepository(ItemType);
+    const items = database.getRepository(Item);
+    const preset = await itemTypes.save({
+      name: `Invalid receipt test ${randomUUID()}`,
+      metal: 'silver',
+      weight: 1,
+      weight_unit: 'ozt',
+      purity: 0.999,
+    });
+
+    try {
+      const item = await items.save({ item_type: preset });
+      const buy = await database.getRepository(Transaction).save({
+        item, type: 'buy', quantity: 4, effective_date: '2026-11-02', total_paid: '100.00',
+      });
+      const http = request(app.getHttpServer());
+      const path = `/inventory/${item.id}/transactions`;
+      const rejected = await http.patch(`${path}/${buy.id}`).send({ total_paid: invalidTotal }).expect(400);
+      expect(rejected.body.message).toContain('Enter a nonnegative USD amount with at most two decimal places.');
+
+      const reload = await http.get(path).expect(200);
+      expect(reload.body.transactions[0]).toMatchObject({
+        id: buy.id, quantity: 4, effective_date: '2026-11-02', total_paid: '100.00',
+      });
+    } finally {
+      await items.delete({ item_type: { id: preset.id } });
+      await itemTypes.delete(preset.id);
+    }
+  });
+
   it('returns empty history without fetching prices for an empty stack', async () => {
     const transactions = app.get<Repository<Transaction>>(getRepositoryToken(Transaction));
     vi.spyOn(transactions, 'find').mockResolvedValueOnce([]);

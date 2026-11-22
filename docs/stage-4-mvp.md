@@ -30,7 +30,7 @@ Show each buy’s total paid, remaining quantity, cost of the remaining coins, c
 - [x] Save a buy with $100 paid and reload. It still shows $100. A blank amount shows as unknown, and an entered $0 stays $0.
 - [x] Open an older buy, add a cost, correct it, then clear it. Each change survives reload. Verified on the 2026-11-01 buy with quantity 2. After each reload, the total showed $80.21, then $80.25, then Unknown. Quantity and date stayed the same.
 - [x] Change a buy from 3 coins to 4. The $100 total stays in the editor and the reminder appears. Changing only the date leaves the total alone. Verified after reload on the Generic Silver Round buy: 4 coins and $100.00 persisted after the quantity edit and again after the date changed from 2026-11-01 to 2026-11-02.
-- [ ] Try saving a negative amount or an amount with more than two decimal places. The app explains the problem and keeps the last saved amount.
+- [x] Try saving a negative amount or an amount with more than two decimal places. The app explains the problem and keeps the last saved amount. Verified in the editor with `-1` and `12.345`. Each save returned HTTP 400, displayed the validation message, and left the Generic Silver Round buy at $100.00 after reload. The API integration test covers both cases.
 
 #### 2. Calculate remaining cost and gain/loss
 
