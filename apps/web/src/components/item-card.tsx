@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 
 import type { Item, Transaction } from '@/types/inventory.types';
 
+import { EditTransactionForm } from '@/components/edit-transaction-form';
+import { RecordSaleForm } from '@/components/record-sale-form';
 import { useTransactionMutations } from '@/hooks/use-transaction-mutations';
 import { fetchTransactions } from '@/lib/apis';
 import { calculateItemValue, formatUsd } from '@/lib/utils';
@@ -120,183 +122,29 @@ export const ItemCard = ({
             itemTransactionsQuery.data.transactions.map((transaction) => (
               <div key={transaction.id}>
                 {editingTransaction?.id === transaction.id ? (
-                  <form
-                    className="flex flex-col gap-2"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-
-                      if (isTransactionBusy) return;
-
-                      const data = new FormData(event.currentTarget);
-
-                      // Omit quantity from the PATCH unless the user changed it.
-                      const rawQuantity = Number(data.get('quantity'));
-                      let quantity: number | undefined;
-                      if (rawQuantity !== editingTransaction.quantity) {
-                        quantity = rawQuantity;
-                      }
-
-                      // Omit effective date from the PATCH unless the user changed it.
-                      const rawEffectiveDate = data.get('effective_date');
-                      let effectiveDate: string | undefined;
-                      if (
-                        typeof rawEffectiveDate === 'string' &&
-                        rawEffectiveDate !== editingTransaction.effective_date
-                      ) {
-                        effectiveDate = rawEffectiveDate;
-                      }
-
-                      // Leave totalPaid undefined to omit it from the PATCH when the field is absent or unchanged.
-                      // If the user clears a saved amount, send null so it shows as Unknown.
-                      const rawTotalPaid = data.get('total_paid');
-                      let totalPaid: string | null | undefined;
-                      if (typeof rawTotalPaid === 'string') {
-                        const trimmed = rawTotalPaid.trim();
-                        if (trimmed !== (editingTransaction.total_paid ?? '')) totalPaid = trimmed || null;
-                      }
-
-                      updateTransactionMutation.mutate({
-                        transactionId: transaction.id,
-                        body: {
-                          quantity,
-                          effective_date: effectiveDate,
-                          total_paid: totalPaid,
-                        },
-                      });
+                  <EditTransactionForm
+                    transaction={editingTransaction}
+                    disabled={isTransactionBusy}
+                    isSaving={updateTransactionMutation.isPending}
+                    errorMessage={updateTransactionMutation.error?.message}
+                    onSave={(body) => updateTransactionMutation.mutate({ transactionId: transaction.id, body })}
+                    onCancel={() => {
+                      setEditingTransaction(null);
+                      updateTransactionMutation.reset();
                     }}
-                  >
-                    <label htmlFor={`effective-date-${transaction.id}`}>Effective date:</label>
-                    <input
-                      id={`effective-date-${transaction.id}`}
-                      name="effective_date"
-                      type="date"
-                      defaultValue={editingTransaction.effective_date}
-                      required
-                      disabled={isTransactionBusy}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    />
-
-                    {transaction.type === 'buy' && (
-                      <>
-                        <label htmlFor={`total-paid-${transaction.id}`}>Total paid:</label>
-                        <input
-                          id={`total-paid-${transaction.id}`}
-                          name="total_paid"
-                          type="text"
-                          inputMode="decimal"
-                          defaultValue={editingTransaction.total_paid ?? ''}
-                          disabled={isTransactionBusy}
-                          className="w-full rounded-md border border-gray-300 px-3 py-2"
-                        />
-                      </>
-                    )}
-
-                    <label htmlFor={`quantity-${transaction.id}`}>Quantity:</label>
-                    <input
-                      id={`quantity-${transaction.id}`}
-                      name="quantity"
-                      type="number"
-                      defaultValue={editingTransaction.quantity}
-                      min="1"
-                      max="2147483647"
-                      step="1"
-                      required
-                      disabled={isTransactionBusy}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    />
-
-                    <div className="flex gap-3">
-                      <button
-                        type="submit"
-                        disabled={isTransactionBusy}
-                        className="text-blue-500 hover:cursor-pointer hover:underline"
-                      >
-                        {updateTransactionMutation.isPending ? 'Saving...' : 'Save'}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={isTransactionBusy}
-                        onClick={() => {
-                          setEditingTransaction(null);
-                          updateTransactionMutation.reset();
-                        }}
-                        className="text-red-500 hover:cursor-pointer hover:underline"
-                      >
-                        Cancel edit
-                      </button>
-                    </div>
-
-                    {updateTransactionMutation.isError && (
-                      <p role="alert" className="text-red-500">
-                        {updateTransactionMutation.error.message}
-                      </p>
-                    )}
-                  </form>
+                  />
                 ) : sellingTransactionId === transaction.id ? (
-                  <form
-                    className="flex flex-col gap-2"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      if (isTransactionBusy) return;
-                      const data = new FormData(event.currentTarget);
-                      saleMutation.mutate({
-                        buy_id: transaction.id,
-                        quantity: Number(data.get('quantity')),
-                        sale_date: String(data.get('sale_date')),
-                      });
+                  <RecordSaleForm
+                    transaction={transaction}
+                    disabled={isTransactionBusy}
+                    isSaving={saleMutation.isPending}
+                    errorMessage={saleMutation.error?.message}
+                    onSave={(payload) => saleMutation.mutate({ ...payload, buy_id: transaction.id })}
+                    onCancel={() => {
+                      setSellingTransactionId(null);
+                      saleMutation.reset();
                     }}
-                  >
-                    <p>Sell from buy on {transaction.effective_date}</p>
-                    <p>Available: {transaction.remaining_quantity}</p>
-                    <label htmlFor={`sale-quantity-${transaction.id}`}>Quantity to sell:</label>
-                    <input
-                      id={`sale-quantity-${transaction.id}`}
-                      name="quantity"
-                      type="number"
-                      defaultValue={1}
-                      min="1"
-                      max={transaction.remaining_quantity}
-                      step="1"
-                      required
-                      disabled={isTransactionBusy}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    />
-                    <label htmlFor={`sale-date-${transaction.id}`}>Sale date:</label>
-                    <input
-                      id={`sale-date-${transaction.id}`}
-                      name="sale_date"
-                      type="date"
-                      defaultValue={new Date().toISOString().slice(0, 10)}
-                      min={transaction.effective_date}
-                      max={new Date().toISOString().slice(0, 10)}
-                      required
-                      disabled={isTransactionBusy}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    />
-                    <button
-                      type="submit"
-                      disabled={isTransactionBusy}
-                      className="text-blue-500 hover:cursor-pointer hover:underline"
-                    >
-                      {saleMutation.isPending ? 'Saving...' : 'Save sale'}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isTransactionBusy}
-                      onClick={() => {
-                        setSellingTransactionId(null);
-                        saleMutation.reset();
-                      }}
-                      className="text-red-500 hover:cursor-pointer hover:underline"
-                    >
-                      Cancel sale
-                    </button>
-                    {saleMutation.isError && (
-                      <p role="alert" className="text-red-500">
-                        {saleMutation.error.message}
-                      </p>
-                    )}
-                  </form>
+                  />
                 ) : (
                   <>
                     <p>Type: {transaction.type}</p>
