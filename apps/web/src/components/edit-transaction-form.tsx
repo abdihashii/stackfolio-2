@@ -3,17 +3,21 @@ import type { SubmitEventHandler } from 'react';
 import type { updateTransaction } from '@/lib/apis';
 import type { Transaction } from '@/types/inventory.types';
 
+type TransactionChanges = Parameters<typeof updateTransaction>[2];
+
 type EditTransactionFormProps = {
   transaction: Transaction;
+  submittedChanges?: TransactionChanges;
   disabled: boolean;
   isSaving: boolean;
   errorMessage?: string;
-  onSave: (payload: Parameters<typeof updateTransaction>[2]) => void;
+  onSave: (payload: TransactionChanges) => void;
   onCancel: () => void;
 };
 
 export const EditTransactionForm = ({
   transaction,
+  submittedChanges,
   disabled,
   isSaving,
   errorMessage,
@@ -64,7 +68,7 @@ export const EditTransactionForm = ({
         id={`effective-date-${transaction.id}`}
         name="effective_date"
         type="date"
-        defaultValue={transaction.effective_date}
+        defaultValue={submittedChanges?.effective_date ?? transaction.effective_date}
         required
         disabled={disabled}
         className="w-full rounded-md border border-gray-300 px-3 py-2"
@@ -78,7 +82,9 @@ export const EditTransactionForm = ({
             name="total_paid"
             type="text"
             inputMode="decimal"
-            defaultValue={transaction.total_paid ?? ''}
+            defaultValue={
+              (submittedChanges?.total_paid === undefined ? transaction.total_paid : submittedChanges.total_paid) ?? ''
+            }
             disabled={disabled}
             className="w-full rounded-md border border-gray-300 px-3 py-2"
           />
@@ -90,7 +96,7 @@ export const EditTransactionForm = ({
         id={`quantity-${transaction.id}`}
         name="quantity"
         type="number"
-        defaultValue={transaction.quantity}
+        defaultValue={submittedChanges?.quantity ?? transaction.quantity}
         min="1"
         max="2147483647"
         step="1"

@@ -69,6 +69,11 @@ export const ItemTransactions = ({
             {editingTransaction?.id === transaction.id ? (
               <EditTransactionForm
                 transaction={editingTransaction}
+                submittedChanges={
+                  updateTransactionMutation.variables?.transactionId === editingTransaction.id
+                    ? updateTransactionMutation.variables.body
+                    : undefined
+                }
                 disabled={isTransactionBusy}
                 isSaving={updateTransactionMutation.isPending}
                 errorMessage={updateTransactionMutation.error?.message}
