@@ -1,17 +1,17 @@
 import { calculateBuySpotValue, calculateUnrealizedGain, formatUsd } from '@/lib/utils';
-import { Item, Transaction } from '@/types/inventory.types';
+import { ItemType, Transaction } from '@/types/inventory.types';
 
 export const BuyDetails = ({
   transaction,
   isTransactionBusy,
   onSell,
-  item,
+  itemType,
   spotPrice,
 }: {
   transaction: Transaction;
   isTransactionBusy: boolean;
   onSell: (transactionId: string | null) => void;
-  item: Item;
+  itemType: ItemType;
   spotPrice: number | undefined;
 }) => {
   const spotValue =
@@ -19,7 +19,7 @@ export const BuyDetails = ({
       ? '0'
       : spotPrice === undefined || transaction.remaining_quantity === undefined
         ? null
-        : calculateBuySpotValue(item, transaction.remaining_quantity, spotPrice);
+        : calculateBuySpotValue(itemType.weight_unit, itemType.weight, transaction.remaining_quantity, spotPrice);
   const unrealizedGain =
     transaction.remaining_quantity === 0
       ? '0'

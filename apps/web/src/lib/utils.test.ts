@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 
-import type { Item } from '../types/inventory.types';
+import type { ItemType } from '../types/inventory.types';
 
 import { calculateBuySpotValue, calculateStackUnrealizedGain, calculateUnrealizedGain, formatUsd } from './utils';
 
@@ -21,12 +21,16 @@ test.each([
 });
 
 test('buy spot value uses the remaining quantity', () => {
-  const item: Item = {
-    id: 'item', created_at: new Date(0), acquisition_date: null, quantity: 3,
-    item_type: { id: 'round', name: 'Silver round', metal: 'silver', weight: 1, weight_unit: 'ozt', purity: 1 },
+  const itemType: ItemType = {
+    id: 'round',
+    name: 'Silver round',
+    metal: 'silver',
+    weight: 1,
+    weight_unit: 'ozt',
+    purity: 1,
   };
-  expect(calculateBuySpotValue(item, 2, 40)).toBe('80');
-  const spot = calculateBuySpotValue(item, 3, 20.025);
+  expect(calculateBuySpotValue(itemType.weight_unit, itemType.weight, 2, 40)).toBe('80');
+  const spot = calculateBuySpotValue(itemType.weight_unit, itemType.weight, 3, 20.025);
   expect(spot).toBe('60.075');
   expect(calculateUnrealizedGain(spot, '60')).toBe('0.075');
 });

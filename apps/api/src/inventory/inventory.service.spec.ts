@@ -12,6 +12,7 @@ import { InventoryService } from './inventory.service.js';
 
 describe('InventoryService', () => {
   let service: InventoryService;
+  type TransactionCallback = (manager: unknown) => Promise<unknown>;
 
   const findMock = vi.fn().mockResolvedValue([]);
   const findAndCountMock = vi.fn().mockResolvedValue([[], 0]);
@@ -48,6 +49,9 @@ describe('InventoryService', () => {
     salesJoinMock.mockReset().mockReturnThis();
     salesWhereMock.mockReset().mockReturnThis();
     salesQueryBuilderMock.mockReset().mockReturnValue({
+      innerJoin: vi.fn().mockReturnThis(),
+      addGroupBy: vi.fn().mockReturnThis(),
+      getRawMany: getRawManyMock,
       leftJoin: salesJoinMock,
       addSelect: vi.fn().mockReturnThis(),
       groupBy: vi.fn().mockReturnThis(),
@@ -89,8 +93,10 @@ describe('InventoryService', () => {
         {
           provide: DataSource,
           useValue: {
-            transaction: async (callback: (manager: unknown) => Promise<unknown>) =>
-              callback({
+            transaction: async (...args: [TransactionCallback] | [string, TransactionCallback]) => {
+              if (args.length === 2) expect(args[0]).toBe('REPEATABLE READ');
+              const callback = args.length === 2 ? args[1] : args[0];
+              return callback({
                 getRepository: (entity: unknown) => {
                   if (entity === Item) return { findOneBy: vi.fn().mockResolvedValue({ id: 'item-id' }) };
                   if (entity === ItemType) return { findOne: vi.fn().mockResolvedValue({ id: 'type-id' }) };
@@ -102,7 +108,8 @@ describe('InventoryService', () => {
                     createQueryBuilder: salesQueryBuilderMock,
                   };
                 },
-              }),
+              });
+            },
           },
         },
         { provide: SpotPricesService, useValue: { getSpotPrices: getSpotPricesMock } },
@@ -163,13 +170,19 @@ describe('InventoryService', () => {
       prices: { gold: 4088.57, silver: 51.7925 },
     };
     getSpotPricesMock.mockResolvedValueOnce(quote);
-    getRawManyMock.mockResolvedValueOnce([
+    const buyBalances = [
+      { metal: 'silver', weight_unit: 'ozt', weight: 1, remaining_quantity: '12', remaining_purchase_cost: null },
+      { metal: 'gold', weight_unit: 'ozt', weight: 0.5, remaining_quantity: '1', remaining_purchase_cost: '1500' },
+    ];
+    getRawManyMock.mockResolvedValueOnce(buyBalances).mockResolvedValueOnce([
       { metal: 'silver', total_ozt: 12 },
       { metal: 'gold', total_ozt: 0.5 },
     ]);
 
     const result = await service.getValuation();
 
+    expect(result.buyBalances).toEqual(buyBalances);
+    expect(salesQueryBuilderMock.mock.calls).toEqual([['buy'], ['transaction']]);
     expect(result.totalValue).toBeCloseTo(2665.795, 6);
     expect(result.quote).toEqual(quote);
     expect(getSpotPricesMock).toHaveBeenCalledTimes(1);
@@ -180,6 +193,7 @@ describe('InventoryService', () => {
 
     expect(result).toEqual({
       totalValue: 0,
+      buyBalances: [],
       quote: {
         timestamp: '2026-01-01T00:00:00.000Z',
         currency: 'USD',

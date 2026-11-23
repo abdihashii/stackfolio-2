@@ -97,6 +97,13 @@ export const updateTransaction = async (
 
 export const fetchValuation = async (): Promise<{
   totalValue: number;
+  buyBalances: {
+    remaining_quantity: string;
+    remaining_purchase_cost: string | null;
+    metal: 'gold' | 'silver';
+    weight_unit: 'gram' | 'ozt';
+    weight: number;
+  }[];
   quote: { timestamp: string; currency: 'USD'; unit: 'toz'; prices: { gold: number; silver: number } };
 }> => {
   const res = await fetch(`${backendUrlPath}/inventory/valuation`, {

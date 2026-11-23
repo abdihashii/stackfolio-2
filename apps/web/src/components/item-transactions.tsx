@@ -123,7 +123,7 @@ export const ItemTransactions = ({
                     transaction={transaction}
                     isTransactionBusy={isTransactionBusy}
                     onSell={onSell}
-                    item={item}
+                    itemType={item.item_type}
                     spotPrice={spotPrice}
                   />
                 )}

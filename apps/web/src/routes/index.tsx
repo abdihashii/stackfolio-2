@@ -9,7 +9,7 @@ import { ItemCard } from '@/components/item-card';
 import { useCreateItem } from '@/hooks/use-create-item';
 import { useDeleteItem } from '@/hooks/use-delete-item';
 import { fetchHistory, fetchInventory, fetchItemTypes, fetchValuation } from '@/lib/apis';
-import { formatUsd } from '@/lib/utils';
+import { calculateBuySpotValue, calculateStackUnrealizedGain, formatUsd } from '@/lib/utils';
 import { HistoryRange } from '@/types/inventory.types';
 
 const pageSize = 12;
@@ -51,6 +51,25 @@ function Home() {
     }
   }, [inventoryQuery.isSuccess, page, totalPages]);
 
+  const stackUnrealizedGain = valuationQuery.isSuccess
+    ? calculateStackUnrealizedGain(
+        valuationQuery.data.buyBalances.map((buyBalance) => {
+          const spotPrice = valuationQuery.data.quote.prices[buyBalance.metal];
+
+          return {
+            remaining_quantity: Number(buyBalance.remaining_quantity),
+            remaining_purchase_cost: buyBalance.remaining_purchase_cost,
+            spotValue: calculateBuySpotValue(
+              buyBalance.weight_unit,
+              buyBalance.weight,
+              Number(buyBalance.remaining_quantity),
+              spotPrice,
+            ),
+          };
+        }),
+      )
+    : null;
+
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
       <h1 className="text-4xl font-bold">StackFolio 2</h1>
@@ -64,6 +83,16 @@ function Home() {
               ? valuationQuery.error.message
               : formatUsd(valuationQuery.data.totalValue)}
         </H2>
+        <p>
+          Unrealized gain/loss:{' '}
+          {valuationQuery.isPending
+            ? 'loading...'
+            : valuationQuery.isError
+              ? valuationQuery.error.message
+              : stackUnrealizedGain == null
+                ? 'Unavailable'
+                : formatUsd(stackUnrealizedGain)}
+        </p>
         <p className="text-gray-500">
           Based on weight, purity, quantity, and spot price. Actual resale value may differ.
         </p>

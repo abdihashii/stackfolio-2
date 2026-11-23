@@ -262,32 +262,74 @@ export class InventoryService {
 
   async getValuation(): Promise<{
     totalValue: number;
+    buyBalances: {
+      remaining_quantity: string;
+      remaining_purchase_cost: string | null;
+      metal: 'gold' | 'silver';
+      weight_unit: 'gram' | 'ozt';
+      weight: number;
+    }[];
     quote: { timestamp: string; currency: 'USD'; unit: 'toz'; prices: { gold: number; silver: number } };
   }> {
     const spotPrices = await this.spotPricesService.getSpotPrices();
-    const metalTotals = await this.transactionRepository
-      .createQueryBuilder('transaction')
-      .innerJoin('transaction.item', 'item')
-      .innerJoin('item.item_type', 'item_type')
-      .select('item_type.metal', 'metal')
-      .groupBy('item_type.metal')
-      .addSelect(
-        `SUM(CASE WHEN transaction.type = 'buy' THEN transaction.quantity ELSE -transaction.quantity END * CASE
-          WHEN item_type.weight_unit = 'gram'
-            THEN item_type.weight / 31.1034768
-          ELSE item_type.weight
-          END)`,
-        'total_ozt',
-      )
-      .getRawMany<{
-        metal: 'gold' | 'silver';
-        total_ozt: number;
-      }>();
-    const totalValue = metalTotals.reduce((acc, row) => acc + row.total_ozt * spotPrices.prices[row.metal], 0);
-    return {
-      totalValue,
-      quote: spotPrices,
-    };
+
+    return await this.dataSource.transaction('REPEATABLE READ', async (manager) => {
+      const transactionRepository = manager.getRepository(Transaction);
+
+      // Include every buy so stack gain/loss is correct even when the ledger is closed or paginated.
+      const buyBalances = await transactionRepository
+        .createQueryBuilder('buy')
+        .innerJoin('buy.item', 'item')
+        .innerJoin('item.item_type', 'item_type')
+        .leftJoin(Transaction, 'sale', 'sale.buy_id = buy.id AND sale.type = :saleType', { saleType: 'sell' })
+        .where('buy.type = :buyType', { buyType: 'buy' })
+        .select('buy.quantity - COALESCE(SUM(sale.quantity), 0)', 'remaining_quantity')
+        // Set a fractional scale before division so even large whole-dollar receipts retain sub-cent precision.
+        .addSelect(
+          'round(buy.total_paid, 32) * (buy.quantity - COALESCE(SUM(sale.quantity), 0)) / buy.quantity',
+          'remaining_purchase_cost',
+        )
+        .addSelect('item_type.metal', 'metal')
+        .addSelect('item_type.weight_unit', 'weight_unit')
+        .addSelect('item_type.weight', 'weight')
+        .groupBy('buy.id')
+        .addGroupBy('item_type.id')
+        .getRawMany<{
+          remaining_quantity: string;
+          remaining_purchase_cost: string | null;
+          metal: 'gold' | 'silver';
+          weight_unit: 'gram' | 'ozt';
+          weight: number;
+        }>();
+
+      // Stack Value includes all held metal, even when its purchase cost is unknown.
+      const metalTotals = await transactionRepository
+        .createQueryBuilder('transaction')
+        .innerJoin('transaction.item', 'item')
+        .innerJoin('item.item_type', 'item_type')
+        .select('item_type.metal', 'metal')
+        .groupBy('item_type.metal')
+        // Spot prices are per troy ounce, so convert any gram weights before summing buys minus sales.
+        .addSelect(
+          `SUM(CASE WHEN transaction.type = 'buy' THEN transaction.quantity ELSE -transaction.quantity END * CASE
+            WHEN item_type.weight_unit = 'gram'
+              THEN item_type.weight / 31.1034768
+            ELSE item_type.weight
+            END)`,
+          'total_ozt',
+        )
+        .getRawMany<{
+          metal: 'gold' | 'silver';
+          total_ozt: number;
+        }>();
+
+      const totalValue = metalTotals.reduce((acc, row) => acc + row.total_ozt * spotPrices.prices[row.metal], 0);
+      return {
+        totalValue,
+        buyBalances,
+        quote: spotPrices,
+      };
+    });
   }
 
   async recordSale(recordSaleDto: RecordSaleDto, itemId: string) {

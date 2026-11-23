@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js-light';
 
-import type { Item } from '../types/inventory.types';
+import type { Item, WeightUnit } from '../types/inventory.types';
 
 const gramsPerTroyOunce = 31.1034768;
 
@@ -32,9 +32,14 @@ export const calculateItemValue = ({ item_type, quantity }: Item, spotPrice: num
 // Two finite JS number inputs and an integer quantity require at most 44 significant digits for the product.
 const SpotDecimal = Decimal.clone({ precision: 64 });
 
-export const calculateBuySpotValue = ({ item_type }: Item, remainingQuantity: number, spotPrice: number): string => {
-  const value = new SpotDecimal(item_type.weight).times(remainingQuantity).times(spotPrice);
-  return (item_type.weight_unit === 'gram' ? value.div(gramsPerTroyOunce) : value).toFixed();
+export const calculateBuySpotValue = (
+  weight_unit: WeightUnit,
+  weight: number,
+  remainingQuantity: number,
+  spotPrice: number,
+): string => {
+  const value = new SpotDecimal(weight).times(remainingQuantity).times(spotPrice);
+  return (weight_unit === 'gram' ? value.div(gramsPerTroyOunce) : value).toFixed();
 };
 
 export const calculateUnrealizedGain = (spotValue: number | string, remainingPurchaseCost: string): string => {
