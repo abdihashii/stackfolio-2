@@ -36,7 +36,7 @@ function Home() {
     queryFn: () => fetchHistory(range),
   });
 
-  const { form, purchaseItemMutation, onCreateItem } = usePurchaseItem(inventoryQuery.isPending, setPage);
+  const { form, purchaseItemMutation, onPurchaseItem } = usePurchaseItem(inventoryQuery.isPending, setPage);
   const isBusyWithoutDelete = form.formState.isSubmitting || purchaseItemMutation.isPending || inventoryQuery.isPending;
   const { deleteItemMutation, onDeleteItem } = useDeleteItem(isBusyWithoutDelete);
 
@@ -263,7 +263,7 @@ function Home() {
         ) : (
           <Form
             form={form}
-            onSubmit={onCreateItem}
+            onSubmit={onPurchaseItem}
             purchasingItemError={purchaseItemMutation.error?.message ?? ''}
             isBusy={isBusy}
             itemTypes={itemTypesQuery.data}

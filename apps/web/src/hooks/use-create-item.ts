@@ -37,7 +37,7 @@ export const usePurchaseItem = (inventoryIsPending: boolean, setPage: React.Disp
     },
   });
 
-  const onCreateItem: SubmitHandler<BuyFormValues> = async (data) => {
+  const onPurchaseItem: SubmitHandler<BuyFormValues> = async (data) => {
     if (purchaseItemMutation.isPending || inventoryIsPending) return;
     try {
       await purchaseItemMutation.mutateAsync(data);
@@ -49,6 +49,6 @@ export const usePurchaseItem = (inventoryIsPending: boolean, setPage: React.Disp
   return {
     form,
     purchaseItemMutation,
-    onCreateItem,
+    onPurchaseItem,
   };
 };
