@@ -6,7 +6,7 @@ import { Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts';
 import { Form } from '@/components/form';
 import { ItemCard } from '@/components/item-card';
 import { H2 } from '@/components/ui/h2';
-import { useCreateItem } from '@/hooks/use-create-item';
+import { usePurchaseItem } from '@/hooks/use-create-item';
 import { useDeleteItem } from '@/hooks/use-delete-item';
 import { fetchHistory, fetchInventory, fetchItemTypes, fetchValuation } from '@/lib/apis';
 import { calculateBuySpotValue, calculateStackUnrealizedGain, formatUsd } from '@/lib/utils';
@@ -36,7 +36,7 @@ function Home() {
     queryFn: () => fetchHistory(range),
   });
 
-  const { form, createItemMutation, onCreateItem } = useCreateItem(inventoryQuery.isPending, setPage);
+  const { form, createItemMutation, onCreateItem } = usePurchaseItem(inventoryQuery.isPending, setPage);
   const isBusyWithoutDelete = form.formState.isSubmitting || createItemMutation.isPending || inventoryQuery.isPending;
   const { deleteItemMutation, onDeleteItem } = useDeleteItem(isBusyWithoutDelete);
 

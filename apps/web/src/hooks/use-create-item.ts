@@ -10,7 +10,7 @@ import type { BuyFormInput, BuyFormValues } from '@/types/form.schema';
 import { recordBuy } from '@/lib/apis';
 import { buySchema } from '@/types/form.schema';
 
-export const useCreateItem = (inventoryIsPending: boolean, setPage: React.Dispatch<React.SetStateAction<number>>) => {
+export const usePurchaseItem = (inventoryIsPending: boolean, setPage: React.Dispatch<React.SetStateAction<number>>) => {
   const queryClient = useQueryClient();
 
   const form = useForm<BuyFormInput, undefined, BuyFormValues>({
