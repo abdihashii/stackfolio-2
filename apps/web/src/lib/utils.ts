@@ -53,8 +53,7 @@ type BuyValuation = {
 export const calculateStackUnrealizedGain = (buys: BuyValuation[]) => {
   let total = '0';
   for (const buy of buys) {
-    // A fully sold buy contributes zero even if its cost or spot value is unknown.
-    if (buy.remaining_quantity === 0) continue;
+    if (buy.remaining_quantity === 0) continue; // A fully sold buy contributes zero even if its cost or spot value is unknown.
     if (buy.remaining_purchase_cost === null || buy.spotValue === null) return null;
 
     const gain = calculateUnrealizedGain(buy.spotValue, buy.remaining_purchase_cost);
