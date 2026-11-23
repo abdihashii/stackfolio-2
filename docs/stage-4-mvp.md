@@ -43,7 +43,7 @@ Show each buy’s total paid, remaining quantity, cost of the remaining coins, c
 
 - [x] Open a buy in the ledger. See what you paid, how many coins remain, what those coins cost, what they are worth today, and the gain or loss on them.
 - [x] See the whole-stack gain/loss beside Stack Value. A held buy with unknown cost still shows its spot value, and the dashboard shows that gain/loss is unavailable. Verified with 5 Canadian Silver Maple Leafs at $43.765/oz. The buy showed $218.83 in spot value with an unknown cost basis. The dashboard showed $831.54 for the stack and Unavailable for gain/loss.
-- [ ] With just the two remaining coins from the first example, correct the purchase total from $100 to $90. The ledger and dashboard both show a $20 gain after saving and reloading. Stack Value stays $80 and the history chart keeps the same values at the same quotes.
+- [x] With just the two remaining coins from the first example, correct the purchase total from $100 to $90. The ledger and dashboard both show a $20 gain after saving and reloading. Stack Value stays $80 and the history chart keeps the same values at the same quotes. The API and web integration tests verified the two-coin example. In the browser, lowering the Maple Leaf receipt by $10 raised both gains by $10 after save and reload. Stack Value stayed $432.73, and all 365 history points matched when the original cost was restored.
 
 **Stage gate:** Demonstrate the example and correction in the browser. Run workspace typecheck, lint, API tests, API end-to-end tests, and the web production build.
 
