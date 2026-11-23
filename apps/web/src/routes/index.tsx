@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { Form } from '@/components/form';
-import { H2 } from '@/components/h2';
 import { ItemCard } from '@/components/item-card';
+import { H2 } from '@/components/ui/h2';
 import { useCreateItem } from '@/hooks/use-create-item';
 import { useDeleteItem } from '@/hooks/use-delete-item';
 import { fetchHistory, fetchInventory, fetchItemTypes, fetchValuation } from '@/lib/apis';

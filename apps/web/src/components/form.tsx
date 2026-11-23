@@ -3,7 +3,7 @@ import type { SubmitHandler, UseFormReturn } from 'react-hook-form';
 import type { BuyFormInput, BuyFormValues } from '@/types/form.schema';
 import type { ItemType } from '@/types/inventory.types';
 
-import { H2 } from './h2';
+import { H2 } from './ui/h2';
 
 type FormProps = {
   form: UseFormReturn<BuyFormInput, undefined, BuyFormValues>;
