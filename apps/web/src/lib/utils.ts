@@ -8,10 +8,13 @@ export const gramsToTroyOunces = (gramWeightUnit: number) => {
   return gramWeightUnit / gramsPerTroyOunce;
 };
 
-export const formatUsd = (value: number | `${number}`) => {
+export const formatUsd = (value: number | string) => {
   if (typeof value === 'string') {
-    const [dollars, cents = ''] = value.split('.');
-    return `$${BigInt(dollars || '0').toLocaleString('en-US')}.${cents.padEnd(2, '0')}`;
+    const roundedAmount = new Decimal(value).toFixed(2, Decimal.ROUND_HALF_UP);
+    const [dollars, cents = ''] = roundedAmount.split('.');
+    const isNegative = dollars.startsWith('-');
+    const unsignedDollars = dollars.replace(/^-/, '');
+    return `${isNegative ? '-' : ''}$${BigInt(unsignedDollars || '0').toLocaleString('en-US')}.${cents.padEnd(2, '0')}`;
   }
   return Intl.NumberFormat('en-US', {
     style: 'currency',

@@ -99,7 +99,7 @@ export const ItemCard = ({
 
       {manageSectionState === 'transactions' && (
         <ItemTransactions
-          id={id}
+          item={item}
           transactionPage={transactionPage}
           editingTransaction={editingTransaction}
           sellingTransactionId={sellingTransactionId}
@@ -117,6 +117,7 @@ export const ItemCard = ({
             setEditingTransaction(null);
             setSellingTransactionId(transactionId);
           }}
+          spotPrice={spotPricesError ? undefined : spotPrice}
         />
       )}
 

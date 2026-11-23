@@ -27,6 +27,7 @@ export interface Item {
 }
 
 export const isReceiptAmount = (value: string): value is `${number}` => /^(?:\d+|\d*\.\d{1,2})$/.test(value);
+const isNonNegativeDecimalString = (value: string): value is `${number}` => /^\d+(?:\.\d+)?$/.test(value);
 
 const transactionSchema = z.object({
   id: z.string(),
@@ -36,7 +37,7 @@ const transactionSchema = z.object({
   quantity: z.number(),
   remaining_quantity: z.number().optional(),
   total_paid: z.string().refine(isReceiptAmount).nullable(),
-  remaining_purchase_cost: z.string().nullable().optional(),
+  remaining_purchase_cost: z.string().refine(isNonNegativeDecimalString).nullable().optional(),
 });
 export type Transaction = z.infer<typeof transactionSchema>;
 

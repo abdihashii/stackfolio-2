@@ -41,7 +41,7 @@ Show each buy’s total paid, remaining quantity, cost of the remaining coins, c
 
 #### 3. Show the ledger and stack total
 
-- [ ] Open a buy in the ledger. See what you paid, how many coins remain, what those coins cost, what they are worth today, and the gain or loss on them.
+- [x] Open a buy in the ledger. See what you paid, how many coins remain, what those coins cost, what they are worth today, and the gain or loss on them.
 - [ ] See the whole-stack gain/loss beside Stack Value. A held buy with unknown cost still shows its spot value, and the dashboard shows that gain/loss is unavailable.
 - [ ] With just the two remaining coins from the first example, correct the purchase total from $100 to $90. The ledger and dashboard both show a $20 gain after saving and reloading. Stack Value stays $80 and the history chart keeps the same values at the same quotes.
 

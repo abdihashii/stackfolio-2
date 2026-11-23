@@ -2,15 +2,16 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 import type { useTransactionMutations } from '@/hooks/use-transaction-mutations';
-import type { Transaction } from '@/types/inventory.types';
+import type { Item, Transaction } from '@/types/inventory.types';
 
 import { EditTransactionForm } from '@/components/edit-transaction-form';
 import { RecordSaleForm } from '@/components/record-sale-form';
 import { fetchTransactions } from '@/lib/apis';
-import { formatUsd } from '@/lib/utils';
+
+import { BuyDetails } from './buy-details';
 
 type ItemTransactionsProps = {
-  id: string;
+  item: Item;
   transactionPage: number;
   editingTransaction: Transaction | null;
   sellingTransactionId: string | null;
@@ -20,10 +21,11 @@ type ItemTransactionsProps = {
   onPageCorrection: (page: number) => void;
   onEdit: (transaction: Transaction | null) => void;
   onSell: (transactionId: string | null) => void;
+  spotPrice: number | undefined;
 };
 
 export const ItemTransactions = ({
-  id,
+  item,
   transactionPage,
   editingTransaction,
   sellingTransactionId,
@@ -33,10 +35,11 @@ export const ItemTransactions = ({
   onPageCorrection,
   onEdit,
   onSell,
+  spotPrice,
 }: ItemTransactionsProps) => {
   const itemTransactionsQuery = useQuery({
-    queryKey: ['itemTransactions', id, transactionPage],
-    queryFn: () => fetchTransactions(id, transactionPage),
+    queryKey: ['itemTransactions', item.id, transactionPage],
+    queryFn: () => fetchTransactions(item.id, transactionPage),
   });
   const transactionsTotal = itemTransactionsQuery.data?.total ?? 0;
   const totalTransactionPages = Math.max(1, Math.ceil(transactionsTotal / 2));
@@ -114,20 +117,17 @@ export const ItemTransactions = ({
                 >
                   delete
                 </button>
+
                 {transaction.type === 'buy' && (
-                  <>
-                    <button
-                      type="button"
-                      disabled={(transaction.remaining_quantity ?? 0) <= 0 || isTransactionBusy}
-                      className="ml-3 text-green-500 hover:cursor-pointer hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-                      onClick={() => onSell(transaction.id)}
-                    >
-                      {transaction.remaining_quantity === 0 ? 'fully sold' : 'sell'}
-                    </button>
-                    <p>Available: {transaction.remaining_quantity}</p>
-                    <p>Total paid: {transaction.total_paid == null ? 'Unknown' : formatUsd(transaction.total_paid)}</p>
-                  </>
+                  <BuyDetails
+                    transaction={transaction}
+                    isTransactionBusy={isTransactionBusy}
+                    onSell={onSell}
+                    item={item}
+                    spotPrice={spotPrice}
+                  />
                 )}
+
                 {deleteTransactionMutation.isError &&
                   deleteTransactionMutation.variables?.transactionId === transaction.id && (
                     <p role="alert" className="text-red-500">

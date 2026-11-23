@@ -1,7 +1,6 @@
 import { expect, test } from 'bun:test';
-import assert from 'node:assert/strict';
 
-import { isReceiptAmount, type Item } from '../types/inventory.types';
+import type { Item } from '../types/inventory.types';
 
 import { calculateBuySpotValue, calculateStackUnrealizedGain, calculateUnrealizedGain, formatUsd } from './utils';
 
@@ -10,9 +9,15 @@ test('currency formatting preserves the final cent of an exact receipt amount', 
   expect(formatUsd('100')).toBe('$100.00');
   expect(formatUsd('100000000000000.01')).toBe('$100,000,000,000,000.01');
   const largeReceipt = `1${'000'.repeat(103)}.01`;
-  assert(isReceiptAmount(largeReceipt));
   expect(formatUsd(largeReceipt)).toBe(`$1${',000'.repeat(103)}.01`);
   expect(formatUsd('.5')).toBe('$0.50');
+});
+
+test.each([
+  ['-0.25', '-$0.25'],
+  ['-1234.56', '-$1,234.56'],
+] as const)('formats a loss of %s as %s', (input, expected) => {
+  expect(formatUsd(input)).toBe(expected);
 });
 
 test('buy spot value uses the remaining quantity', () => {
@@ -27,7 +32,9 @@ test('buy spot value uses the remaining quantity', () => {
 });
 
 test('unrealized gain preserves a one-cent loss on a large receipt', () => {
-  expect(calculateUnrealizedGain(100_000_000_000_000, '100000000000000.01')).toBe('-0.01');
+  const loss = calculateUnrealizedGain(100_000_000_000_000, '100000000000000.01');
+  expect(loss).toBe('-0.01');
+  expect(formatUsd(loss)).toBe('-$0.01');
 });
 
 for (const field of ['remaining_purchase_cost', 'spotValue'] as const) {
