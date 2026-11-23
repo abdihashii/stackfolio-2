@@ -8,12 +8,12 @@ import { H2 } from './ui/h2';
 type FormProps = {
   form: UseFormReturn<BuyFormInput, undefined, BuyFormValues>;
   onSubmit: SubmitHandler<BuyFormValues>;
-  creatingItemError: string;
+  purchasingItemError: string;
   isBusy: boolean;
   itemTypes: ItemType[];
 };
 
-export const Form = ({ form, onSubmit, creatingItemError, isBusy, itemTypes }: FormProps) => {
+export const Form = ({ form, onSubmit, purchasingItemError, isBusy, itemTypes }: FormProps) => {
   const {
     handleSubmit,
     register,
@@ -120,7 +120,7 @@ export const Form = ({ form, onSubmit, creatingItemError, isBusy, itemTypes }: F
       </button>
 
       <p role="alert" aria-atomic="true">
-        {creatingItemError}
+        {purchasingItemError}
       </p>
     </form>
   );

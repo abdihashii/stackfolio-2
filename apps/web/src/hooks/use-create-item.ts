@@ -18,7 +18,7 @@ export const usePurchaseItem = (inventoryIsPending: boolean, setPage: React.Disp
     defaultValues: { quantity: 1, acquisition_date: null },
   });
 
-  const createItemMutation = useMutation({
+  const purchaseItemMutation = useMutation({
     mutationFn: recordBuy,
     onSuccess: async () => {
       form.reset();
@@ -38,9 +38,9 @@ export const usePurchaseItem = (inventoryIsPending: boolean, setPage: React.Disp
   });
 
   const onCreateItem: SubmitHandler<BuyFormValues> = async (data) => {
-    if (createItemMutation.isPending || inventoryIsPending) return;
+    if (purchaseItemMutation.isPending || inventoryIsPending) return;
     try {
-      await createItemMutation.mutateAsync(data);
+      await purchaseItemMutation.mutateAsync(data);
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Could not create item.');
     }
@@ -48,7 +48,7 @@ export const usePurchaseItem = (inventoryIsPending: boolean, setPage: React.Disp
 
   return {
     form,
-    createItemMutation,
+    purchaseItemMutation,
     onCreateItem,
   };
 };
