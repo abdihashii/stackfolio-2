@@ -47,4 +47,6 @@ Show each buy’s total paid, remaining quantity, cost of the remaining coins, c
 
 **Stage gate:** Demonstrate the example and correction in the browser. Run workspace typecheck, lint, API tests, API end-to-end tests, and the web production build.
 
+Passed in Chromium with the real API and an isolated Postgres schema. At $40/oz, the $100 buy showed a $13.33 gain after one sale. Saving the $90 receipt and reloading both showed $20.00 in the ledger and dashboard. Stack Value stayed $80.00 and the two chart tooltips stayed at $120.00 and $80.00. Workspace typecheck, lint, all 140 tests, and the web production build passed.
+
 **Outside Stage 4:** Sale proceeds, realized gain/loss, tax reporting, and historical gain/loss charts.
