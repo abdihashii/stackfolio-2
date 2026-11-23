@@ -42,7 +42,7 @@ export const usePurchaseItem = (inventoryIsPending: boolean, setPage: React.Disp
     try {
       await purchaseItemMutation.mutateAsync(data);
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Could not create item.');
+      alert(error instanceof Error ? error.message : 'Could not purchase item.');
     }
   };
 
