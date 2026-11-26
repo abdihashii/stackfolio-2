@@ -62,7 +62,12 @@ export function calculateDailyStackValues(
   startDate: string,
   endDate: string,
   prices: HistoricalSpotPrice[],
-): { date: string; totalValue: number | null; quoteTimestamps: { gold?: number; silver?: number } }[] {
+): {
+  date: string;
+  totalValue: number | null;
+  costBasis: string | null;
+  quoteTimestamps: { gold?: number; silver?: number };
+}[] {
   const currentDay = new Date(startDate);
   const endDay = new Date(endDate);
 
@@ -77,6 +82,7 @@ export function calculateDailyStackValues(
   const dailyStackValues: {
     date: string;
     totalValue: number | null;
+    costBasis: string | null;
     quoteTimestamps: { gold?: number; silver?: number };
   }[] = [];
 
@@ -105,10 +111,21 @@ export function calculateDailyStackValues(
     }
 
     const totalValue = calculateHistoricalValue(transactions, date, latestPrices);
+    const costBasis = transactions
+      .filter((transaction) => transaction.type === 'buy' && transaction.effective_date <= date)
+      .map((buy) => {
+        if (buy.total_paid == null) return null;
+
+        const [dollars, fraction = ''] = buy.total_paid.split('.');
+        const cents = fraction.padEnd(2, '0');
+        return BigInt(dollars + cents);
+      })
+      .reduce((total, currentBuy) => (total == null || currentBuy == null ? null : total + currentBuy), 0n);
 
     dailyStackValues.push({
       date,
       totalValue,
+      costBasis: costBasis == null ? null : `${costBasis / 100n}.${String(costBasis % 100n).padStart(2, '0')}`,
       quoteTimestamps: { ...quoteTimestamps },
     });
 

@@ -56,15 +56,14 @@ it('persists a corrected cost in ledger and valuation while preserving fixed-quo
         expect(valuation.totalValue - Number(row.remaining_purchase_cost)).toBeCloseTo(gain, 2);
       }
       const { body: history } = await http.get('/inventory/history?range=ALL').expect(200);
-      return history.points;
+      expect(history.points).toMatchObject([
+        { date: bought, totalValue: 120, costBasis: receipt, quoteTimestamps: { silver: timestamp } },
+        { date: sold, totalValue: 80, quoteTimestamps: { silver: timestamp } },
+      ]);
     };
-    const baseline = await verify('100.00', 13.33);
-    expect(baseline).toEqual([
-      { date: bought, totalValue: 120, quoteTimestamps: { silver: timestamp } },
-      { date: sold, totalValue: 80, quoteTimestamps: { silver: timestamp } },
-    ]);
+    await verify('100.00', 13.33);
     await http.patch(ledger + '/' + buyId).send({ total_paid: '90.00' }).expect(200);
-    expect(await verify('90.00', 20)).toEqual(baseline);
+    await verify('90.00', 20);
   } finally {
     try {
       await db.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);

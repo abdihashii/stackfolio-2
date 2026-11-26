@@ -405,22 +405,22 @@ describe('calculateDailyStackValues', () => {
     const prices = [{ ts, silver: 30 }];
 
     expect(calculateDailyStackValues([buy], '2026-01-01', '2026-01-02', prices)).toEqual([
-      { date: '2026-01-01', totalValue: 60, quoteTimestamps: { silver: ts } },
-      { date: '2026-01-02', totalValue: 60, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-01', totalValue: 60, costBasis: null, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-02', totalValue: 60, costBasis: null, quoteTimestamps: { silver: ts } },
     ]);
 
     buy.quantity = 3;
 
     expect(calculateDailyStackValues([buy], '2026-01-01', '2026-01-02', prices)).toEqual([
-      { date: '2026-01-01', totalValue: 90, quoteTimestamps: { silver: ts } },
-      { date: '2026-01-02', totalValue: 90, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-01', totalValue: 90, costBasis: null, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-02', totalValue: 90, costBasis: null, quoteTimestamps: { silver: ts } },
     ]);
 
     buy.effective_date = '2026-01-02';
 
     expect(calculateDailyStackValues([buy], '2026-01-01', '2026-01-02', prices)).toEqual([
-      { date: '2026-01-01', totalValue: 0, quoteTimestamps: { silver: ts } },
-      { date: '2026-01-02', totalValue: 90, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-01', totalValue: 0, costBasis: '0.00', quoteTimestamps: { silver: ts } },
+      { date: '2026-01-02', totalValue: 90, costBasis: null, quoteTimestamps: { silver: ts } },
     ]);
   });
 
@@ -451,9 +451,9 @@ describe('calculateDailyStackValues', () => {
     const ts = Date.parse('2024-02-28T12:00:00Z') / 1_000;
 
     expect(calculateDailyStackValues([buy], '2024-02-28', '2024-03-01', [{ ts, silver: 30 }])).toEqual([
-      { date: '2024-02-28', totalValue: 60, quoteTimestamps: { silver: ts } },
-      { date: '2024-02-29', totalValue: 60, quoteTimestamps: { silver: ts } },
-      { date: '2024-03-01', totalValue: 60, quoteTimestamps: { silver: ts } },
+      { date: '2024-02-28', totalValue: 60, costBasis: null, quoteTimestamps: { silver: ts } },
+      { date: '2024-02-29', totalValue: 60, costBasis: null, quoteTimestamps: { silver: ts } },
+      { date: '2024-03-01', totalValue: 60, costBasis: null, quoteTimestamps: { silver: ts } },
     ]);
   });
 
@@ -476,22 +476,24 @@ describe('calculateDailyStackValues', () => {
       created_at: new Date('2025-12-30T00:00:00Z'),
       effective_date: '2025-12-30',
       type: 'buy',
-      quantity: 2,
-      total_paid: null,
+      quantity: 1,
+      total_paid: '35.00',
       item,
       buy: null,
     };
     const ts = Date.parse('2026-01-01T12:00:00Z') / 1_000;
+    const jan6 = Date.parse('2026-01-06T12:00:00Z') / 1_000;
     const olderTs = Date.parse('2025-12-31T12:00:00Z') / 1_000;
 
     expect(
       calculateDailyStackValues([buy], '2026-01-05', '2026-01-06', [
-        { ts, silver: 30 },
+        { ts, silver: 40 },
         { ts: olderTs, silver: 25 },
+        { ts: jan6, silver: 42 },
       ]),
     ).toEqual([
-      { date: '2026-01-05', totalValue: 60, quoteTimestamps: { silver: ts } },
-      { date: '2026-01-06', totalValue: 60, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-05', totalValue: 40, costBasis: '35.00', quoteTimestamps: { silver: ts } },
+      { date: '2026-01-06', totalValue: 42, costBasis: '35.00', quoteTimestamps: { silver: jan6 } },
     ]);
   });
 
@@ -544,11 +546,13 @@ describe('calculateDailyStackValues', () => {
       {
         date: '2026-01-01',
         totalValue: 3030,
+        costBasis: null,
         quoteTimestamps: { gold: firstTs, silver: firstTs },
       },
       {
         date: '2026-01-02',
         totalValue: 3130,
+        costBasis: null,
         quoteTimestamps: { gold: secondTs, silver: firstTs },
       },
     ]);
@@ -581,10 +585,10 @@ describe('calculateDailyStackValues', () => {
     const ts = Date.parse('2026-01-01T12:00:00Z') / 1_000;
 
     expect(calculateDailyStackValues([buy], '2025-12-31', '2026-01-03', [{ ts, silver: 30 }])).toEqual([
-      { date: '2025-12-31', totalValue: null, quoteTimestamps: {} },
-      { date: '2026-01-01', totalValue: 60, quoteTimestamps: { silver: ts } },
-      { date: '2026-01-02', totalValue: 60, quoteTimestamps: { silver: ts } },
-      { date: '2026-01-03', totalValue: 60, quoteTimestamps: { silver: ts } },
+      { date: '2025-12-31', totalValue: null, costBasis: null, quoteTimestamps: {} },
+      { date: '2026-01-01', totalValue: 60, costBasis: null, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-02', totalValue: 60, costBasis: null, quoteTimestamps: { silver: ts } },
+      { date: '2026-01-03', totalValue: 60, costBasis: null, quoteTimestamps: { silver: ts } },
     ]);
   });
 });

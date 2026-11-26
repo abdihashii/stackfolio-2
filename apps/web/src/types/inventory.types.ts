@@ -51,6 +51,7 @@ export interface HistoryResponse {
   points: {
     date: string;
     totalValue: number | null;
+    costBasis: string | null;
     quoteTimestamps: {
       gold?: number;
       silver?: number;

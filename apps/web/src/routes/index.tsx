@@ -20,7 +20,7 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   const [page, setPage] = useState(1);
-  const [range, setRange] = useState<HistoryRange>('ALL');
+  const [range, setRange] = useState<HistoryRange>('30D');
 
   const inventoryQuery = useQuery({
     queryKey: ['inventory', page, pageSize],
@@ -159,6 +159,7 @@ function Home() {
             <XAxis dataKey="date" />
             <YAxis width="auto" tickFormatter={(value) => `$${value}`} />
             <Line dataKey="totalValue" type="linear" />
+            <Line dataKey={(point) => (point.costBasis === null ? null : Number(point.costBasis))} type="stepAfter" />
             <Tooltip
               filterNull={false}
               content={({ active, label }) => {
@@ -171,6 +172,7 @@ function Home() {
                   <div role="status" className="rounded border border-gray-300 bg-white p-2 text-sm">
                     <p className="font-semibold">{point.date}</p>
                     <p>Stack value: {point.totalValue === null ? 'Unavailable' : formatUsd(point.totalValue)}</p>
+                    <p>Cost basis: {point.costBasis === null ? 'Unavailable' : formatUsd(point.costBasis)}</p>
                     {(['gold', 'silver'] as const).map((metal) => {
                       const timestamp = point.quoteTimestamps[metal];
                       if (timestamp === undefined) return null;

@@ -2,9 +2,18 @@ import '../setup-dom';
 import { expect, spyOn, test } from 'bun:test';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, waitFor, within } from '@testing-library/react';
 
 import { Route } from '../../src/routes/index';
+import type { HistoryResponse } from '../../src/types/inventory.types';
+
+function mockChartBounds() {
+  // Happy DOM has no layout. Give the responsive chart a measurable viewport.
+  const measure = HTMLElement.prototype.getBoundingClientRect;
+  return spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('recharts-wrapper') ? new DOMRect(0, 0, 800, 280) : measure.call(this);
+  });
+}
 
 test('purchase correction updates both gains after save and a fresh mount', async () => {
   const bought = '2026-11-22';
@@ -44,16 +53,21 @@ test('purchase correction updates both gains after save and a fresh mount', asyn
       });
     if (path === '/inventory/valuation')
       return Response.json({ quote, totalValue: 80, buyBalances: [{ ...type, ...balance }] });
-    if (path === '/inventory/history?range=ALL') return Response.json({ range: 'ALL', currency: 'USD', points });
+    if (path === '/inventory/history?range=30D') return Response.json({ range: '30D', currency: 'USD', points: [] });
+    if (path === '/inventory/history?range=ALL')
+      return Response.json({
+        range: 'ALL',
+        currency: 'USD',
+        points: points.map((point) => ({
+          ...point,
+          costBasis: point.date === bought ? paid : balance.remaining_purchase_cost,
+        })) satisfies HistoryResponse['points'],
+      });
     if (path === '/inventory?page=1&limit=12') return Response.json({ inventory: [item], total: 1 });
     if (path === '/item-types') return Response.json([type]);
     throw new Error('Unexpected request ' + path);
   });
-  // Happy DOM has no layout. Give the responsive chart a measurable viewport.
-  const measure = HTMLElement.prototype.getBoundingClientRect;
-  const bounds = spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
-    return this.classList.contains('recharts-wrapper') ? new DOMRect(0, 0, 800, 280) : measure.call(this);
-  });
+  const bounds = mockChartBounds();
   const Home = Route.options.component!;
   const mount = async () => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -62,6 +76,8 @@ test('purchase correction updates both gains after save and a fresh mount', asyn
         <Home />
       </QueryClientProvider>,
     );
+    expect((view.getByRole('radio', { name: '30D' }) as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(view.getByRole('radio', { name: 'All' }));
     fireEvent.click(await view.findByRole('button', { name: 'manage' }));
     fireEvent.click(view.getByRole('button', { name: 'edit transactions' }));
     return { client, view };
@@ -71,7 +87,7 @@ test('purchase correction updates both gains after save and a fresh mount', asyn
     expect(view.getByText('Total Stack Value: $80.00')).toBeDefined();
     const chart = view.getByRole('application');
     await waitFor(() => {
-      const dots = chart.querySelectorAll('.recharts-line-dot');
+      const dots = chart.querySelectorAll('.recharts-line-dots')[0]!.querySelectorAll('.recharts-line-dot');
       expect(dots).toHaveLength(points.length);
       const tick = (label: string) => view.getByText(label, { selector: 'tspan' }).parentElement!;
       const zeroY = Number(tick('$0').getAttribute('y'));
@@ -98,6 +114,45 @@ test('purchase correction updates both gains after save and a fresh mount', asyn
   } finally {
     cleanup();
     fetchSpy.mockRestore();
+    bounds.mockRestore();
+  }
+});
+
+test('selecting Jan 6 highlights both points and shows stack value and cost basis in one tooltip', async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } });
+  client.setQueryData(['inventory', 1, 12], { inventory: [], total: 0 });
+  client.setQueryData(['itemTypes'], []);
+  client.setQueryData(['valuation'], { totalValue: 42, buyBalances: [] });
+  client.setQueryData(['history', '30D'], {
+    currency: 'USD',
+    range: '30D',
+    points: [
+      { date: '2026-01-05', totalValue: 40, costBasis: '35.00', quoteTimestamps: { silver: 1767571200 } },
+      { date: '2026-01-06', totalValue: 42, costBasis: '35.00', quoteTimestamps: { silver: 1767657600 } },
+    ],
+  });
+  const bounds = mockChartBounds();
+  const Home = Route.options.component!;
+  try {
+    const view = render(<QueryClientProvider client={client}><Home /></QueryClientProvider>);
+    const chart = view.getByRole('application');
+    await waitFor(() => expect(chart.querySelectorAll('.recharts-line-dot')).toHaveLength(4));
+    fireEvent.focus(chart);
+    await view.findByText('2026-01-05', { selector: 'p' });
+    fireEvent.keyDown(chart, { key: 'ArrowRight' });
+    await waitFor(() => {
+      const tooltip = within(view.getByRole('status'));
+      expect(tooltip.getByText('2026-01-06')).toBeDefined();
+      expect(tooltip.getByText('Stack value: $42.00')).toBeDefined();
+      expect(tooltip.getByText('Cost basis: $35.00')).toBeDefined();
+      const markers = chart.querySelectorAll('.recharts-active-dot circle');
+      expect(markers).toHaveLength(2);
+      expect(markers[0].getAttribute('cx')).toBe(markers[1].getAttribute('cx'));
+      expect(markers[0].getAttribute('cy')).not.toBe(markers[1].getAttribute('cy'));
+    });
+  } finally {
+    cleanup();
+    client.clear();
     bounds.mockRestore();
   }
 });
