@@ -18,7 +18,7 @@
 #### 1. Compare spot value and known purchase costs
 
 - [x] Buy one one-ounce coin on Jan 5, 2026 for $35. With spot at $40 on Jan 5 and $42 on Jan 6, select Jan 6. One tooltip shows Stack Value $42 and Cost basis $35, with a point on each line.
-- [ ] Buy a second one-ounce coin for $38 on Jan 7. The basis line stays at $35 through Jan 6 and steps to $73 on Jan 7. The Jan 7 tooltip shows $73 for basis.
+- [x] Buy a second one-ounce coin for $38 on Jan 7. The basis line stays at $35 through Jan 6 and steps to $73 on Jan 7. The Jan 7 tooltip shows $73 for basis.
 - [ ] Set today to Mar 1, 2026 UTC and open 30D. Its first visible date, Jan 31, shows $73 of basis even though both buys predate the range. Select Jan 31 in 1Y and All and verify the same Stack Value and cost basis in all three tooltips.
 
 #### 2. Show unknown costs and fill the gap after a correction
